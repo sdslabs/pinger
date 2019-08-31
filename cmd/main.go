@@ -17,7 +17,8 @@ func main() {
 func init() {
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.DebugLevel)
-	log.SetFormatter(&log.JSONFormatter{})
 
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(agentCmd)
+	rootCmd.AddCommand(serverCmd)
 }

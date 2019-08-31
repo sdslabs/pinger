@@ -20,12 +20,12 @@ var Info = map[string]string{
 	"goVersion": GoVersion,
 }
 
-var VersionStr = `\
-	****************** Beast ******************
-	    Version    : %s
-	    Revision   : %s
-	    Branch     : %s
-	    Build-User : %s
-	    Build-Date : %s
-	    Go-Version : %s
-	*******************************************`
+var VersionStr = `************** Status Page ****************
+	Version    : %s
+	Revision   : %s
+	Branch     : %s
+	Build-User : %s
+	Build-Date : %s
+	Go-Version : %s
+*******************************************
+`
