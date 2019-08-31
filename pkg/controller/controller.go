@@ -232,9 +232,9 @@ func (c *Controller) RunController() {
 			c.getLogger().Debug("Controller func execution time: ", c.lastDuration)
 
 			if err != nil {
-				c.getLogger().WithField(fieldConsecutiveErrors, errorRetries).
-					WithError(err).Debug("Controller run failed")
 				c.recordError(err)
+				c.getLogger().WithField(fieldConsecutiveErrors, c.consecutiveErrors).
+					WithError(err).Debug("Controller run failed")
 
 				if !internal.NoErrorRetry && c.internal.RetryBackOff {
 					if internal.ErrorRetryBaseDuration != time.Duration(0) {
