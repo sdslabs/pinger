@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package proto;
+
+// Metadata for a Check.
+message Check {
+    // Each component of a check has two things associated with it.
+    // First the type of the value and second the value of the component.
+    message Component {
+        string Type = 1;
+        string Value = 2;
+    }
+
+    Component input = 1;
+    Component target = 2;
+    Component output = 3;
+
+    message Payloads {
+        string payload_type = 1;
+        string payload = 2;
+    }
+
+    repeated Payloads payloads = 4;
+
+    // Both the interval and the timeout values are in 
+    // seconds.
+    int64 interval = 5;
+    int64 timeout = 6;
+
+    string name = 7;
+}
+
+// This is the data structure storing the stats returned by
+// Manager.
+message ManagerStats {
+    message ControllerConfigurationStatus {
+        bool error_retry = 1;
+        bool should_back_off = 2;
+
+        string interval = 3;
+    }
+
+    message ControllerRunStatus {
+        int64 success_count = 1;
+        int64 failure_count = 2;
+        int64 consec_failure_count = 3;
+
+        string last_success_time = 4;
+        string last_failure_time = 5;
+    }
+
+    message ControllerStatus {
+        string name = 1;
+
+        ControllerConfigurationStatus config_status = 2;
+        ControllerRunStatus run_status = 3;
+    }
+
+    repeated ControllerStatus controller_status = 1;
+}
+
+// This is to check if the pushed check is consumed by the agent 
+// or not.
+message PushStatus {
+    bool Pushed = 1;
+    string Reason = 2;
+}
+
+message None {}
+
+service AgentService {
+    // Pushes a check to the agent service to be processed and managed
+    rpc PushCheck(Check) returns (PushStatus) {}
+
+    // Returns the status of manager managing the controllers corresponding to
+    // the checks.
+    rpc GetManagerStats(None) returns (ManagerStats) {}
+}

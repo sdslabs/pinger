@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sdslabs/status/pkg/defaults"
 	"github.com/sirupsen/logrus"
 )
 
@@ -213,7 +214,7 @@ func (c *Controller) RunController() {
 	runFunc := true
 
 	// Default Run Interval for a controller.
-	interval := 10 * time.Minute
+	interval := defaults.ControllerRetryInterval
 
 	for {
 		var err error
@@ -231,9 +232,9 @@ func (c *Controller) RunController() {
 			c.getLogger().Debug("Controller func execution time: ", c.lastDuration)
 
 			if err != nil {
-				c.getLogger().WithField(fieldConsecutiveErrors, errorRetries).
-					WithError(err).Debug("Controller run failed")
 				c.recordError(err)
+				c.getLogger().WithField(fieldConsecutiveErrors, c.consecutiveErrors).
+					WithError(err).Debug("Controller run failed")
 
 				if !internal.NoErrorRetry && c.internal.RetryBackOff {
 					if internal.ErrorRetryBaseDuration != time.Duration(0) {
@@ -258,7 +259,7 @@ func (c *Controller) RunController() {
 					// the next update.
 					c.getLogger().Debug("Controller run succeeded; waiting for next controller update or stop")
 					runFunc = false
-					interval = 10 * time.Minute
+					interval = defaults.ControllerRetryInterval
 				}
 			}
 
@@ -371,7 +372,7 @@ type ControllerRunStatus struct {
 }
 
 // Returns the current status of the controller.
-func (c *Controller) status() *ControllerStatus {
+func (c *Controller) Status() *ControllerStatus {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
