@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"time"
-	"sync"
 	"context"
-	"reflect"
 	"fmt"
+	"reflect"
+	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -56,10 +56,16 @@ func (cf *ControllerFunction) Run(ctx context.Context) error {
 	// as we have already validated it before adding the ControllerFunction.
 	// This will panic if the ControllerFunction is not validated.
 	values := function.Call(params)
+	if len(values) != 1 {
+		return fmt.Errorf("Error in the return value of the controller function.")
+	}
 
-	return reflect.ValueOf(values[0]).Interface().(error)
+	elem := values[0].Elem()
+	if !elem.IsValid() {
+		return nil
+	}
+	return elem.Interface().(error)
 }
-
 
 // Returns an instance of a new controller function.
 func NewControllerFunction(function Function, params ...FuncParam) (*ControllerFunction, error) {
@@ -70,12 +76,12 @@ func NewControllerFunction(function Function, params ...FuncParam) (*ControllerF
 	funcType := reflect.TypeOf(function)
 
 	cf := &ControllerFunction{
-		name:     funcType.Name(),
+		name: funcType.Name(),
 
 		Function: function,
-		Params:   params[1:],
+		Params:   params,
 	}
-	
+
 	return cf, nil
 
 }
@@ -112,13 +118,13 @@ func validateNewControllerParams(function Function, params ...FuncParam) error {
 
 	// First parameter to the function is the context and is not provided
 	// while registering the function.
-	if funcType.NumIn() != len(params) + 1 {
-		return fmt.Errorf("Parameters not valid required %d given %d", funcType.NumIn() - 1, len(params))
+	if funcType.NumIn() != len(params)+1 {
+		return fmt.Errorf("Parameters not valid required %d given %d", funcType.NumIn()-1, len(params))
 	}
 
 	for i, param := range params {
 		// There is an offset of 1 here as the context is not provided
-		// while creating a new ControllerFunction but is rather provided 
+		// while creating a new ControllerFunction but is rather provided
 		// when running the function.
 		typ := funcType.In(i + 1)
 		if typ != reflect.TypeOf(param) {
@@ -168,34 +174,34 @@ type ControllerInternal struct {
 // which is specified in `controller.internal`
 type Controller struct {
 	// Mutex for the controller to hold locks.
-	mutex             sync.RWMutex
-	
-	// Name of the controller, used by manager.
-	name              string
-	
-	internal          ControllerInternal
-	successCount      int
-	failureCount      int
+	mutex sync.RWMutex
 
-	lastSuccessStamp  time.Time
-	lastErrorStamp    time.Time
-	
+	// Name of the controller, used by manager.
+	name string
+
+	internal     ControllerInternal
+	successCount int
+	failureCount int
+
+	lastSuccessStamp time.Time
+	lastErrorStamp   time.Time
+
 	consecutiveErrors int
 	lastError         error
 	lastDuration      time.Duration
 
-	stop              chan struct{}
-	update            chan struct{}
+	stop   chan struct{}
+	update chan struct{}
 
-	ctxDoFunc         context.Context
-	cancelDoFunc      context.CancelFunc
+	ctxDoFunc    context.Context
+	cancelDoFunc context.CancelFunc
 
 	// terminated is closed after the controller has been terminated
 	terminated chan struct{}
 }
 
 // Start running the controller.
-// TODO: improve this, currently it waits for the current request to finish and then waits for 
+// TODO: improve this, currently it waits for the current request to finish and then waits for
 // interval duration to run the function again. This is not a constant interval check we are
 // looking for, so wrap the runFunc inside a goroutine.
 func (c *Controller) RunController() {
@@ -215,7 +221,7 @@ func (c *Controller) RunController() {
 			interval = internal.RunInterval
 
 			start := time.Now()
-			
+
 			// Run the function.
 			err = internal.DoFunc.Run(c.ctxDoFunc)
 			duration := time.Since(start)
@@ -302,10 +308,11 @@ shutdown:
 // updateParamsLocked sets the specified controller's parameters.
 //
 // If the RunInterval exceeds ControllerMaxInterval, it will be capped.
-func (c *Controller) updateController(internal ControllerInternal) {
+func (c *Controller) updateController(internal ControllerInternal, notify bool) {
 	c.internal = internal
-
-	c.update <- struct{}{}
+	if notify {
+		c.update <- struct{}{}
+	}
 }
 
 func (c *Controller) stopController() {
@@ -317,9 +324,9 @@ func (c *Controller) stopController() {
 	close(c.update)
 }
 
-// logger returns a logrus object with controllerName and UUID fields.
+// logger returns a logrus object with controllerName
 func (c *Controller) getLogger() *logrus.Entry {
-	return c.getLogger().WithFields(logrus.Fields{
+	return logrus.WithFields(logrus.Fields{
 		fieldControllerName: c.name,
 	})
 }
@@ -343,23 +350,23 @@ func (c *Controller) recordSuccess() {
 }
 
 type ControllerStatus struct {
-	Name string
+	Name          string
 	Configuration *ControllerConfigurationStatus
 
 	Status *ControllerRunStatus
 }
 
 type ControllerConfigurationStatus struct {
-	ErrorRetry bool
+	ErrorRetry    bool
 	ShouldBackOff bool
-	Interval string
+	Interval      string
 }
 
 type ControllerRunStatus struct {
-	SuccessCount int64
-	LastSuccessStamp string
-	FailureCount int64
-	LastFailureStamp string
+	SuccessCount            int64
+	LastSuccessStamp        string
+	FailureCount            int64
+	LastFailureStamp        string
 	ConsecutiveFailureCount int64
 }
 
@@ -372,16 +379,16 @@ func (c *Controller) status() *ControllerStatus {
 		Name: c.name,
 
 		Configuration: &ControllerConfigurationStatus{
-			ErrorRetry: !c.internal.NoErrorRetry,
+			ErrorRetry:    !c.internal.NoErrorRetry,
 			ShouldBackOff: !c.internal.RetryBackOff,
-			Interval: c.internal.RunInterval.String(),
+			Interval:      c.internal.RunInterval.String(),
 		},
 		Status: &ControllerRunStatus{
-			SuccessCount: int64(c.successCount),
-			FailureCount: int64(c.failureCount),
+			SuccessCount:            int64(c.successCount),
+			FailureCount:            int64(c.failureCount),
 			ConsecutiveFailureCount: int64(c.consecutiveErrors),
-			LastSuccessStamp: c.lastSuccessStamp.String(),
-			LastFailureStamp: c.lastErrorStamp.String(),
+			LastSuccessStamp:        c.lastSuccessStamp.String(),
+			LastFailureStamp:        c.lastErrorStamp.String(),
 		},
 	}
 }

@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"sync"
-	"time"
 	"context"
 	"fmt"
+	"sync"
+	"time"
 )
 
 // A ControllerMap is the map of a controller name with the underlying Controller.
@@ -13,14 +13,17 @@ type ControllerMap map[string]*Controller
 // Manager manages a ControllerMap and perform actions on it.
 type Manager struct {
 	controllers ControllerMap
-	
-	mutex sync.RWMutex
+
+	terminate chan struct{}
+	mutex     sync.RWMutex
 }
 
 // Creates a new manager instance for the controller map.
 func NewManager() Manager {
 	return Manager{
 		controllers: ControllerMap{},
+
+		terminate: make(chan struct{}),
 	}
 }
 
@@ -43,10 +46,6 @@ func (m *Manager) UpdateController(name string, internal ControllerInternal) err
 func (m *Manager) updateController(name string, internal ControllerInternal) (*Controller, error) {
 	start := time.Now()
 
-	// ensure the callbacks are valid
-	if err := internal.DoFunc.Validate(); err != nil {
-		return nil, err
-	}
 	if internal.StopFunc == nil {
 		internal.StopFunc, _ = NewControllerFunction(NoopFunc)
 	}
@@ -63,9 +62,8 @@ func (m *Manager) updateController(name string, internal ControllerInternal) (*C
 
 		ctrl.getLogger().Debug("Updating existing controller")
 		ctrl.mutex.Lock()
-		ctrl.updateController(internal)
+		ctrl.updateController(internal, true)
 		ctrl.mutex.Unlock()
-
 
 		ctrl.getLogger().Debug("Controller update time: ", time.Since(start))
 	} else {
@@ -75,7 +73,7 @@ func (m *Manager) updateController(name string, internal ControllerInternal) (*C
 			update:     make(chan struct{}, 1),
 			terminated: make(chan struct{}),
 		}
-		ctrl.updateController(internal)
+		ctrl.updateController(internal, false)
 		ctrl.getLogger().Debug("Starting new controller")
 
 		ctrl.ctxDoFunc, ctrl.cancelDoFunc = context.WithCancel(context.Background())
@@ -172,4 +170,8 @@ func (m *Manager) RemoveAllAndWait() {
 	for _, ctrl := range ctrls {
 		<-ctrl.terminated
 	}
+}
+
+func (m *Manager) Terminate() {
+	<-m.terminate
 }
