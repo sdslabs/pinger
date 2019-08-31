@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// A ControllerMap is the map of a controller name with the underlying Controller.
+// ControllerMap is the map of a controller name with the underlying Controller.
 type ControllerMap map[string]*Controller
 
 // Manager manages a ControllerMap and perform actions on it.
@@ -18,7 +18,7 @@ type Manager struct {
 	mutex     sync.RWMutex
 }
 
-// Creates a new manager instance for the controller map.
+// NewManager Creates a new manager instance for the controller map.
 func NewManager() Manager {
 	return Manager{
 		controllers: ControllerMap{},
@@ -27,8 +27,21 @@ func NewManager() Manager {
 	}
 }
 
+// NoopFunc is a nil function.
 func NoopFunc(_ctx context.Context) error {
 	return nil
+}
+
+// GetAllControllers Returns the name of all the controllers that are managed by this
+// manager.
+func (m *Manager) GetAllControllers() []string {
+	var ctrls []string
+
+	for key := range m.controllers {
+		ctrls = append(ctrls, key)
+	}
+
+	return ctrls
 }
 
 // UpdateController installs or updates a controller in the manager. A
@@ -172,6 +185,21 @@ func (m *Manager) RemoveAllAndWait() {
 	}
 }
 
+// Terminate terminates all the controllers managed by the manager.
 func (m *Manager) Terminate() {
+	m.RemoveAllAndWait()
+
 	<-m.terminate
+	close(m.terminate)
+}
+
+// GetStats Return the entire stats for manager.
+func (m *Manager) GetStats() []*ControllerStatus {
+	var stats []*ControllerStatus
+
+	for _, controller := range m.controllers {
+		stats = append(stats, controller.Status())
+	}
+
+	return stats
 }

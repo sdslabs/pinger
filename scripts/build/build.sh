@@ -41,7 +41,7 @@ if [ -n "$VERBOSE" ]; then
   echo "Building with -ldflags $ldflags"
 fi
 
-GOBIN=$PWD go "${GO_CMD}" -o "${GOPATH}/bin/ki" ${GO_FLAGS} -ldflags "${ldflags}" "${repo_path}"
+GOBIN=$PWD go "${GO_CMD}" -o "${GOPATH}/bin/sp" ${GO_FLAGS} -ldflags "${ldflags}" "${repo_path}/cmd"
 
 echo "[*] Build Complete."
 exit 0

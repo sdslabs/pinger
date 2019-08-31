@@ -371,7 +371,7 @@ type ControllerRunStatus struct {
 }
 
 // Returns the current status of the controller.
-func (c *Controller) status() *ControllerStatus {
+func (c *Controller) Status() *ControllerStatus {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
