@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sdslabs/status/pkg/defaults"
 	"github.com/sirupsen/logrus"
 )
 
@@ -213,7 +214,7 @@ func (c *Controller) RunController() {
 	runFunc := true
 
 	// Default Run Interval for a controller.
-	interval := 10 * time.Minute
+	interval := defaults.ControllerRetryInterval
 
 	for {
 		var err error
@@ -258,7 +259,7 @@ func (c *Controller) RunController() {
 					// the next update.
 					c.getLogger().Debug("Controller run succeeded; waiting for next controller update or stop")
 					runFunc = false
-					interval = 10 * time.Minute
+					interval = defaults.ControllerRetryInterval
 				}
 			}
 

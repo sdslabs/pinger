@@ -13,6 +13,7 @@ var agentCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Trying to run agent for the status page.")
+
 		agent.RunGrpcServer(nil)
 	},
 }
