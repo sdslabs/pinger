@@ -1,14 +1,14 @@
 package probes
 
 import (
-	"crypto/tls"
-	"fmt"
-	"net/http"
-	"net"
-	"time"
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
+	"net"
+	"net/http"
+	"time"
 )
 
 var defaultTransport = http.DefaultTransport.(*http.Transport)
@@ -43,8 +43,8 @@ type ProbeResult struct {
 	Timeout bool
 
 	StatusCode int
-	Body io.ReadCloser
-	Headers http.Header
+	Body       io.ReadCloser
+	Headers    http.Header
 }
 
 type HttpProber struct {
@@ -78,7 +78,7 @@ func (pr *HttpProber) Probe(method, url string, headers, payload map[string]stri
 	var req *http.Request
 	if method == "POST" {
 		req, err = http.NewRequest(method, url, bytes.NewBuffer(payloadJson))
-		
+
 	} else {
 		req, err = http.NewRequest(method, url, nil)
 		q := req.URL.Query()
@@ -102,7 +102,7 @@ func (pr *HttpProber) Probe(method, url string, headers, payload map[string]stri
 		// Request errored due to a timeout.
 		// Send a curated response in this case.
 
-		return &ProbeResult{ Timeout: true }, nil
+		return &ProbeResult{Timeout: true}, nil
 
 	} else if err != nil {
 		return nil, fmt.Errorf("Error while making request: %s", err)
@@ -119,7 +119,7 @@ func parseResponse(resp *http.Response) *ProbeResult {
 		Timeout: false,
 
 		StatusCode: resp.StatusCode,
-		Headers: resp.Header,
-		Body: resp.Body,
+		Headers:    resp.Header,
+		Body:       resp.Body,
 	}
 }

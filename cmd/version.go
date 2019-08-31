@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sdslabs/beastv4/version"
+	"github.com/sdslabs/status/version"
 	"github.com/spf13/cobra"
 )
 
