@@ -22,11 +22,11 @@ func createDBIfNotExist() {
 	}
 }
 
-func init() {
-	createDBIfNotExist()
+// GetSQLDB returns a connection to the sqlite database
+func GetSQLDB() (SQLDB, error) {
 	db, err := gorm.Open("sqlite3", dbName)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	db.AutoMigrate(
@@ -36,5 +36,9 @@ func init() {
 		&Page{},
 		&Incident{})
 
-	defer db.Close()
+	return &sqldb{DB: db}, nil
+}
+
+func init() {
+	createDBIfNotExist()
 }
