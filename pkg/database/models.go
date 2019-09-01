@@ -18,12 +18,13 @@ type Check struct {
 	gorm.Model
 	OwnerID  int
 	Owner    User
-	Interval int    `gorm:"DEFAULT:30"`
-	Timeout  int    `gorm:"DEFAULT:30"`
-	Input    string `gorm:"NOT NULL"`
-	Output   string `gorm:"NOT NULL"`
-	Target   string `gorm:"NOT NULL"`
-	Title    string `gorm:"NOT NULL"`
+	Interval int       `gorm:"DEFAULT:30"`
+	Timeout  int       `gorm:"DEFAULT:30"`
+	Input    string    `gorm:"NOT NULL"`
+	Output   string    `gorm:"NOT NULL"`
+	Target   string    `gorm:"NOT NULL"`
+	Title    string    `gorm:"NOT NULL"`
+	Payloads []Payload `gorm:"foreignkey:CheckID"`
 }
 
 // Payload model
