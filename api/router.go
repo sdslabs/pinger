@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sdslabs/status/api/oauth"
 )
@@ -10,14 +12,26 @@ func NewRouter() *gin.Engine {
 	router := gin.Default()
 	oauth.SetupGoogleOAuth()
 
-	apiRouter := router.Group("/api")
+	oauthRouter := router.Group("/oauth")
 	{
-		// Oauth routes
-		oauthRouter := apiRouter.Group("/oauth")
-		{
-			oauthRouter.GET("/google", oauth.HandleGoogleLogin) // sends the url for login
-			oauthRouter.GET("/google/redirect", oauth.HandleGoogleRedirect)
-		}
+		oauthRouter.GET("/google", oauth.HandleGoogleLogin) // sends the url for login
+		oauthRouter.GET("/google/redirect", oauth.HandleGoogleRedirect)
+	}
+
+	apiRouter := router.Group("/api")
+	apiRouter.Use(oauth.VerifyJWTMiddleware)
+	{
+		apiRouter.GET("/test", func(ctx *gin.Context) {
+			currentUser, ok := ctx.Get("currentUser")
+			if !ok {
+				ctx.JSON(http.StatusBadRequest, gin.H{
+					"error": "Cannot find user from token",
+				})
+			}
+			ctx.JSON(http.StatusOK, gin.H{
+				"user": currentUser.(string),
+			})
+		})
 	}
 
 	return router

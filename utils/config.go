@@ -21,7 +21,8 @@ type oauth struct {
 
 // Config for `config.yml`
 type Config struct {
-	Oauth oauth `yaml:"oauth"`
+	JWTSecret string `yaml:"jwt_secret"`
+	Oauth     oauth  `yaml:"oauth"`
 }
 
 // Parse takes the path of config file and uses a *Config to store data

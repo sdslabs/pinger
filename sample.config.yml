@@ -1,3 +1,4 @@
+jwt_secret: ''
 oauth:
   google:
     client_id: ''
