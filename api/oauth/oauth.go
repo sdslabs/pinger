@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sdslabs/status/pkg/database"
 	"github.com/sdslabs/status/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -97,10 +98,24 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 		return
 	}
 
+	db, err := database.GetSQLDB()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	err = db.CreateUser(u.Email, u.Name)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"email": u.Email,
 		"name":  u.Name,
 	})
-
-	// use 'u' to generate JWT, register or login the user
 }
