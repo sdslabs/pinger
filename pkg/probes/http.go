@@ -39,30 +39,33 @@ func NewWithTLSConfig(config *tls.Config) HttpProber {
 	return HttpProber{transport}
 }
 
-type ProbeResult struct {
+type HTTPProbeResult struct {
 	Timeout bool
 
 	StatusCode int
 	Body       io.ReadCloser
 	Headers    http.Header
+
+	// Duration that the probe lasted for.
+	Duration time.Duration
 }
 
 type HttpProber struct {
 	transport *http.Transport
 }
 
-func (pr HttpProber) GetProbe(url string, headers map[string]string, payload map[string]string, timeout time.Duration) (*ProbeResult, error) {
+func (pr HttpProber) GetProbe(url string, headers map[string]string, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
 	return pr.Probe("GET", url, headers, payload, timeout)
 }
 
-func (pr HttpProber) PostProbe(url string, headers map[string]string, payload map[string]string, timeout time.Duration) (*ProbeResult, error) {
+func (pr HttpProber) PostProbe(url string, headers map[string]string, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
 	return pr.Probe("POST", url, headers, payload, timeout)
 }
 
 // Main entrypoint for doing a HTTP Probe using the package.
 // The method specify the type of HTTP request we are trying to make and the other
 // parameters are populated accordingly in the request.
-func (pr *HttpProber) Probe(method, url string, headers, payload map[string]string, timeout time.Duration) (*ProbeResult, error) {
+func (pr *HttpProber) Probe(method, url string, headers, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
 	client := &http.Client{
 		Timeout:   timeout,
 		Transport: pr.transport,
@@ -97,29 +100,34 @@ func (pr *HttpProber) Probe(method, url string, headers, payload map[string]stri
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	startTime := time.Now()
 	resp, err := client.Do(req)
 	if err, ok := err.(net.Error); ok && err.Timeout() {
 		// Request errored due to a timeout.
 		// Send a curated response in this case.
 
-		return &ProbeResult{Timeout: true}, nil
+		return &HTTPProbeResult{Timeout: true}, nil
 
 	} else if err != nil {
 		return nil, fmt.Errorf("Error while making request: %s", err)
 	}
 
-	return parseResponse(resp), nil
+	duration := time.Since(startTime)
+
+	return parseResponse(resp, duration), nil
 }
 
 // Parse the response obtained from making the reqeust using the prober,
 // it takes a few fields of the response and return it in a concise way to
 // be digested later.
-func parseResponse(resp *http.Response) *ProbeResult {
-	return &ProbeResult{
+func parseResponse(resp *http.Response, duration time.Duration) *HTTPProbeResult {
+	return &HTTPProbeResult{
 		Timeout: false,
 
 		StatusCode: resp.StatusCode,
 		Headers:    resp.Header,
 		Body:       resp.Body,
+
+		Duration: duration,
 	}
 }

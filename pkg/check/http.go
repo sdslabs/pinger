@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/sdslabs/status/pkg/api/agent/proto"
+	"github.com/sdslabs/status/pkg/controller"
 	"github.com/sdslabs/status/pkg/defaults"
 	"github.com/sdslabs/status/pkg/probes"
 
@@ -72,13 +73,13 @@ func NewHTTPChecker(agentCheck *proto.Check) (*HTTPChecker, error) {
 	}, nil
 }
 
-func (c *HTTPChecker) ExecuteCheck(ctx context.Context) error {
+func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFunctionResult, error) {
 	log.Debug("Executing HTTP check.")
 	prober := probes.NewHTTPProber()
 
 	result, err := prober.Probe(c.Method, c.URL, c.Headers, c.Payload, c.Timeout)
 	if err != nil {
-		return fmt.Errorf("HTTP Probe error: %s", err)
+		return nil, fmt.Errorf("HTTP Probe error: %s", err)
 	}
 
 	switch c.HTTPOutput.Type {
@@ -109,7 +110,9 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) error {
 		}
 	}
 
-	return nil
+	return CheckDuration{
+		Duration: result.Duration,
+	}, nil
 }
 
 type validationFunction func(string) error

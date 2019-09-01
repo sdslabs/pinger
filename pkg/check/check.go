@@ -3,15 +3,25 @@ package check
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/sdslabs/status/pkg/api/agent/proto"
+	"github.com/sdslabs/status/pkg/controller"
 	"github.com/sdslabs/status/pkg/defaults"
 )
 
 // Checker is the main Check interface we are going to use for the status page.
 // Each check must implment this interface.
 type Checker interface {
-	ExecuteCheck(context.Context) error
+	ExecuteCheck(context.Context) (controller.ControllerFunctionResult, error)
+}
+
+type CheckDuration struct {
+	Duration time.Duration
+}
+
+func (cd CheckDuration) GetDuration() time.Duration {
+	return cd.Duration
 }
 
 type CheckComponent struct {

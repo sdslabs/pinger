@@ -35,6 +35,10 @@ type ControllerFunction struct {
 	Params   []FuncParam
 }
 
+type ControllerFunctionResult interface {
+	GetDuration() time.Duration
+}
+
 func (cf *ControllerFunction) Validate() error {
 	return validateNewControllerParams(cf.Function, cf.Params)
 }
@@ -42,7 +46,7 @@ func (cf *ControllerFunction) Validate() error {
 // Run the actual function that ControllerFunction actually represents.
 // The context passed as an argument to the Run function is propogated to the
 // underlying Function.
-func (cf *ControllerFunction) Run(ctx context.Context) error {
+func (cf *ControllerFunction) Run(ctx context.Context) (ControllerFunctionResult, error) {
 	function := reflect.ValueOf(cf.Function)
 
 	var params []reflect.Value
@@ -57,15 +61,27 @@ func (cf *ControllerFunction) Run(ctx context.Context) error {
 	// as we have already validated it before adding the ControllerFunction.
 	// This will panic if the ControllerFunction is not validated.
 	values := function.Call(params)
-	if len(values) != 1 {
-		return fmt.Errorf("Error in the return value of the controller function.")
+	if len(values) != 2 {
+		return nil, fmt.Errorf("Error in the return value of the controller function.")
 	}
 
-	elem := values[0].Elem()
-	if !elem.IsValid() {
-		return nil
+	resElem := values[0].Elem()
+	errElem := values[1].Elem()
+
+	if !resElem.IsValid() {
+		if !errElem.IsValid() {
+			return nil, nil
+		}
+
+		return nil, errElem.Interface().(error)
 	}
-	return elem.Interface().(error)
+
+	retRes := resElem.Interface().(ControllerFunctionResult)
+	if !errElem.IsValid() {
+		return retRes, nil
+	}
+
+	return resElem.Interface().(ControllerFunctionResult), errElem.Interface().(error)
 }
 
 // Returns an instance of a new controller function.
@@ -91,10 +107,10 @@ func NewControllerFunction(function Function, params ...FuncParam) (*ControllerF
 // provided function and parameters are not valid.
 //
 // A provided function for the validation must have the following form
-// func(ctx context.Context, ...params) error {}
+// func(ctx context.Context, ...params) (ControllerFunctionResult, error) {}
 //
-// One inbound and one outbound variable is required with types context.Context
-// and error respectivly.
+// One inbound and two outbound variable is required with types context.Context
+// and ControllerFunctionResult, error respectivly.
 func validateNewControllerParams(function Function, params ...FuncParam) error {
 	funcType := reflect.TypeOf(function)
 	if funcType.Kind() != reflect.Func {
@@ -105,11 +121,15 @@ func validateNewControllerParams(function Function, params ...FuncParam) error {
 		return fmt.Errorf("Provided function is not valid, must have atleast one argument, the context")
 	}
 
-	if funcType.NumOut() != 1 {
+	if funcType.NumOut() != 2 {
 		return fmt.Errorf("Provided function is not valid, must have an error as return value.")
 	}
 
-	if funcType.Out(0) != reflect.TypeOf((*error)(nil)).Elem() {
+	if funcType.Out(0) != reflect.TypeOf((*ControllerFunctionResult)(nil)).Elem() {
+		return fmt.Errorf("The return type of the function is not valid, must return a ControllerResult.")
+	}
+
+	if funcType.Out(1) != reflect.TypeOf((*error)(nil)).Elem() {
 		return fmt.Errorf("The return type of the function is not valid, must return an error value.")
 	}
 
@@ -217,19 +237,21 @@ func (c *Controller) RunController() {
 	interval := defaults.ControllerRetryInterval
 
 	for {
-		var err error
 		if runFunc {
 			interval = internal.RunInterval
 
 			start := time.Now()
 
 			// Run the function.
-			err = internal.DoFunc.Run(c.ctxDoFunc)
+			res, err := internal.DoFunc.Run(c.ctxDoFunc)
 			duration := time.Since(start)
 			c.mutex.Lock()
 
 			c.lastDuration = duration
 			c.getLogger().Debug("Controller func execution time: ", c.lastDuration)
+			if res != nil {
+				c.getLogger().Debug("Controller reported runtime: ", res.GetDuration())
+			}
 
 			if err != nil {
 				c.recordError(err)
@@ -295,7 +317,7 @@ func (c *Controller) RunController() {
 shutdown:
 	c.getLogger().Debug("Shutting down controller")
 
-	if err := internal.StopFunc.Run(context.TODO()); err != nil {
+	if _, err := internal.StopFunc.Run(context.TODO()); err != nil {
 		c.mutex.Lock()
 		c.recordError(err)
 		c.mutex.Unlock()
