@@ -41,11 +41,12 @@ type Page struct {
 	gorm.Model
 	OwnerID     int
 	Owner       User
-	Visibility  bool    `gorm:"DEFAULT:false"`
-	Title       string  `gorm:"NOT NULL"`
-	Description string  `gorm:"TYPE:text"`
-	Checks      []Check `gorm:"many2many:page_checks"`
-	Team        []User  `gorm:"many2many:page_team"`
+	Visibility  bool       `gorm:"DEFAULT:false"`
+	Title       string     `gorm:"NOT NULL"`
+	Description string     `gorm:"TYPE:text"`
+	Checks      []Check    `gorm:"many2many:page_checks"`
+	Team        []User     `gorm:"many2many:page_team"`
+	Incidents   []Incident `gorm:"foreignkey:PageID"`
 }
 
 // Incident model
