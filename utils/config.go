@@ -8,8 +8,20 @@ import (
 
 const configPath = "config.yml"
 
+type googleOauth struct {
+	ClientID     string   `yaml:"client_id"`
+	ClientSecret string   `yaml:"client_secret"`
+	RedirectURL  string   `yaml:"redirect_url"`
+	Scopes       []string `yaml:"scopes"`
+}
+
+type oauth struct {
+	Google googleOauth `yaml:"google"`
+}
+
 // Config for `config.yml`
 type Config struct {
+	Oauth oauth `yaml:"oauth"`
 }
 
 // Parse takes the path of config file and uses a *Config to store data
