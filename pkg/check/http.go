@@ -73,6 +73,10 @@ func NewHTTPChecker(agentCheck *proto.Check) (*HTTPChecker, error) {
 	}, nil
 }
 
+func (c *HTTPChecker) Type() string {
+	return "http"
+}
+
 func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFunctionResult, error) {
 	log.Debug("Executing HTTP check.")
 	prober := probes.NewHTTPProber()
@@ -82,11 +86,14 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFu
 		return nil, fmt.Errorf("HTTP Probe error: %s", err)
 	}
 
+	checkSuccessful := false
+
 	switch c.HTTPOutput.Type {
 	case "status_code":
 		reqStatusCode, _ := strconv.Atoi(c.HTTPOutput.Value)
 		if result.StatusCode == reqStatusCode {
 			log.Info("Check successful")
+			checkSuccessful = true
 		} else {
 			log.Warnf("Check unsuccessful, status(req %d) does not match with %d", reqStatusCode, result.StatusCode)
 		}
@@ -96,6 +103,7 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFu
 		buf.ReadFrom(result.Body)
 		if c.HTTPOutput.Value == buf.String() {
 			log.Info("Check Successful")
+			checkSuccessful = true
 		} else {
 			log.Warnf("Check Unsuccessful")
 		}
@@ -105,13 +113,17 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFu
 
 		if kv[1] == result.Headers.Get(kv[0]) {
 			log.Info("Check Successful")
+			checkSuccessful = true
 		} else {
 			log.Warn("Check Unsuccessful")
 		}
 	}
 
-	return CheckDuration{
-		Duration: result.Duration,
+	return CheckStats{
+		Successful: checkSuccessful,
+
+		StartTime: result.StartTime,
+		Duration:  result.Duration,
 	}, nil
 }
 

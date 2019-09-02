@@ -13,15 +13,30 @@ import (
 // Checker is the main Check interface we are going to use for the status page.
 // Each check must implment this interface.
 type Checker interface {
+	// This function executes the check for the provided checker.
 	ExecuteCheck(context.Context) (controller.ControllerFunctionResult, error)
+
+	// Returns the type of the checker, this can be http, icmp, websockets etc.
+	Type() string
 }
 
-type CheckDuration struct {
-	Duration time.Duration
+type CheckStats struct {
+	Successful bool
+
+	StartTime time.Time
+	Duration  time.Duration
 }
 
-func (cd CheckDuration) GetDuration() time.Duration {
+func (cd CheckStats) GetDuration() time.Duration {
 	return cd.Duration
+}
+
+func (cd CheckStats) GetStartTime() time.Time {
+	return cd.StartTime
+}
+
+func (cd CheckStats) IsSuccessful() bool {
+	return cd.Successful
 }
 
 type CheckComponent struct {

@@ -52,7 +52,7 @@ func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*p
 		DoFunc:      cFunc,
 		RunInterval: time.Second * time.Duration(agentCheck.Interval),
 	}
-	err = ControllerManager.UpdateController(agentCheck.Name, executor)
+	err = ControllerManager.UpdateController(agentCheck.Name, checker.Type(), executor)
 	if err != nil {
 		log.Errorf("Error while creating controller: %s", err)
 	}
@@ -83,7 +83,7 @@ func RunGrpcServer(port int, config *metrics.ProviderConfig) {
 
 	proto.RegisterAgentServiceServer(grpcServer, server)
 
-	ControllerManager = controller.NewManager(config)
+	ControllerManager = controller.NewManager()
 
 	switch config.PType {
 	case metrics.PrometheusProviderType:
