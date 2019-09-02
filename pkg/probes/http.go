@@ -46,6 +46,8 @@ type HTTPProbeResult struct {
 	Body       io.ReadCloser
 	Headers    http.Header
 
+	// Time at which the probe execution started.
+	StartTime time.Time
 	// Duration that the probe lasted for.
 	Duration time.Duration
 }
@@ -114,13 +116,13 @@ func (pr *HttpProber) Probe(method, url string, headers, payload map[string]stri
 
 	duration := time.Since(startTime)
 
-	return parseResponse(resp, duration), nil
+	return parseResponse(resp, duration, startTime), nil
 }
 
 // Parse the response obtained from making the reqeust using the prober,
 // it takes a few fields of the response and return it in a concise way to
 // be digested later.
-func parseResponse(resp *http.Response, duration time.Duration) *HTTPProbeResult {
+func parseResponse(resp *http.Response, duration time.Duration, startTime time.Time) *HTTPProbeResult {
 	return &HTTPProbeResult{
 		Timeout: false,
 
@@ -128,6 +130,7 @@ func parseResponse(resp *http.Response, duration time.Duration) *HTTPProbeResult
 		Headers:    resp.Header,
 		Body:       resp.Body,
 
-		Duration: duration,
+		StartTime: startTime,
+		Duration:  duration,
 	}
 }

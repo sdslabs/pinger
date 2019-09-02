@@ -2,8 +2,8 @@
 
 > An open source implmentation of status page.
 
-## Features
+## Roadmap
 
-- [ ] Ping servers for uptime and latency.
-- [ ] Integrated users and team features.
-- [ ] Multiple status pages.
+- [ ] Include multiple checks/probe types including ICMP, Websockets, TCP/UDP.
+- [ ] Integrate user and team feature.
+- [ ] Standalone agent mode with simple prometheus based backend.

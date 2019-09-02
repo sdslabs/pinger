@@ -19,8 +19,8 @@ type Manager struct {
 }
 
 // NewManager Creates a new manager instance for the controller map.
-func NewManager() Manager {
-	return Manager{
+func NewManager() *Manager {
+	return &Manager{
 		controllers: ControllerMap{},
 
 		terminate: make(chan struct{}),
@@ -28,8 +28,8 @@ func NewManager() Manager {
 }
 
 // NoopFunc is a nil function.
-func NoopFunc(_ctx context.Context) error {
-	return nil
+func NoopFunc(_ctx context.Context) (ControllerFunctionResult, error) {
+	return nil, nil
 }
 
 // GetAllControllers Returns the name of all the controllers that are managed by this
@@ -50,13 +50,13 @@ func (m *Manager) GetAllControllers() []string {
 // controller. Updating a controller will cause the DoFunc to be run
 // immediately regardless of any previous conditions. It will also cause any
 // statistics to be reset.
-func (m *Manager) UpdateController(name string, internal ControllerInternal) error {
-	_, err := m.updateController(name, internal)
+func (m *Manager) UpdateController(name string, cType string, internal ControllerInternal) error {
+	_, err := m.updateController(name, cType, internal)
 
 	return err
 }
 
-func (m *Manager) updateController(name string, internal ControllerInternal) (*Controller, error) {
+func (m *Manager) updateController(name string, cType string, internal ControllerInternal) (*Controller, error) {
 	start := time.Now()
 
 	if internal.StopFunc == nil {
@@ -81,10 +81,14 @@ func (m *Manager) updateController(name string, internal ControllerInternal) (*C
 		ctrl.getLogger().Debug("Controller update time: ", time.Since(start))
 	} else {
 		ctrl = &Controller{
-			name:       name,
+			name:  name,
+			cType: cType,
+
 			stop:       make(chan struct{}),
 			update:     make(chan struct{}, 1),
 			terminated: make(chan struct{}),
+
+			executionStatistics: make(map[time.Time]time.Duration),
 		}
 		ctrl.updateController(internal, false)
 		ctrl.getLogger().Debug("Starting new controller")
@@ -202,4 +206,25 @@ func (m *Manager) GetStats() []*ControllerStatus {
 	}
 
 	return stats
+}
+
+func (m *Manager) PullLatestControllerStatistics() []ControllerExecutionStat {
+	stat := []ControllerExecutionStat{}
+
+	for _, controller := range m.controllers {
+		statMap := controller.ExtractExecutionStatistics()
+
+		for t, duration := range statMap {
+			stat = append(stat, ControllerExecutionStat{
+				Name: controller.Name(),
+				Type: controller.Type(),
+
+				StartTime: t,
+				Duration:  duration,
+			})
+			break
+		}
+	}
+
+	return stat
 }

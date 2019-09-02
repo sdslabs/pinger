@@ -15,7 +15,7 @@ type ApiServer struct {
 
 func (s *ApiServer) Run() error {
 	check := &proto.Check{
-		Name: "test-check",
+		Name: "http-test-check",
 
 		Input: &proto.Check_Component{
 			Type:  "HTTP",
@@ -26,7 +26,7 @@ func (s *ApiServer) Run() error {
 			Value: "200",
 		},
 		Target: &proto.Check_Component{
-			Value: "https://no_sdslabs.co",
+			Value: "https://google.com",
 		},
 
 		Timeout:  10,
