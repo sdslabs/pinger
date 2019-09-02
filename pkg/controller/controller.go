@@ -37,6 +37,9 @@ type ControllerFunction struct {
 
 type ControllerFunctionResult interface {
 	GetDuration() time.Duration
+	GetStartTime() time.Time
+
+	IsSuccessful() bool
 }
 
 func (cf *ControllerFunction) Validate() error {
@@ -199,6 +202,8 @@ type Controller struct {
 
 	// Name of the controller, used by manager.
 	name string
+	// An optional type of the controller, the default value is "Default"
+	cType string
 
 	internal     ControllerInternal
 	successCount int
@@ -217,11 +222,45 @@ type Controller struct {
 	ctxDoFunc    context.Context
 	cancelDoFunc context.CancelFunc
 
+	executionStatistics map[time.Time]time.Duration
+
 	// terminated is closed after the controller has been terminated
 	terminated chan struct{}
 }
 
-// Start running the controller.
+func (c *Controller) Name() string {
+	return c.name
+}
+
+func (c *Controller) Type() string {
+	if c.cType == "" {
+		return defaults.DefaultControllerType
+	}
+
+	return c.cType
+}
+
+type ControllerExecutionStat struct {
+	Name string
+	Type string
+
+	StartTime time.Time
+	Duration  time.Duration
+}
+
+func (c *Controller) ExtractExecutionStatistics() map[time.Time]time.Duration {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	// Take reference of the statistics here
+	stats := c.executionStatistics
+
+	// clear out the controller statistics
+	c.executionStatistics = make(map[time.Time]time.Duration)
+	return stats
+}
+
+// RunController starts running the controller.
 // TODO: improve this, currently it waits for the current request to finish and then waits for
 // interval duration to run the function again. This is not a constant interval check we are
 // looking for, so wrap the runFunc inside a goroutine.
@@ -251,6 +290,14 @@ func (c *Controller) RunController() {
 			c.getLogger().Debug("Controller func execution time: ", c.lastDuration)
 			if res != nil {
 				c.getLogger().Debug("Controller reported runtime: ", res.GetDuration())
+				duration := defaults.DefaultInvalidDuration
+				if res.IsSuccessful() {
+					duration = res.GetDuration()
+				}
+
+				c.executionStatistics[res.GetStartTime()] = duration
+			} else {
+				c.getLogger().Warnf("Invalid check execution function for the controller: %s", c.name)
 			}
 
 			if err != nil {

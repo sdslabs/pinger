@@ -59,8 +59,8 @@ var agentCmd = &cobra.Command{
 }
 
 func init() {
-	agentCmd.PersistentFlags().IntVarP(&prometheusMetricsPort, "metrics-port", "pm", defaults.DefaultAgentPrometheusMetricsPort, "Port to host prometheus metrics on.")
+	agentCmd.PersistentFlags().IntVarP(&prometheusMetricsPort, "metrics-port", "m", defaults.DefaultAgentPrometheusMetricsPort, "Port to host prometheus metrics on.")
 	agentCmd.PersistentFlags().IntVarP(&agentRunPort, "port", "p", defaults.DefaultAgentPort, "Port to run the agent on grpc server on.")
 
-	agentCmd.PersistentFlags().StringVarP(&timescaleMetricsHost, "ts-metrics", "-m", "", "Run the agent with push timescale metrics, provide timescale host information int this string.")
+	agentCmd.PersistentFlags().StringVarP(&timescaleMetricsHost, "ts-metrics", "t", "", "Run the agent with push timescale metrics, provide timescale host information int this string.")
 }
