@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sdslabs/status/api/oauth"
+	"github.com/sdslabs/status/pkg/api/server/oauth"
 )
 
 // NewRouter returns the router for the main API service
