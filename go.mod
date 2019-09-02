@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.4.0
 	github.com/golang/protobuf v1.3.2
 	github.com/jinzhu/gorm v1.9.10
+	github.com/kr/pretty v0.1.0 // indirect
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/cobra v0.0.5
 	github.com/ugorji/go v1.1.7 // indirect

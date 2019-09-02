@@ -7,3 +7,10 @@ oauth:
     scopes:
       - 'profile'
       - 'email'
+database:
+  host: 'localhost'
+  port: 5432
+  username: ''
+  password: ''
+  name: 'sds_status'
+  ssl_mode: false

@@ -19,10 +19,20 @@ type oauth struct {
 	Google googleOauth `yaml:"google"`
 }
 
+type database struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
+	SSLMode  bool   `yaml:"ssl_mode"`
+}
+
 // Config for `config.yml`
 type Config struct {
-	JWTSecret string `yaml:"jwt_secret"`
-	Oauth     oauth  `yaml:"oauth"`
+	JWTSecret string   `yaml:"jwt_secret"`
+	Oauth     oauth    `yaml:"oauth"`
+	Database  database `yaml:"database"`
 }
 
 // Parse takes the path of config file and uses a *Config to store data

@@ -10,10 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sdslabs/status/pkg/database"
+	"github.com/sdslabs/status/pkg/defaults"
 	"github.com/sdslabs/status/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"github.com/sdslabs/status/pkg/defaults"
 )
 
 const googleUserInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -100,16 +100,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 		return
 	}
 
-	db, err := database.GetSQLDB()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
-		})
-		return
-	}
-	defer db.Close()
-
-	err = db.CreateUser(u.Email, u.Name)
+	createdUser, err := database.DBConn.CreateUser(u.Email, u.Name)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -128,5 +119,8 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"token":      jwt,
 		"expires_in": defaults.JWTExpireInterval / time.Second,
+		"user_id":    createdUser.ID,
+		"user_email": createdUser.Email,
+		"user_name":  createdUser.Name,
 	})
 }
