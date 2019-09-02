@@ -2,3 +2,4 @@ test/
 *.test
 tmp/
 database.sqlite
+config.yml

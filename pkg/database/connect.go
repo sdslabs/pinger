@@ -1,32 +1,29 @@
 package database
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite" // for sqlite
+	_ "github.com/jinzhu/gorm/dialects/postgres" // PostgreSQL
+	"github.com/sdslabs/status/utils"
 )
 
-const dbName = "database.sqlite"
+var (
+	conf, _ = utils.GetConfig()
+	dbConf  = conf.Database
+	// DBConn for sending API Queries
+	DBConn SQLDB
+)
 
-func createDBIfNotExist() {
-	_, err := os.Stat(dbName)
-	if os.IsNotExist(err) {
-		db, err := os.Create(dbName)
-		if err != nil {
-			panic(err)
-		}
-		defer db.Close()
-	} else if err != nil {
-		panic(err)
+// GetSQLDB returns a connection to the sqlite database
+func GetSQLDB() (SQLDB, error) {
+	connectStr := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s", dbConf.Host, dbConf.Port, dbConf.Username, dbConf.Name, dbConf.Password)
+	if !dbConf.SSLMode {
+		connectStr = fmt.Sprintf("%s sslmode=disable", connectStr)
 	}
-}
-
-func init() {
-	createDBIfNotExist()
-	db, err := gorm.Open("sqlite3", dbName)
+	db, err := gorm.Open("postgres", connectStr)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	db.AutoMigrate(
@@ -36,5 +33,16 @@ func init() {
 		&Page{},
 		&Incident{})
 
-	defer db.Close()
+	db.Model(&Payload{}).AddForeignKey("check_id", "checks(id)", "CASCADE", "CASCADE")
+	db.Model(&Incident{}).AddForeignKey("page_id", "pages(id)", "CASCADE", "CASCADE")
+
+	return &sqldb{DB: db}, nil
+}
+
+func init() {
+	var err error
+	DBConn, err = GetSQLDB()
+	if err != nil {
+		panic(err)
+	}
 }

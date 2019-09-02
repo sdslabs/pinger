@@ -25,4 +25,7 @@ var (
 
 	// DefaultHTTPProbeTimeout is the http request timeout for HTTP prober.
 	DefaultHTTPProbeTimeout = time.Second * 10
+
+	// JWTExpireInterval is interval for which JWT is valid
+	JWTExpireInterval = time.Hour * 24
 )
