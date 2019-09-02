@@ -35,4 +35,12 @@ var (
 
 	// DefaultAgentPort is the default value of port to run the status agent on
 	DefaultAgentPort = 9009
+
+	// DefaultControllerType is the default type of the controller, other types can be
+	// specifed based on the type of checks/probes that the controller executes
+	DefaultControllerType = "default"
+
+	// DefaultInvalidDuration is the default value of time duration which will be considered
+	// as a failed controller execution
+	DefaultInvalidDuration = time.Second * 360
 )
