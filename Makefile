@@ -4,7 +4,7 @@ pkgs  = $(shell $(GO) list ./... | grep -v vendor)
 help:
 	@echo "Status Page - Makefile"
 
-# Build beast
+# Build status
 build:
 	@./scripts/build/build.sh
 
