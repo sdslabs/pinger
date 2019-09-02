@@ -11,21 +11,19 @@ import (
 	"github.com/sdslabs/status/pkg/api/agent/proto"
 	"github.com/sdslabs/status/pkg/check"
 	"github.com/sdslabs/status/pkg/controller"
+	"github.com/sdslabs/status/pkg/metrics"
 
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	// AGENT_SERVER_PORT: Port for running the GRPC server
-	AGENT_SERVER_PORT = 9009
-
 	// AGENT_GRPC_HOST: Host to run the GRPC server on.
 	AGENT_GRPC_HOST = "0.0.0.0"
 )
 
 // ControllerManager is the global manager for the controller that comes with the
 // agent. It is initialized when we run the GRPC servers.
-var ControllerManager controller.Manager
+var ControllerManager *controller.Manager
 
 type agentServer struct{}
 
@@ -73,11 +71,10 @@ func (a agentServer) GetManagerStats(context.Context, *proto.None) (*proto.Manag
 // RunGrpcServer starts a GRPC server at the specified port.
 // This also initializes the controller manager instance, which is used further
 // to interact with the controllers.
-func RunGrpcServer(notify chan struct{}) {
-	listner, err := net.Listen("tcp", fmt.Sprintf("%s:%d", AGENT_GRPC_HOST, AGENT_SERVER_PORT))
+func RunGrpcServer(port int, config *metrics.ProviderConfig) {
+	listner, err := net.Listen("tcp", fmt.Sprintf("%s:%d", AGENT_GRPC_HOST, port))
 	if err != nil {
 		log.Errorf("Error while starting listner : %s", err)
-		notify <- struct{}{}
 		return
 	}
 
@@ -86,8 +83,21 @@ func RunGrpcServer(notify chan struct{}) {
 
 	proto.RegisterAgentServiceServer(grpcServer, server)
 
-	ControllerManager = controller.NewManager()
+	ControllerManager = controller.NewManager(config)
 
-	log.Infof("Starting new server at port : %d", AGENT_SERVER_PORT)
+	switch config.PType {
+	case metrics.PrometheusProviderType:
+		metrics.SetupPrometheusMetrics(config, ControllerManager)
+	case metrics.TimeScaleProviderType:
+	case metrics.EmptyProviderType:
+	default:
+	}
+
+	if err != nil {
+		log.Error("Error while creating controller manager: %s", err)
+		return
+	}
+
+	log.Infof("Starting new server at port : %d", port)
 	grpcServer.Serve(listner)
 }

@@ -19,8 +19,8 @@ type Manager struct {
 }
 
 // NewManager Creates a new manager instance for the controller map.
-func NewManager() Manager {
-	return Manager{
+func NewManager() *Manager {
+	return &Manager{
 		controllers: ControllerMap{},
 
 		terminate: make(chan struct{}),
@@ -28,8 +28,8 @@ func NewManager() Manager {
 }
 
 // NoopFunc is a nil function.
-func NoopFunc(_ctx context.Context) error {
-	return nil
+func NoopFunc(_ctx context.Context) (ControllerFunctionResult, error) {
+	return nil, nil
 }
 
 // GetAllControllers Returns the name of all the controllers that are managed by this

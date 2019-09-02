@@ -28,4 +28,11 @@ var (
 
 	// JWTExpireInterval is interval for which JWT is valid
 	JWTExpireInterval = time.Hour * 24
+
+	// DefaultAgentPrometheusMetricsPort is the default port for the agent to host
+	// prometheus metrics enpoint on.
+	DefaultAgentPrometheusMetricsPort = 9008
+
+	// DefaultAgentPort is the default value of port to run the status agent on
+	DefaultAgentPort = 9009
 )
