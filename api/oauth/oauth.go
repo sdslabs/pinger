@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sdslabs/status/pkg/database"
 	"github.com/sdslabs/status/pkg/defaults"
-	"github.com/sdslabs/status/utils"
+	"github.com/sdslabs/status/pkg/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )

@@ -8,7 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/sdslabs/status/pkg/defaults"
-	"github.com/sdslabs/status/utils"
+	"github.com/sdslabs/status/pkg/utils"
 )
 
 const (

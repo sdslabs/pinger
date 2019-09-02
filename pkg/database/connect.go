@@ -5,7 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // PostgreSQL
-	"github.com/sdslabs/status/utils"
+	"github.com/sdslabs/status/pkg/utils"
 )
 
 var (
