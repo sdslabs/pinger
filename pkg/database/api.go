@@ -43,7 +43,7 @@ func (db *sqldb) CreateUser(email, name string) error {
 		Email: email,
 		Name:  name,
 	}
-	tx := db.FirstOrCreate(&user)
+	tx := db.FirstOrCreate(&user, User{Email : email})
 	return tx.Error
 }
 
