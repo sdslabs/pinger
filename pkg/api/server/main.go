@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/sdslabs/status/pkg/api/agent/proto"
+	"github.com/sdslabs/status/pkg/agent/proto"
 
 	log "github.com/sirupsen/logrus"
 )
