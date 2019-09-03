@@ -11,28 +11,38 @@ type SQLDB interface {
 	GetUserByID(id int) (User, error)
 	GetUserByEmail(email string) (User, error)
 	CreateUser(email, name string) (User, error)
+	UpdateUserNameByID(id uint, name string) (User, error)
+	UpdateUserNameByEmail(email, name string) (User, error)
 	DeleteUserByID(id int) error
 	DeleteUserByEmail(email string) error
 	GetAllChecksByOwner(ownerID int) ([]Check, error)
 	GetCheckByID(id int) (Check, error)
 	CreateCheck(ownerID, interval, timeout int, input, output, target, title string, payloads []Payload) (Check, error)
+	UpdateCheckByID(id uint, check Check) (Check, error)
 	DeleteCheckByID(id int) error
 	GetAllPayloadsByCheck(checkID int) ([]Payload, error)
 	GetPayloadByID(id int) (Payload, error)
 	CreatePayload(checkID int, payloadType, value string) (Payload, error)
+	UpdatePayloadByID(id uint, payload Payload) (Payload, error)
 	DeletePayloadByID(id int) error
+	AddPayloadsToCheck(checkID uint, payloads []*Payload) error
+	// RemovePayloadsFromCheck(checkID uint, payloads []*Payload) error
 	GetAllPagesByOwner(ownerID int) ([]Page, error)
 	GetPageByID(id int) (Page, error)
 	CreatePage(ownerID int, visibility bool, title, description string, incidents []Incident) (Page, error)
+	UpdatePageByID(id uint, page Page) (Page, error)
 	DeletePageByID(id int) error
 	GetAllIncidentsByPage(pageID int) ([]Incident, error)
 	GetIncidentByID(id int) (Incident, error)
 	CreateIncident(pageID int, timestamp *time.Time, duration int, title, description string) (Incident, error)
+	UpdateIncidentByID(id uint, incident Incident) (Incident, error)
 	DeleteIncidentByID(id int) error
-	// AddChecksToPage(pageID uint, checks []*Check) error
-	// RemoveChecksFromPage(pageID uint, checks []*Check) error
-	// AddMembersToPageTeam(pageID uint, users []*User) error
-	// RemoveMembersFromPageTeam(pageID uint, users []*User) error
+	AddIncidentsToPage(pageID uint, incidents []*Incident) error
+	// RemoveIncidentsFromPage(pageID uint, incidents []*Incident) error
+	AddChecksToPage(pageID uint, checks []*Check) error
+	RemoveChecksFromPage(pageID uint, checks []*Check) error
+	AddMembersToPageTeam(pageID uint, users []*User) error
+	RemoveMembersFromPageTeam(pageID uint, users []*User) error
 }
 
 type sqldb struct {
@@ -74,6 +84,21 @@ func (db *sqldb) CreateUser(email, name string) (User, error) {
 		Name:  name,
 	}
 	tx := db.Create(&user)
+	return user, tx.Error
+}
+
+// UpdateUserNameByID updates the Name of the user
+func (db *sqldb) UpdateUserNameByID(id uint, name string) (User, error) {
+	user := User{}
+	user.ID = id
+	tx := db.Model(&user).Update("name", name)
+	return user, tx.Error
+}
+
+// UpdateUserNameByEmail updates the Name of the user
+func (db *sqldb) UpdateUserNameByEmail(email, name string) (User, error) {
+	user := User{Email: email}
+	tx := db.Model(&user).Update("name", name)
 	return user, tx.Error
 }
 
@@ -125,6 +150,14 @@ func (db *sqldb) CreateCheck(ownerID, interval, timeout int, input, output, targ
 	return check, tx.Error
 }
 
+// UpdateCheckByID updates the check for given ID
+func (db *sqldb) UpdateCheckByID(id uint, check Check) (Check, error) {
+	c := Check{}
+	c.ID = id
+	tx := db.Model(&c).Updates(check)
+	return c, tx.Error
+}
+
 // DeleteCheckByID deletes check corresponding to given ID
 func (db *sqldb) DeleteCheckByID(id int) error {
 	tx := db.Where("id = ?", id).Unscoped().Delete(&Check{})
@@ -162,11 +195,40 @@ func (db *sqldb) CreatePayload(checkID int, payloadType, value string) (Payload,
 	return payload, tx.Error
 }
 
+// UpdatePayloadByID updates the payload for given ID
+func (db *sqldb) UpdatePayloadByID(id uint, payload Payload) (Payload, error) {
+	p := Payload{}
+	p.ID = id
+	tx := db.Model(&p).Updates(payload)
+	return p, tx.Error
+}
+
 // DeletePayloadByID deletes a payload corresponding to given ID
 func (db *sqldb) DeletePayloadByID(id int) error {
 	tx := db.Where("id = ?", id).Unscoped().Delete(&Payload{})
 	return tx.Error
 }
+
+// AddPayloadsToPage adds multiple payloads to page
+func (db *sqldb) AddPayloadsToCheck(checkID uint, payloads []*Payload) error {
+	check := Check{}
+	check.ID = checkID
+	tx := db.Model(&check).Association("Payloads").Append(payloads)
+	return tx.Error
+}
+
+// ***
+// [TODO]
+// *gorm.Association.Delete() only deletes the relationship but not the elements
+// currently not using this for bulk delete
+// ***
+// // RemovePayloadsFromCheck adds multiple checks to page
+// func (db *sqldb) RemovePayloadsFromCheck(checkID uint, payloads []*Payload) error {
+// 	check := Check{}
+// 	check.ID = checkID
+// 	tx := db.Model(&check).Association("Payloads").Delete(payloads)
+// 	return tx.Error
+// }
 
 // GetAllPagesByOwner gets all the pages in owned by the user
 func (db *sqldb) GetAllPagesByOwner(ownerID int) ([]Page, error) {
@@ -199,6 +261,14 @@ func (db *sqldb) CreatePage(ownerID int, visibility bool, title, description str
 	}
 	tx := db.Create(&page)
 	return page, tx.Error
+}
+
+// UpdatePageByID updates the page for given ID
+func (db *sqldb) UpdatePageByID(id uint, page Page) (Page, error) {
+	p := Page{}
+	p.ID = id
+	tx := db.Model(&p).Updates(page)
+	return p, tx.Error
 }
 
 // DeletePageByID deletes a page corresponding to the given ID
@@ -240,40 +310,69 @@ func (db *sqldb) CreateIncident(pageID int, timestamp *time.Time, duration int, 
 	return incident, tx.Error
 }
 
+// UpdateIncidentByID updates the incident for given ID
+func (db *sqldb) UpdateIncidentByID(id uint, incident Incident) (Incident, error) {
+	i := Incident{}
+	i.ID = id
+	tx := db.Model(&i).Updates(incident)
+	return i, tx.Error
+}
+
 // DeleteIncidentByID deletes a Incident corresponding to given ID
 func (db *sqldb) DeleteIncidentByID(id int) error {
 	tx := db.Where("id = ?", id).Unscoped().Delete(&Incident{})
 	return tx.Error
 }
 
-// // AddChecksToPage adds multiple checks to page
-// func (db *sqldb) AddChecksToPage(pageID uint, checks []*Check) error {
+// AddIncidentsToPage adds multiple incidents to page
+func (db *sqldb) AddIncidentsToPage(pageID uint, incidents []*Incident) error {
+	page := Page{}
+	page.ID = pageID
+	tx := db.Model(&page).Association("Incidents").Append(incidents)
+	return tx.Error
+}
+
+// ***
+// [TODO]
+// *gorm.Association.Delete() only deletes the relationship but not the elements
+// currently not using this for bulk delete
+// ***
+// // RemoveIncidentsFromPage adds multiple checks to page
+// func (db *sqldb) RemoveIncidentsFromPage(pageID uint, incidents []*Incident) error {
 // 	page := Page{}
 // 	page.ID = pageID
-// 	tx := db.Model(&Page{}).Association("Checks").Append(checks)
+// 	tx := db.Model(&page).Association("Incidents").Delete(incidents)
 // 	return tx.Error
 // }
 
-// // RemoveChecksFromPage adds multiple checks to page
-// func (db *sqldb) RemoveChecksFromPage(pageID uint, checks []*Check) error {
-// 	page := Page{}
-// 	page.ID = pageID
-// 	tx := db.Model(&Page{}).Association("Checks").Delete(checks)
-// 	return tx.Error
-// }
+// AddChecksToPage adds multiple checks to page
+func (db *sqldb) AddChecksToPage(pageID uint, checks []*Check) error {
+	page := Page{}
+	page.ID = pageID
+	tx := db.Model(&page).Association("Checks").Append(checks)
+	return tx.Error
+}
 
-// // AddMembersToPageTeam adds multiple checks to page
-// func (db *sqldb) AddMembersToPageTeam(pageID uint, users []*User) error {
-// 	page := Page{}
-// 	page.ID = pageID
-// 	tx := db.Model(&Page{}).Association("Checks").Append(users)
-// 	return tx.Error
-// }
+// RemoveChecksFromPage adds multiple checks to page
+func (db *sqldb) RemoveChecksFromPage(pageID uint, checks []*Check) error {
+	page := Page{}
+	page.ID = pageID
+	tx := db.Model(&page).Association("Checks").Delete(checks)
+	return tx.Error
+}
 
-// // RemoveMembersFromPageTeam adds multiple checks to page
-// func (db *sqldb) RemoveMembersFromPageTeam(pageID uint, users []*User) error {
-// 	page := Page{}
-// 	page.ID = pageID
-// 	tx := db.Model(&Page{}).Association("Checks").Delete(users)
-// 	return tx.Error
-// }
+// AddMembersToPageTeam adds multiple checks to page
+func (db *sqldb) AddMembersToPageTeam(pageID uint, users []*User) error {
+	page := Page{}
+	page.ID = pageID
+	tx := db.Model(&page).Association("Team").Append(users)
+	return tx.Error
+}
+
+// RemoveMembersFromPageTeam adds multiple checks to page
+func (db *sqldb) RemoveMembersFromPageTeam(pageID uint, users []*User) error {
+	page := Page{}
+	page.ID = pageID
+	tx := db.Model(&page).Association("Team").Delete(users)
+	return tx.Error
+}
