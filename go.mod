@@ -12,6 +12,7 @@ require (
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/cobra v0.0.5
 	github.com/ugorji/go v1.1.7 // indirect
+	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	google.golang.org/grpc v1.23.0
 	gopkg.in/yaml.v2 v2.2.2

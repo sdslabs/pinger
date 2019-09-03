@@ -435,8 +435,10 @@ type ControllerConfigurationStatus struct {
 type ControllerRunStatus struct {
 	SuccessCount            int64
 	LastSuccessStamp        string
+
 	FailureCount            int64
 	LastFailureStamp        string
+	
 	ConsecutiveFailureCount int64
 }
 

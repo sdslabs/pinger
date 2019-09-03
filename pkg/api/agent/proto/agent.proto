@@ -66,6 +66,19 @@ message PushStatus {
     string Reason = 2;
 }
 
+message RemoveStatus {
+    bool removed = 1;
+    string message = 2;
+}
+
+message CheckMeta {
+    string Name = 1;
+}
+
+message ChecksList {
+    repeated CheckMeta checks = 1;
+}
+
 message None {}
 
 service AgentService {
@@ -75,4 +88,12 @@ service AgentService {
     // Returns the status of manager managing the controllers corresponding to
     // the checks.
     rpc GetManagerStats(None) returns (ManagerStats) {}
+
+    // Removes a check from the manager managing the controller for the checks.
+    // Only reuired filed for the CheckMeta is `Name` rest everything can be ignored.
+    rpc RemoveCheck(CheckMeta) returns (RemoveStatus) {}
+
+    // Lists all the checks currently being managed by the controller manager.
+    // The only reuired field in the CheckList is `Name` rest everything can be blank.
+    rpc ListChecks(None) returns (ChecksList) {} 
 }

@@ -65,7 +65,56 @@ func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*p
 
 func (a agentServer) GetManagerStats(context.Context, *proto.None) (*proto.ManagerStats, error) {
 	log.Debug("Inside get controller manager stats function")
+
+	stats := ControllerManager.GetStats()
+
+	mStats := []*proto.ManagerStats_ControllerStatus{}
+	for _, stat := range stats {
+		mStats = append(mStats, &proto.ManagerStats_ControllerStatus{
+			Name: stat.Name,
+			ConfigStatus: &proto.ManagerStats_ControllerConfigurationStatus{
+				ErrorRetry:    stat.Configuration.ErrorRetry,
+				ShouldBackOff: stat.Configuration.ShouldBackOff,
+				Interval:      stat.Configuration.Interval,
+			},
+			RunStatus: &proto.ManagerStats_ControllerRunStatus{
+				SuccessCount:            stat.Status.SuccessCount,
+				FailureCount:            stat.Status.FailureCount,
+				ConsecutiveFailureCount: stat.Status.ConsecutiveFailureCount,
+				LastSuccessTime:         stat.Status.LastSuccessTime,
+				LastFailureTime:         stat.Status.LastFailureTime,
+			},
+		})
+	}
+
+	return mStats, nil
+}
+
+func (a agentServer) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMeta) (*proto.RemoveStatus, error) {
+	log.Debugf("Removing check from check controller manager: %s", agentCheck.Name)
+
+	err := ControllerManager.RemoveControllerAndWait(agentCheck.Name)
+	if err != nil {
+		return &proto.RemoveStatus{
+			Removed: false,
+			Message: fmt.Errorf("Error while removing: %s", err),
+		}, err
+	}
+
 	return nil, nil
+}
+
+func (a agentServer) ListChecks(context.Context, *proto.None) (*proto.ChecksList, error) {
+	log.Debugf("Listing checks managed by agent's default registered manager")
+
+	ctrls := ControllerManager.GetAllControllers()
+	checksList := []*proto.CheckMeta{}
+
+	for _, ctrl := range ctrls {
+		checksList = append(checksList, &proto.CheckMeta{Name: ctrl})
+	}
+
+	return &proto.CheckList{Checks: checksList}, nil
 }
 
 // RunGrpcServer starts a GRPC server at the specified port.
