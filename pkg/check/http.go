@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sdslabs/status/pkg/api/agent/proto"
+	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/controller"
 	"github.com/sdslabs/status/pkg/defaults"
 	"github.com/sdslabs/status/pkg/probes"
@@ -27,18 +27,18 @@ type HTTPChecker struct {
 	Payload map[string]string
 	Headers map[string]string
 
-	HTTPOutput *CheckComponent
+	HTTPOutput *TVComponent
 
 	Timeout time.Duration
 }
 
-func NewHTTPChecker(agentCheck *proto.Check) (*HTTPChecker, error) {
+func NewHTTPChecker(agentCheck config.Check) (*HTTPChecker, error) {
 	err := validateHTTPCheck(agentCheck)
 	if err != nil {
 		return nil, fmt.Errorf("VALIDATION_ERROR: %s", err)
 	}
 
-	method := agentCheck.Input.Value
+	method := agentCheck.GetInput().GetValue()
 	if method == "" {
 		method = defaults.DefaultHTTPMethod
 	}
@@ -46,10 +46,10 @@ func NewHTTPChecker(agentCheck *proto.Check) (*HTTPChecker, error) {
 	params := make(map[string]string)
 	headers := make(map[string]string)
 
-	for _, payload := range agentCheck.Payloads {
-		kv := strings.SplitN(payload.Payload, HEADER_DELIMITER, 2)
+	for _, payload := range agentCheck.GetPayloads() {
+		kv := strings.SplitN(payload.GetValue(), HEADER_DELIMITER, 2)
 
-		switch payload.PayloadType {
+		switch payload.GetType() {
 		case "header":
 			headers[kv[0]] = kv[1]
 		case "parameter":
@@ -60,13 +60,13 @@ func NewHTTPChecker(agentCheck *proto.Check) (*HTTPChecker, error) {
 	return &HTTPChecker{
 		Method: method,
 
-		URL:     agentCheck.Target.Value,
+		URL:     agentCheck.GetTarget().GetValue(),
 		Payload: params,
 		Headers: headers,
 
-		HTTPOutput: &CheckComponent{
-			Type:  agentCheck.Output.Type,
-			Value: agentCheck.Output.Value,
+		HTTPOutput: &TVComponent{
+			Type:  agentCheck.GetOutput().GetType(),
+			Value: agentCheck.GetOutput().GetValue(),
 		},
 
 		Timeout: defaults.DefaultHTTPProbeTimeout,
@@ -164,27 +164,27 @@ func validateKVPair(val string) error {
 	return nil
 }
 
-func validateHTTPCheck(agentCheck *proto.Check) error {
-	err := validateHTTPInput(agentCheck.Input)
+func validateHTTPCheck(agentCheck config.Check) error {
+	err := validateHTTPInput(agentCheck.GetInput())
 	if err != nil {
 		return err
 	}
 
-	err = validateHTTPOutput(agentCheck.Output)
+	err = validateHTTPOutput(agentCheck.GetOutput())
 	if err != nil {
 		return err
 	}
 
-	err = validateHTTPTarget(agentCheck.Target)
+	err = validateHTTPTarget(agentCheck.GetTarget())
 	if err != nil {
 		return err
 	}
 
-	return validateHTTPPayload(agentCheck.Payloads)
+	return validateHTTPPayload(agentCheck.GetPayloads())
 }
 
-func validateHTTPInput(input *proto.Check_Component) error {
-	inputVal := input.Value
+func validateHTTPInput(input config.CheckComponent) error {
+	inputVal := input.GetValue()
 	if inputVal != "GET" && inputVal != "POST" && inputVal != "" {
 		return fmt.Errorf("for HTTP input the provided method(%s) is not supported", inputVal)
 	}
@@ -192,19 +192,19 @@ func validateHTTPInput(input *proto.Check_Component) error {
 	return nil
 }
 
-func validateHTTPOutput(output *proto.Check_Component) error {
-	validateFunc, ok := validHttpOutputTypes[output.Type]
+func validateHTTPOutput(output config.CheckComponent) error {
+	validateFunc, ok := validHttpOutputTypes[output.GetType()]
 	if !ok {
-		return fmt.Errorf("provided Output Type(%s) is not valid for HTTP input", output.Type)
+		return fmt.Errorf("provided Output Type(%s) is not valid for HTTP input", output.GetType())
 	}
 
-	return validateFunc(output.Value)
+	return validateFunc(output.GetValue())
 }
 
-func validateHTTPTarget(target *proto.Check_Component) error {
+func validateHTTPTarget(target config.CheckComponent) error {
 	// We don't check the value of type for the target here
 	// as for HTTP Check the target is always a URL and we check it that way only.
-	_, err := url.Parse(target.Value)
+	_, err := url.Parse(target.GetValue())
 	if err != nil {
 		return fmt.Errorf("not a valid target, error while parsing as url: %s", err)
 	}
@@ -212,17 +212,17 @@ func validateHTTPTarget(target *proto.Check_Component) error {
 	return nil
 }
 
-func validateHTTPPayload(payloads []*proto.Check_Payloads) error {
+func validateHTTPPayload(payloads []config.CheckComponent) error {
 	for _, payload := range payloads {
-		if payload.PayloadType == "header" && payload.PayloadType == "parameter" {
-			err := validateKVPair(payload.Payload)
+		if payload.GetType() == "header" && payload.GetType() == "parameter" {
+			err := validateKVPair(payload.GetValue())
 
 			if err != nil {
-				return fmt.Errorf("payload (%s) is not valid: %s", payload.Payload, err)
+				return fmt.Errorf("payload (%s) is not valid: %s", payload.GetValue(), err)
 			}
 		}
 
-		return fmt.Errorf("payload type %s is not valid", payload.PayloadType)
+		return fmt.Errorf("payload type %s is not valid", payload.GetType())
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sdslabs/status/pkg/api/agent/proto"
+	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/controller"
 	"github.com/sdslabs/status/pkg/defaults"
 )
@@ -39,7 +39,7 @@ func (cd CheckStats) IsSuccessful() bool {
 	return cd.Successful
 }
 
-type CheckComponent struct {
+type TVComponent struct {
 	Type  string
 	Value string
 }
@@ -56,13 +56,13 @@ const (
 // NewChecker returns a new Checker for the provided agent Check.
 // This first validates the agent Check provided in the argument and if the Check
 // is validated then returns a new Checker instance for the provided Check configuration.
-func NewChecker(agentCheck *proto.Check) (Checker, error) {
+func NewChecker(agentCheck config.Check) (Checker, error) {
 	err := validateCheck(agentCheck)
 	if err != nil {
 		return nil, fmt.Errorf("Error while validating check: %s", err)
 	}
 
-	switch InputType(agentCheck.Input.Type) {
+	switch InputType(agentCheck.GetInput().GetType()) {
 	case HTTPInputType:
 		return NewHTTPChecker(agentCheck)
 	case TCPInputType:
@@ -75,27 +75,27 @@ func NewChecker(agentCheck *proto.Check) (Checker, error) {
 
 // Validates the agent check provided in the argument, returns an error
 // if the provided check is not valid.
-func validateCheck(agentCheck *proto.Check) error {
-	if agentCheck.Input == nil || agentCheck.Output == nil || agentCheck.Target == nil {
+func validateCheck(agentCheck config.Check) error {
+	if agentCheck.GetInput() == nil || agentCheck.GetOutput() == nil || agentCheck.GetTarget() == nil {
 		return fmt.Errorf("Input, Ouput and Target are required for the check")
 	}
 
-	if agentCheck.Interval < int64(defaults.MinControllerRetryInterval.Seconds()) {
+	if agentCheck.GetInterval() < int64(defaults.MinControllerRetryInterval.Seconds()) {
 		return fmt.Errorf("interval provided is less than the minimum value allowed controller retry interval")
 	}
 
-	if agentCheck.Timeout < int64(defaults.MinControllerTimeout.Seconds()) {
+	if agentCheck.GetTimeout() < int64(defaults.MinControllerTimeout.Seconds()) {
 		return fmt.Errorf("timeout for the check is less than the minimum value allowed for controller timeout")
 	}
 
-	switch InputType(agentCheck.Input.Type) {
+	switch InputType(agentCheck.GetInput().GetType()) {
 	case HTTPInputType:
 		return validateHTTPCheck(agentCheck)
 	case TCPInputType:
 	case WebsocketInputType:
 	case ICMPInputType:
 	default:
-		return fmt.Errorf("provided input type is not valid: %s", agentCheck.Input.Type)
+		return fmt.Errorf("provided input type is not valid: %s", agentCheck.GetInput().GetType())
 	}
 
 	return fmt.Errorf("not a valid input type")
