@@ -1,6 +1,8 @@
 package defaults
 
 import (
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -43,4 +45,8 @@ var (
 	// DefaultInvalidDuration is the default value of time duration which will be considered
 	// as a failed controller execution
 	DefaultInvalidDuration = time.Second * 360
+
+	// DefaultStatusPageConfigPath is the default path of the config file for the status page
+	// agent. This is mostly used in case when we run the agent in a standalone mode.
+	DefaultStatusPageConfigPath = filepath.Join(os.Getenv("HOME"), "/.sp.yml")
 )

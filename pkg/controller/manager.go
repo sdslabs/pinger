@@ -197,6 +197,10 @@ func (m *Manager) Terminate() {
 	close(m.terminate)
 }
 
+func (m *Manager) Wait() {
+	<-m.terminate
+}
+
 // GetStats Return the entire stats for manager.
 func (m *Manager) GetStats() []*ControllerStatus {
 	var stats []*ControllerStatus
