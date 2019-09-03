@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sdslabs/status/pkg/api/agent/proto"
+	"github.com/sdslabs/status/pkg/agent/proto"
 	"github.com/sdslabs/status/pkg/defaults"
 	"google.golang.org/grpc"
 

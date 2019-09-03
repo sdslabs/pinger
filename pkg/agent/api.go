@@ -8,8 +8,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/sdslabs/status/pkg/api/agent/proto"
+	"github.com/sdslabs/status/pkg/agent/proto"
 	"github.com/sdslabs/status/pkg/check"
+	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/controller"
 	"github.com/sdslabs/status/pkg/metrics"
 
@@ -21,15 +22,12 @@ const (
 	AGENT_GRPC_HOST = "0.0.0.0"
 )
 
-// ControllerManager is the global manager for the controller that comes with the
-// agent. It is initialized when we run the GRPC servers.
-var ControllerManager *controller.Manager
-
 type agentServer struct{}
 
 func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*proto.PushStatus, error) {
 	log.Debug("Recieved the push for a new check.")
-	checker, err := check.NewChecker(agentCheck)
+	cfg := config.GetCheckFromCheckProto(agentCheck)
+	checker, err := check.NewChecker(cfg)
 	if err != nil {
 		log.Errorf("Error while creating new checker: %s", err)
 		return &proto.PushStatus{
@@ -78,16 +76,16 @@ func (a agentServer) GetManagerStats(context.Context, *proto.None) (*proto.Manag
 				Interval:      stat.Configuration.Interval,
 			},
 			RunStatus: &proto.ManagerStats_ControllerRunStatus{
-				SuccessCount:            stat.Status.SuccessCount,
-				FailureCount:            stat.Status.FailureCount,
-				ConsecutiveFailureCount: stat.Status.ConsecutiveFailureCount,
-				LastSuccessTime:         stat.Status.LastSuccessTime,
-				LastFailureTime:         stat.Status.LastFailureTime,
+				SuccessCount:       stat.Status.SuccessCount,
+				FailureCount:       stat.Status.FailureCount,
+				ConsecFailureCount: stat.Status.ConsecutiveFailureCount,
+				LastSuccessTime:    stat.Status.LastSuccessStamp,
+				LastFailureTime:    stat.Status.LastFailureStamp,
 			},
 		})
 	}
 
-	return mStats, nil
+	return &proto.ManagerStats{ControllerStatus: mStats}, nil
 }
 
 func (a agentServer) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMeta) (*proto.RemoveStatus, error) {
@@ -97,7 +95,7 @@ func (a agentServer) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMet
 	if err != nil {
 		return &proto.RemoveStatus{
 			Removed: false,
-			Message: fmt.Errorf("Error while removing: %s", err),
+			Message: fmt.Sprintf("Error while removing: %s", err),
 		}, err
 	}
 
@@ -114,7 +112,7 @@ func (a agentServer) ListChecks(context.Context, *proto.None) (*proto.ChecksList
 		checksList = append(checksList, &proto.CheckMeta{Name: ctrl})
 	}
 
-	return &proto.CheckList{Checks: checksList}, nil
+	return &proto.ChecksList{Checks: checksList}, nil
 }
 
 // RunGrpcServer starts a GRPC server at the specified port.

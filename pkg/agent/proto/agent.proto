@@ -15,12 +15,7 @@ message Check {
     Component target = 2;
     Component output = 3;
 
-    message Payloads {
-        string payload_type = 1;
-        string payload = 2;
-    }
-
-    repeated Payloads payloads = 4;
+    repeated Component payloads = 4;
 
     // Both the interval and the timeout values are in 
     // seconds.
