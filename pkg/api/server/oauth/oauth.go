@@ -36,16 +36,13 @@ func randToken() string {
 
 // SetupGoogleOAuth initialises the oAuth conf
 func SetupGoogleOAuth() error {
-	conf, err := utils.GetConfig()
-	if err != nil {
-		return err
-	}
+	conf := utils.StatusConf.Oauth.Google
 
 	config = &oauth2.Config{
-		ClientID:     conf.Oauth.Google.ClientID,
-		ClientSecret: conf.Oauth.Google.ClientSecret,
-		RedirectURL:  conf.Oauth.Google.RedirectURL,
-		Scopes:       conf.Oauth.Google.Scopes,
+		ClientID:     conf.ClientID,
+		ClientSecret: conf.ClientSecret,
+		RedirectURL:  conf.RedirectURL,
+		Scopes:       conf.Scopes,
 		Endpoint:     google.Endpoint,
 	}
 	return nil
