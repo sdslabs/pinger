@@ -9,8 +9,7 @@ import (
 )
 
 var (
-	conf, _ = utils.GetConfig()
-	dbConf  = conf.Database
+	dbConf = utils.StatusConf.Database
 	// DBConn for sending API Queries
 	DBConn SQLDB
 )

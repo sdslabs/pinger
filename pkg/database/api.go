@@ -17,7 +17,7 @@ type SQLDB interface {
 	DeleteUserByEmail(email string) error
 	GetAllChecksByOwner(ownerID int) ([]Check, error)
 	GetCheckByID(id int) (Check, error)
-	CreateCheck(ownerID, interval, timeout int, input, output, target, title string, payloads []Payload) (Check, error)
+	CreateCheck(ownerID, interval, timeout int, inputType, inputValue, outputType, outputValue, targetType, targetValue, title string, payloads []Payload) (Check, error)
 	UpdateCheckByID(id uint, check Check) (Check, error)
 	DeleteCheckByID(id int) error
 	GetAllPayloadsByCheck(checkID int) ([]Payload, error)
@@ -34,7 +34,7 @@ type SQLDB interface {
 	DeletePageByID(id int) error
 	GetAllIncidentsByPage(pageID int) ([]Incident, error)
 	GetIncidentByID(id int) (Incident, error)
-	CreateIncident(pageID int, timestamp *time.Time, duration int, title, description string) (Incident, error)
+	CreateIncident(pageID int, timestamp *time.Time, duration int, title, description string, resolved bool) (Incident, error)
 	UpdateIncidentByID(id uint, incident Incident) (Incident, error)
 	DeleteIncidentByID(id int) error
 	AddIncidentsToPage(pageID uint, incidents []*Incident) error
@@ -135,16 +135,19 @@ func (db *sqldb) GetCheckByID(id int) (Check, error) {
 }
 
 // CreateCheck creates a new check
-func (db *sqldb) CreateCheck(ownerID, interval, timeout int, input, output, target, title string, payloads []Payload) (Check, error) {
+func (db *sqldb) CreateCheck(ownerID, interval, timeout int, inputType, inputValue, outputType, outputValue, targetType, targetValue, title string, payloads []Payload) (Check, error) {
 	check := Check{
-		OwnerID:  ownerID,
-		Interval: interval,
-		Timeout:  timeout,
-		Input:    input,
-		Output:   output,
-		Target:   target,
-		Title:    title,
-		Payloads: payloads,
+		OwnerID:     ownerID,
+		Interval:    interval,
+		Timeout:     timeout,
+		InputType:   inputType,
+		InputValue:  inputValue,
+		OutputType:  outputType,
+		OutputValue: outputValue,
+		TargetType:  targetType,
+		TargetValue: targetValue,
+		Title:       title,
+		Payloads:    payloads,
 	}
 	tx := db.Create(&check)
 	return check, tx.Error
@@ -298,13 +301,14 @@ func (db *sqldb) GetIncidentByID(id int) (Incident, error) {
 }
 
 // CreateIncident creates an incident with given type and value
-func (db *sqldb) CreateIncident(pageID int, timestamp *time.Time, duration int, title, description string) (Incident, error) {
+func (db *sqldb) CreateIncident(pageID int, timestamp *time.Time, duration int, title, description string, resolved bool) (Incident, error) {
 	incident := Incident{
 		PageID:      pageID,
 		TimeStamp:   timestamp,
 		Duration:    duration,
 		Title:       title,
 		Description: description,
+		Resolved:    resolved,
 	}
 	tx := db.Create(&incident)
 	return incident, tx.Error

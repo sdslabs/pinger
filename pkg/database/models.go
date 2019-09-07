@@ -16,15 +16,18 @@ type User struct {
 // Check model
 type Check struct {
 	gorm.Model
-	OwnerID  int
-	Owner    User
-	Interval int       `gorm:"DEFAULT:30"`
-	Timeout  int       `gorm:"DEFAULT:30"`
-	Input    string    `gorm:"NOT NULL"`
-	Output   string    `gorm:"NOT NULL"`
-	Target   string    `gorm:"NOT NULL"`
-	Title    string    `gorm:"NOT NULL"`
-	Payloads []Payload `gorm:"foreignkey:CheckID"`
+	OwnerID     int
+	Owner       User
+	Interval    int       `gorm:"DEFAULT:30"`
+	Timeout     int       `gorm:"DEFAULT:30"`
+	InputType   string    `gorm:"NOT NULL"`
+	InputValue  string    `gorm:"NOT NULL"`
+	OutputType  string    `gorm:"NOT NULL"`
+	OutputValue string    `gorm:"NOT NULL"`
+	TargetType  string    `gorm:"NOT NULL"`
+	TargetValue string    `gorm:"NOT NULL"`
+	Title       string    `gorm:"NOT NULL"`
+	Payloads    []Payload `gorm:"foreignkey:CheckID"`
 }
 
 // Payload model
@@ -58,4 +61,5 @@ type Incident struct {
 	Duration    int        `gorm:"NOT NULL"`
 	Title       string     `gorm:"NOT NULL"`
 	Description string     `gorm:"TYPE:text"`
+	Resolved    bool       `gorm:"DEFAULT:false"`
 }

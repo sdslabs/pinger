@@ -16,8 +16,7 @@ const (
 )
 
 var (
-	conf, _   = utils.GetConfig()
-	jwtSecret = []byte(conf.JWTSecret)
+	jwtSecret = []byte(utils.StatusConf.JWTSecret)
 )
 
 type claims struct {

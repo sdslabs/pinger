@@ -8,6 +8,9 @@ import (
 
 const configPath = "config.yml"
 
+// StatusConf is the data from `config.yml`
+var StatusConf Config
+
 type googleOauth struct {
 	ClientID     string   `yaml:"client_id"`
 	ClientSecret string   `yaml:"client_secret"`
@@ -53,4 +56,12 @@ func GetConfig() (Config, error) {
 		return Config{}, err
 	}
 	return *c, nil
+}
+
+func init() {
+	var err error
+	StatusConf, err = GetConfig()
+	if err != nil {
+		panic(err)
+	}
 }
