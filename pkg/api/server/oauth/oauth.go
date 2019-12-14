@@ -65,7 +65,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 	token, err := config.Exchange(oauth2.NoContext, ctx.Query("code"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -74,7 +74,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 	info, err := client.Get(googleUserInfoEndpoint)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -83,7 +83,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 	data, err := ioutil.ReadAll(info.Body)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -92,7 +92,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 	err = json.Unmarshal(data, u)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -100,7 +100,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 	createdUser, err := database.DBConn.CreateUser(u.Email, u.Name)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -108,7 +108,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 	jwt, err := newToken(u.Email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}

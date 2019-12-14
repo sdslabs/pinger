@@ -79,12 +79,12 @@ func VerifyJWTMiddleware(ctx *gin.Context) {
 	if err != nil {
 		if err.Error() == errInvalidToken {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": err,
+				"error": err.Error(),
 			})
 			return
 		}
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
