@@ -22,14 +22,16 @@ func NewRouter() *gin.Engine {
 	apiRouter.Use(oauth.VerifyJWTMiddleware)
 	{
 		apiRouter.GET("/test", func(ctx *gin.Context) {
-			currentUser, ok := ctx.Get("currentUser")
+			currentUser, ok := oauth.CurrentUserFromCtx(ctx)
+
 			if !ok {
 				ctx.JSON(http.StatusBadRequest, gin.H{
 					"error": "Cannot find user from token",
 				})
 			}
 			ctx.JSON(http.StatusOK, gin.H{
-				"user": currentUser.(string),
+				"name":  currentUser.Name,
+				"email": currentUser.Email,
 			})
 		})
 	}

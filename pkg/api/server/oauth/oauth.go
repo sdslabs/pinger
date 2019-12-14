@@ -105,7 +105,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 		return
 	}
 
-	jwt, err := newToken(u.Email)
+	jwt, err := newToken(createdUser.ID, createdUser.Email, createdUser.Name)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

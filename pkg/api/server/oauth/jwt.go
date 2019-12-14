@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -19,15 +20,27 @@ var (
 	jwtSecret = []byte(utils.StatusConf.JWTSecret)
 )
 
-type claims struct {
+type Claims struct {
+	ID    uint   `json:"id"`
 	Email string `json:"email"`
+	Name  string `json:"name"`
 	jwt.StandardClaims
 }
 
-func newToken(email string) (string, error) {
+func CurrentUserFromCtx(ctx *gin.Context) (*Claims, bool) {
+	claims, ok := ctx.Get(defaults.JWTContextKey)
+	if !ok {
+		return nil, false
+	}
+	return claims.(*Claims), true
+}
+
+func newToken(id uint, email, name string) (string, error) {
 	expirationTime := time.Now().Add(defaults.JWTExpireInterval)
-	c := &claims{
+	c := &Claims{
+		ID:    id,
 		Email: email,
+		Name:  name,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -40,23 +53,23 @@ func newToken(email string) (string, error) {
 	return tokenString, nil
 }
 
-func getEmailFromToken(token string) (string, error) {
+func getClaimsFromToken(token string) (*Claims, error) {
 	// when returning ErrInvalidToken, it means the status
 	// of error is unauthorized rather than bad request
-	c := &claims{}
+	c := &Claims{}
 	tkn, err := jwt.ParseWithClaims(token, c, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
 	})
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return "", errors.New(errInvalidToken)
+			return nil, errors.New(errInvalidToken)
 		}
-		return "", err
+		return nil, err
 	}
 	if !tkn.Valid {
-		return "", errors.New(errInvalidToken)
+		return nil, errors.New(errInvalidToken)
 	}
-	return c.Email, nil
+	return c, nil
 }
 
 // VerifyJWTMiddleware is used to authenticate any request for user
@@ -69,13 +82,14 @@ func VerifyJWTMiddleware(ctx *gin.Context) {
 		})
 		return
 	}
-	if authHeader[:5] != "Basic" {
+	authTypeLen := len(defaults.JWTAuthType)
+	if authHeader[:authTypeLen] != defaults.JWTAuthType {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "Missing 'Basic' Authorization type",
+			"error": fmt.Sprintf("Missing '%s' Authorization type", defaults.JWTAuthType),
 		})
 		return
 	}
-	email, err := getEmailFromToken(authHeader[6:])
+	claims, err := getClaimsFromToken(authHeader[authTypeLen+1:])
 	if err != nil {
 		if err.Error() == errInvalidToken {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -88,6 +102,6 @@ func VerifyJWTMiddleware(ctx *gin.Context) {
 		})
 		return
 	}
-	ctx.Set("currentUser", email)
+	ctx.Set(defaults.JWTContextKey, claims)
 	ctx.Next()
 }

@@ -31,6 +31,12 @@ var (
 	// JWTExpireInterval is interval for which JWT is valid
 	JWTExpireInterval = time.Hour * 24
 
+	// JWTContextKey is the key by which JWT claims are stored in Gin Context bucket
+	JWTContextKey = "currentUser"
+
+	// JWTAuthType is the token type of the authorization header
+	JWTAuthType = "Bearer"
+
 	// DefaultAgentPrometheusMetricsPort is the default port for the agent to host
 	// prometheus metrics enpoint on.
 	DefaultAgentPrometheusMetricsPort = 9008
