@@ -141,7 +141,7 @@ func RunGrpcServer(port int, config *metrics.ProviderConfig) {
 	}
 
 	if err != nil {
-		log.Error("Error while creating controller manager: %s", err)
+		log.Error("Error while creating controller manager:", err)
 		return
 	}
 

@@ -141,7 +141,7 @@ func validateStatusCode(val string) error {
 		return fmt.Errorf("status code prvoided is not parsable: %s", err)
 	}
 	if intVal > 599 || intVal < 100 {
-		return fmt.Errorf("status code is not valid(expected between: 100 - 599) got %s")
+		return fmt.Errorf("status code is not valid (expected between: 100 - 599) got %d", intVal)
 	}
 
 	return nil
