@@ -29,10 +29,11 @@ var (
 	DefaultHTTPProbeTimeout = time.Second * 10
 
 	// JWTExpireInterval is interval for which JWT is valid
-	JWTExpireInterval = time.Hour * 24
+	JWTExpireInterval = time.Hour // 1 hour
 
-	// JWTContextKey is the key by which JWT claims are stored in Gin Context bucket
-	JWTContextKey = "currentUser"
+	// JWTRefreshInterval is the interval for which an expired token can be refreshed
+	// Total refresh time = JWTRefreshInterval + JWTExpireInterval
+	JWTRefreshInterval = time.Hour * 24 * 28 // 4 weeks by default
 
 	// JWTAuthType is the token type of the authorization header
 	JWTAuthType = "Bearer"

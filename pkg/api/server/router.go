@@ -16,6 +16,7 @@ func NewRouter() *gin.Engine {
 	{
 		oauthRouter.GET("/google", oauth.HandleGoogleLogin) // sends the url for login
 		oauthRouter.GET("/google/redirect", oauth.HandleGoogleRedirect)
+		oauthRouter.GET("/refresh", oauth.RefreshTokenHandler)
 	}
 
 	apiRouter := router.Group("/api")

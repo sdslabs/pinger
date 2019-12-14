@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -13,7 +14,10 @@ import (
 )
 
 const (
-	errInvalidToken = "UNAUTHORIZED_INVALID_TOKEN"
+	errExpiredTokenPrefix = "token is expired by"
+	errExpiredToken       = "token expired"
+
+	contextBucketKey = "currentUser"
 )
 
 var (
@@ -28,7 +32,7 @@ type Claims struct {
 }
 
 func CurrentUserFromCtx(ctx *gin.Context) (*Claims, bool) {
-	claims, ok := ctx.Get(defaults.JWTContextKey)
+	claims, ok := ctx.Get(contextBucketKey)
 	if !ok {
 		return nil, false
 	}
@@ -61,37 +65,87 @@ func getClaimsFromToken(token string) (*Claims, error) {
 		return jwtSecret, nil
 	})
 	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			return nil, errors.New(errInvalidToken)
+		if strings.HasPrefix(err.Error(), errExpiredTokenPrefix) {
+			return c, errors.New(errExpiredToken)
 		}
-		return nil, err
+		return c, err
 	}
 	if !tkn.Valid {
-		return nil, errors.New(errInvalidToken)
+		return c, errors.New("invalid token")
 	}
 	return c, nil
+}
+
+func getTokenFromCtx(ctx *gin.Context) (string, error) {
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" {
+		return "", errors.New("Missing Authorization Header")
+	}
+	authTypeLen := len(defaults.JWTAuthType)
+	if authHeader[:authTypeLen] != defaults.JWTAuthType {
+		return "", fmt.Errorf("Missing '%s' Authorization type", defaults.JWTAuthType)
+	}
+	return authHeader[authTypeLen+1:], nil
+}
+
+// RefreshTokenHandler refreshes the token, given it claims it under the
+// max refresh time.
+func RefreshTokenHandler(ctx *gin.Context) {
+	token, err := getTokenFromCtx(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	claims, err := getClaimsFromToken(token)
+	// Since we're refreshing token, we don't care if the previous token
+	// claims are valid or invalid
+	if err != nil && err.Error() != errExpiredToken {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// we need to check if the time since previous expired token is under
+	// the max refresh time
+	if time.Now().Unix() > claims.ExpiresAt+int64(defaults.JWTRefreshInterval) {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Time exceeds max refresh time, login again",
+		})
+		return
+	}
+
+	refreshedToken, err := newToken(claims.ID, claims.Email, claims.Name)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"token":      refreshedToken,
+		"expires_in": defaults.JWTExpireInterval / time.Second,
+		"user_id":    claims.ID,
+		"user_email": claims.Email,
+		"user_name":  claims.Name,
+	})
 }
 
 // VerifyJWTMiddleware is used to authenticate any request for user
 // Sets the ctx 'currentUser' value to the user email
 func VerifyJWTMiddleware(ctx *gin.Context) {
-	authHeader := ctx.GetHeader("Authorization")
-	if authHeader == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "Missing Authorization Header",
-		})
-		return
-	}
-	authTypeLen := len(defaults.JWTAuthType)
-	if authHeader[:authTypeLen] != defaults.JWTAuthType {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Missing '%s' Authorization type", defaults.JWTAuthType),
-		})
-		return
-	}
-	claims, err := getClaimsFromToken(authHeader[authTypeLen+1:])
+	token, err := getTokenFromCtx(ctx)
 	if err != nil {
-		if err.Error() == errInvalidToken {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	claims, err := getClaimsFromToken(token)
+	if err != nil {
+		if err.Error() == errExpiredToken {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": err.Error(),
 			})
@@ -102,6 +156,6 @@ func VerifyJWTMiddleware(ctx *gin.Context) {
 		})
 		return
 	}
-	ctx.Set(defaults.JWTContextKey, claims)
+	ctx.Set(contextBucketKey, claims)
 	ctx.Next()
 }
