@@ -28,6 +28,9 @@ var (
 	// DefaultHTTPProbeTimeout is the http request timeout for HTTP prober.
 	DefaultHTTPProbeTimeout = time.Second * 10
 
+	// DefaultICMPProbeTimeout is the icmp request timeout for ICMP prober.
+	DefaultICMPProbeTimeout = time.Second * 10
+
 	// JWTExpireInterval is interval for which JWT is valid
 	JWTExpireInterval = time.Hour // 1 hour
 
