@@ -147,7 +147,7 @@ func validateHTTPTarget(target config.Component) error {
 	}
 	u, err := url.Parse(target.GetValue())
 	if err != nil {
-		return fmt.Errorf("not a valid target, error while parsing as url: %s", err)
+		return fmt.Errorf("not a valid target, error while parsing as url: %s", err.Error())
 	}
 
 	switch u.Scheme {
