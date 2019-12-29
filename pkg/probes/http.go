@@ -13,10 +13,20 @@ import (
 
 var defaultTransport = http.DefaultTransport.(*http.Transport)
 
-// New creates Prober that will skip TLS verification while probing.
+// NewHTTPProber creates Prober that will skip TLS verification while probing.
 func NewHTTPProber() HttpProber {
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
 	return NewWithTLSConfig(tlsConfig)
+}
+
+// NewWithTLSConfig creates a Prober with provided TLS config.
+func NewWithTLSConfig(config *tls.Config) HttpProber {
+	transport := setOldTransportDefaults(
+		&http.Transport{
+			TLSClientConfig:   config,
+			DisableKeepAlives: true,
+		})
+	return HttpProber{transport}
 }
 
 func setOldTransportDefaults(t *http.Transport) *http.Transport {
@@ -30,41 +40,38 @@ func setOldTransportDefaults(t *http.Transport) *http.Transport {
 	return t
 }
 
-func NewWithTLSConfig(config *tls.Config) HttpProber {
-	transport := setOldTransportDefaults(
-		&http.Transport{
-			TLSClientConfig:   config,
-			DisableKeepAlives: true,
-		})
-	return HttpProber{transport}
+// Parse the response obtained from making the reqeust using the prober,
+// it takes a few fields of the response and return it in a concise way to
+// be digested later.
+func parseResponse(resp *http.Response, duration time.Duration, startTime time.Time) *HTTPProbeResult {
+	return &HTTPProbeResult{
+		Timeout: false,
+
+		StatusCode: resp.StatusCode,
+		Headers:    resp.Header,
+		Body:       resp.Body,
+
+		StartTime: startTime,
+		Duration:  duration,
+	}
 }
 
-type HTTPProbeResult struct {
-	Timeout bool
-
-	StatusCode int
-	Body       io.ReadCloser
-	Headers    http.Header
-
-	// Time at which the probe execution started.
-	StartTime time.Time
-	// Duration that the probe lasted for.
-	Duration time.Duration
-}
-
+// HttpProber is the prober for HTTP request checks.
 type HttpProber struct {
 	transport *http.Transport
 }
 
+// GetProbe executes `Probe` method for a "GET" HTTP request.
 func (pr HttpProber) GetProbe(url string, headers map[string]string, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
 	return pr.Probe("GET", url, headers, payload, timeout)
 }
 
+// PostProbe executes `Probe` method for a "POST" HTTP request.
 func (pr HttpProber) PostProbe(url string, headers map[string]string, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
 	return pr.Probe("POST", url, headers, payload, timeout)
 }
 
-// Main entrypoint for doing a HTTP Probe using the package.
+// Probe is the main entrypoint for doing a HTTP Probe using the package.
 // The method specify the type of HTTP request we are trying to make and the other
 // parameters are populated accordingly in the request.
 func (pr *HttpProber) Probe(method, url string, headers, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
@@ -119,18 +126,16 @@ func (pr *HttpProber) Probe(method, url string, headers, payload map[string]stri
 	return parseResponse(resp, duration, startTime), nil
 }
 
-// Parse the response obtained from making the reqeust using the prober,
-// it takes a few fields of the response and return it in a concise way to
-// be digested later.
-func parseResponse(resp *http.Response, duration time.Duration, startTime time.Time) *HTTPProbeResult {
-	return &HTTPProbeResult{
-		Timeout: false,
+// HTTPProbeResult is the result of HTTP check probe.
+type HTTPProbeResult struct {
+	Timeout bool
 
-		StatusCode: resp.StatusCode,
-		Headers:    resp.Header,
-		Body:       resp.Body,
+	StatusCode int
+	Body       io.ReadCloser
+	Headers    http.Header
 
-		StartTime: startTime,
-		Duration:  duration,
-	}
+	// Time at which the probe execution started.
+	StartTime time.Time
+	// Duration that the probe lasted for.
+	Duration time.Duration
 }
