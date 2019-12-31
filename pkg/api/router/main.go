@@ -20,7 +20,7 @@ func NewRouter() *gin.Engine {
 	}
 
 	apiRouter := router.Group("/api")
-	apiRouter.Use(oauth.VerifyJWTMiddleware)
+	apiRouter.Use(oauth.JWTVerficationMiddleware)
 	{
 		apiRouter.GET("/test", func(ctx *gin.Context) {
 			currentUser, ok := oauth.CurrentUserFromCtx(ctx)
