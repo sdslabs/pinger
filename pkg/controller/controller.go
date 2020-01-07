@@ -7,8 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sdslabs/status/pkg/defaults"
 	"github.com/sirupsen/logrus"
+
+	"github.com/sdslabs/status/pkg/defaults"
 )
 
 // logging field definitions
@@ -20,36 +21,38 @@ const (
 	fieldConsecutiveErrors = "consecutiveErrors"
 )
 
-// An interface satisfied by all the functions.
+// Function is an interface satisfied by all the functions.
 type Function interface{}
 
-// An interface staisfied by all the function parameter types.
+// FuncParam is an interface staisfied by all the function parameter types.
 type FuncParam interface{}
 
-// ControllerFunction represents an underyling function executed by the controller.
+// Func represents an underlying function executed by the controller.
 // A controller function is uniquely identified by its name.
-type ControllerFunction struct {
+type Func struct {
 	name string
 
 	Function Function
 	Params   []FuncParam
 }
 
-type ControllerFunctionResult interface {
+// FunctionResult represents the result from a controller function.
+type FunctionResult interface {
 	GetDuration() time.Duration
 	GetStartTime() time.Time
 
 	IsSuccessful() bool
 }
 
-func (cf *ControllerFunction) Validate() error {
+// Validate validates the controller function parameters.
+func (cf *Func) Validate() error {
 	return validateNewControllerParams(cf.Function, cf.Params)
 }
 
 // Run the actual function that ControllerFunction actually represents.
 // The context passed as an argument to the Run function is propogated to the
 // underlying Function.
-func (cf *ControllerFunction) Run(ctx context.Context) (ControllerFunctionResult, error) {
+func (cf *Func) Run(ctx context.Context) (FunctionResult, error) {
 	function := reflect.ValueOf(cf.Function)
 
 	var params []reflect.Value
@@ -65,7 +68,7 @@ func (cf *ControllerFunction) Run(ctx context.Context) (ControllerFunctionResult
 	// This will panic if the ControllerFunction is not validated.
 	values := function.Call(params)
 	if len(values) != 2 {
-		return nil, fmt.Errorf("Error in the return value of the controller function.")
+		return nil, fmt.Errorf("error in the return value of the controller function")
 	}
 
 	resElem := values[0].Elem()
@@ -79,23 +82,26 @@ func (cf *ControllerFunction) Run(ctx context.Context) (ControllerFunctionResult
 		return nil, errElem.Interface().(error)
 	}
 
-	retRes := resElem.Interface().(ControllerFunctionResult)
+	retRes, ok := resElem.Interface().(FunctionResult)
+	if !ok {
+		return nil, fmt.Errorf("resElem.Interface() did not return a ControllerFunctionResult")
+	}
 	if !errElem.IsValid() {
 		return retRes, nil
 	}
 
-	return resElem.Interface().(ControllerFunctionResult), errElem.Interface().(error)
+	return resElem.Interface().(FunctionResult), errElem.Interface().(error)
 }
 
-// Returns an instance of a new controller function.
-func NewControllerFunction(function Function, params ...FuncParam) (*ControllerFunction, error) {
+// NewControllerFunction returns an instance of a new controller function.
+func NewControllerFunction(function Function, params ...FuncParam) (*Func, error) {
 	err := validateNewControllerParams(function, params...)
 	if err != nil {
 		return nil, err
 	}
 	funcType := reflect.TypeOf(function)
 
-	cf := &ControllerFunction{
+	cf := &Func{
 		name: funcType.Name(),
 
 		Function: function,
@@ -103,7 +109,6 @@ func NewControllerFunction(function Function, params ...FuncParam) (*ControllerF
 	}
 
 	return cf, nil
-
 }
 
 // Validate function and its parameters, this returns an error if the
@@ -113,37 +118,37 @@ func NewControllerFunction(function Function, params ...FuncParam) (*ControllerF
 // func(ctx context.Context, ...params) (ControllerFunctionResult, error) {}
 //
 // One inbound and two outbound variable is required with types context.Context
-// and ControllerFunctionResult, error respectivly.
+// and ControllerFunctionResult, error respectively.
 func validateNewControllerParams(function Function, params ...FuncParam) error {
 	funcType := reflect.TypeOf(function)
 	if funcType.Kind() != reflect.Func {
-		return fmt.Errorf("Provided function is not a valid function")
+		return fmt.Errorf("provided function is not a valid function")
 	}
 
 	if funcType.NumIn() < 1 {
-		return fmt.Errorf("Provided function is not valid, must have atleast one argument, the context")
+		return fmt.Errorf("provided function is not valid, must have atleast one argument, the context")
 	}
 
 	if funcType.NumOut() != 2 {
-		return fmt.Errorf("Provided function is not valid, must have an error as return value.")
+		return fmt.Errorf("provided function is not valid, must have an error as return value")
 	}
 
-	if funcType.Out(0) != reflect.TypeOf((*ControllerFunctionResult)(nil)).Elem() {
-		return fmt.Errorf("The return type of the function is not valid, must return a ControllerResult.")
+	if funcType.Out(0) != reflect.TypeOf((*FunctionResult)(nil)).Elem() {
+		return fmt.Errorf("the return type of the function is not valid, must return a ControllerResult")
 	}
 
 	if funcType.Out(1) != reflect.TypeOf((*error)(nil)).Elem() {
-		return fmt.Errorf("The return type of the function is not valid, must return an error value.")
+		return fmt.Errorf("the return type of the function is not valid, must return an error value")
 	}
 
 	if funcType.In(0) != reflect.TypeOf((*context.Context)(nil)).Elem() {
-		return fmt.Errorf("The first parameter to the Controller function must be a context.")
+		return fmt.Errorf("the first parameter to the Controller function must be a context")
 	}
 
 	// First parameter to the function is the context and is not provided
 	// while registering the function.
 	if funcType.NumIn() != len(params)+1 {
-		return fmt.Errorf("Parameters not valid required %d given %d", funcType.NumIn()-1, len(params))
+		return fmt.Errorf("parameters not valid required %d given %d", funcType.NumIn()-1, len(params))
 	}
 
 	for i, param := range params {
@@ -152,20 +157,20 @@ func validateNewControllerParams(function Function, params ...FuncParam) error {
 		// when running the function.
 		typ := funcType.In(i + 1)
 		if typ != reflect.TypeOf(param) {
-			return fmt.Errorf("Parameter type for param %s is not valid", typ.Name())
+			return fmt.Errorf("parameter type for param %s is not valid", typ.Name())
 		}
 	}
 
 	return nil
 }
 
-// ControllerParams contains all parameters of a controller, including the functions to
+// Internal contains all parameters of a controller, including the functions to
 // run and other metadata related to runs.
-type ControllerInternal struct {
+type Internal struct {
 	// DoFunc is the function that will be run until it succeeds and/or
 	// using the interval RunInterval if not 0.
 	// An unset DoFunc is an error and will be logged as one.
-	DoFunc *ControllerFunction
+	DoFunc *Func
 
 	// StopFunc is called when the controller stops. It is intended to run any
 	// clean-up tasks for the controller (e.g. deallocate/release resources)
@@ -174,7 +179,7 @@ type ControllerInternal struct {
 	// An unset StopFunc is not an error (and will be a no-op)
 	// Note: Since this occurs on controller exit, error counts and tracking may
 	// not be checked after StopFunc is run.
-	StopFunc *ControllerFunction
+	StopFunc *Func
 
 	// If set to any other value than 0, will cause DoFunc to be run in the
 	// specified interval. The interval starts from when the DoFunc has
@@ -205,7 +210,7 @@ type Controller struct {
 	// An optional type of the controller, the default value is "Default"
 	cType string
 
-	internal     ControllerInternal
+	internal     Internal
 	successCount int
 	failureCount int
 
@@ -228,10 +233,12 @@ type Controller struct {
 	terminated chan struct{}
 }
 
+// Name returns the controller name.
 func (c *Controller) Name() string {
 	return c.name
 }
 
+// Type returns the controller type.
 func (c *Controller) Type() string {
 	if c.cType == "" {
 		return defaults.DefaultControllerType
@@ -240,7 +247,8 @@ func (c *Controller) Type() string {
 	return c.cType
 }
 
-type ControllerExecutionStat struct {
+// ExecutionStat represents a controller config while execution.
+type ExecutionStat struct {
 	Name string
 	Type string
 
@@ -248,6 +256,7 @@ type ControllerExecutionStat struct {
 	Duration  time.Duration
 }
 
+// ExtractExecutionStatistics returns the statistics from a controller.
 func (c *Controller) ExtractExecutionStatistics() map[time.Time]time.Duration {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -358,7 +367,6 @@ func (c *Controller) RunController() {
 
 		case <-time.After(interval):
 		}
-
 	}
 
 shutdown:
@@ -378,7 +386,7 @@ shutdown:
 // updateParamsLocked sets the specified controller's parameters.
 //
 // If the RunInterval exceeds ControllerMaxInterval, it will be capped.
-func (c *Controller) updateController(internal ControllerInternal, notify bool) {
+func (c *Controller) updateController(internal Internal, notify bool) {
 	c.internal = internal
 	if notify {
 		c.update <- struct{}{}
@@ -419,20 +427,23 @@ func (c *Controller) recordSuccess() {
 	c.consecutiveErrors = 0
 }
 
-type ControllerStatus struct {
+// Status represents status of controller.
+type Status struct {
 	Name          string
-	Configuration *ControllerConfigurationStatus
+	Configuration *ConfigurationStatus
 
-	Status *ControllerRunStatus
+	Status *RunStatus
 }
 
-type ControllerConfigurationStatus struct {
+// ConfigurationStatus represents the configuration of controller.
+type ConfigurationStatus struct {
 	ErrorRetry    bool
 	ShouldBackOff bool
 	Interval      string
 }
 
-type ControllerRunStatus struct {
+// RunStatus represents the status of a running controller.
+type RunStatus struct {
 	SuccessCount     int64
 	LastSuccessStamp string
 
@@ -442,20 +453,20 @@ type ControllerRunStatus struct {
 	ConsecutiveFailureCount int64
 }
 
-// Returns the current status of the controller.
-func (c *Controller) Status() *ControllerStatus {
+// Status returns the current status of the controller.
+func (c *Controller) Status() *Status {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
-	return &ControllerStatus{
+	return &Status{
 		Name: c.name,
 
-		Configuration: &ControllerConfigurationStatus{
+		Configuration: &ConfigurationStatus{
 			ErrorRetry:    !c.internal.NoErrorRetry,
 			ShouldBackOff: !c.internal.RetryBackOff,
 			Interval:      c.internal.RunInterval.String(),
 		},
-		Status: &ControllerRunStatus{
+		Status: &RunStatus{
 			SuccessCount:            int64(c.successCount),
 			FailureCount:            int64(c.failureCount),
 			ConsecutiveFailureCount: int64(c.consecutiveErrors),

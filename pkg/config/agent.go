@@ -2,6 +2,7 @@ package config
 
 import (
 	"io/ioutil"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -14,11 +15,12 @@ type AgentConfig struct {
 	PrometheusMetrics     bool `yaml:"prometheus_metrics"`
 	PrometheusMetricsPort int  `yaml:"prometheus_metrics_port"`
 
-	Checks []*CheckConfig `yaml:"checks"`
+	Checks []*Config `yaml:"checks"`
 }
 
+// Parse takes the path of agent config file and structurizes data into `AgentConfig`.
 func (a *AgentConfig) Parse(path string) error {
-	data, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return err
 	}
@@ -26,6 +28,7 @@ func (a *AgentConfig) Parse(path string) error {
 	return yaml.Unmarshal(data, a)
 }
 
+// NewAgentConfig returns an `AgentConfig` from an agent config yaml file.
 func NewAgentConfig(path string) (*AgentConfig, error) {
 	c := &AgentConfig{}
 	err := c.Parse(path)

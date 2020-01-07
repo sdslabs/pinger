@@ -62,16 +62,16 @@ func (pr *ICMPProber) SetAddress(address string) error {
 	if err != nil {
 		return err
 	}
-	var ipv4 bool
+	var isipv4 bool
 	if isIPv4(ipAddr.IP) {
-		ipv4 = true
+		isipv4 = true
 	} else if isIPv6(ipAddr.IP) {
-		ipv4 = false
+		isipv4 = false
 	} else {
 		return errors.New("invalid address")
 	}
 	pr.address = address
-	pr.ipv4 = ipv4
+	pr.ipv4 = isipv4
 	pr.ipAddr = ipAddr
 	return nil
 }
@@ -98,16 +98,22 @@ func (pr *ICMPProber) Probe() (*ICMPProbeResult, error) {
 			close(pr.quit)
 			return nil, err
 		}
-		conn.IPv4PacketConn().SetControlMessage(ipv4.FlagTTL, true)
+		if err = conn.IPv4PacketConn().SetControlMessage(ipv4.FlagTTL, true); err != nil {
+			close(pr.quit)
+			return nil, err
+		}
 	} else {
 		conn, err = icmp.ListenPacket("udp6", "::")
 		if err != nil {
 			close(pr.quit)
 			return nil, err
 		}
-		conn.IPv6PacketConn().SetControlMessage(ipv6.FlagHopLimit, true)
+		if err = conn.IPv6PacketConn().SetControlMessage(ipv6.FlagHopLimit, true); err != nil {
+			close(pr.quit)
+			return nil, err
+		}
 	}
-	defer conn.Close()
+	defer conn.Close() //nolint:errcheck
 
 	var wg sync.WaitGroup
 
@@ -208,7 +214,10 @@ func (pr *ICMPProber) receive(conn *icmp.PacketConn, recv chan<- *packet, wg *sy
 			return
 		default:
 			bytes := make([]byte, 512)
-			conn.SetReadDeadline(time.Now().Add(time.Millisecond * 100))
+			if err := conn.SetReadDeadline(time.Now().Add(time.Millisecond * 100)); err != nil {
+				pr.quit <- true
+				return
+			}
 			var numBytes, ttl int
 			var err error
 			if pr.ipv4 {

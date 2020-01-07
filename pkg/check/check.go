@@ -40,7 +40,7 @@ type InputType string
 // Each check must implment this interface.
 type Checker interface {
 	// ExecuteCheck executes the check for the provided checker.
-	ExecuteCheck(context.Context) (controller.ControllerFunctionResult, error)
+	ExecuteCheck(context.Context) (controller.FunctionResult, error)
 
 	// Type returns the type of the checker, this can be http, icmp, websockets etc.
 	Type() string
@@ -52,15 +52,15 @@ type Checker interface {
 // Example of header payload:
 //     TVComponent{
 //	       Type:  "header",
-//         Value: "Authorizaton=Bearer xyz"
+//         Value: "Authorization=Bearer xyz"
 //     }
 type TVComponent struct {
 	Type  string
 	Value string
 }
 
-// CheckStats is the struct with concerned statistics collected by a check.
-type CheckStats struct {
+// Stats is the struct with concerned statistics collected by a check.
+type Stats struct {
 	Successful bool
 
 	StartTime time.Time
@@ -68,17 +68,17 @@ type CheckStats struct {
 }
 
 // GetDuration returns the duration taken by check to execute.
-func (cd CheckStats) GetDuration() time.Duration {
+func (cd Stats) GetDuration() time.Duration {
 	return cd.Duration
 }
 
 // GetStartTime returns the time when the check started to execute.
-func (cd CheckStats) GetStartTime() time.Time {
+func (cd Stats) GetStartTime() time.Time {
 	return cd.StartTime
 }
 
 // IsSuccessful returns true the check executed with desired output
 // or false when the check failed to produce the required output.
-func (cd CheckStats) IsSuccessful() bool {
+func (cd Stats) IsSuccessful() bool {
 	return cd.Successful
 }

@@ -14,23 +14,23 @@ import (
 var defaultTransport = http.DefaultTransport.(*http.Transport)
 
 // NewHTTPProber creates Prober that will skip TLS verification while probing.
-func NewHTTPProber() HttpProber {
-	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+func NewHTTPProber() HTTPProber {
+	tlsConfig := &tls.Config{InsecureSkipVerify: true} //nolint:gosec
 	return NewWithTLSConfig(tlsConfig)
 }
 
 // NewWithTLSConfig creates a Prober with provided TLS config.
-func NewWithTLSConfig(config *tls.Config) HttpProber {
+func NewWithTLSConfig(config *tls.Config) HTTPProber {
 	transport := setOldTransportDefaults(
 		&http.Transport{
 			TLSClientConfig:   config,
 			DisableKeepAlives: true,
 		})
-	return HttpProber{transport}
+	return HTTPProber{transport}
 }
 
 func setOldTransportDefaults(t *http.Transport) *http.Transport {
-	if t.DialContext == nil && t.Dial == nil {
+	if t.DialContext == nil && t.Dial == nil { //nolint:staticcheck
 		t.DialContext = defaultTransport.DialContext
 	}
 
@@ -56,25 +56,34 @@ func parseResponse(resp *http.Response, duration time.Duration, startTime time.T
 	}
 }
 
-// HttpProber is the prober for HTTP request checks.
-type HttpProber struct {
+// HTTPProber is the prober for HTTP request checks.
+type HTTPProber struct {
 	transport *http.Transport
 }
 
 // GetProbe executes `Probe` method for a "GET" HTTP request.
-func (pr HttpProber) GetProbe(url string, headers map[string]string, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
+func (pr HTTPProber) GetProbe(
+	url string,
+	headers, payload map[string]string,
+	timeout time.Duration) (*HTTPProbeResult, error) {
 	return pr.Probe("GET", url, headers, payload, timeout)
 }
 
 // PostProbe executes `Probe` method for a "POST" HTTP request.
-func (pr HttpProber) PostProbe(url string, headers map[string]string, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
+func (pr HTTPProber) PostProbe(
+	url string,
+	headers, payload map[string]string,
+	timeout time.Duration) (*HTTPProbeResult, error) {
 	return pr.Probe("POST", url, headers, payload, timeout)
 }
 
 // Probe is the main entrypoint for doing a HTTP Probe using the package.
 // The method specify the type of HTTP request we are trying to make and the other
 // parameters are populated accordingly in the request.
-func (pr *HttpProber) Probe(method, url string, headers, payload map[string]string, timeout time.Duration) (*HTTPProbeResult, error) {
+func (pr *HTTPProber) Probe(
+	method, url string,
+	headers, payload map[string]string,
+	timeout time.Duration) (*HTTPProbeResult, error) {
 	client := &http.Client{
 		Timeout:   timeout,
 		Transport: pr.transport,
@@ -82,15 +91,14 @@ func (pr *HttpProber) Probe(method, url string, headers, payload map[string]stri
 
 	var err error
 
-	payloadJson, err := json.Marshal(payload)
+	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("Error while marshalling JSON payload.")
+		return nil, fmt.Errorf("error while marshaling JSON payload")
 	}
 
 	var req *http.Request
 	if method == "POST" {
-		req, err = http.NewRequest(method, url, bytes.NewBuffer(payloadJson))
-
+		req, err = http.NewRequest(method, url, bytes.NewBuffer(payloadJSON))
 	} else {
 		req, err = http.NewRequest(method, url, nil)
 		q := req.URL.Query()
@@ -101,7 +109,7 @@ func (pr *HttpProber) Probe(method, url string, headers, payload map[string]stri
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("Error while preparing request: %s", err)
+		return nil, fmt.Errorf("error while preparing request: %s", err)
 	}
 
 	for key, val := range headers {
@@ -116,9 +124,8 @@ func (pr *HttpProber) Probe(method, url string, headers, payload map[string]stri
 		// Send a curated response in this case.
 
 		return &HTTPProbeResult{Timeout: true}, nil
-
 	} else if err != nil {
-		return nil, fmt.Errorf("Error while making request: %s", err)
+		return nil, fmt.Errorf("error while making request: %s", err)
 	}
 
 	duration := time.Since(startTime)

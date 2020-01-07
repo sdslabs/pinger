@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
@@ -9,12 +10,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+
 	"github.com/sdslabs/status/pkg/api/response"
 	"github.com/sdslabs/status/pkg/database"
 	"github.com/sdslabs/status/pkg/defaults"
 	"github.com/sdslabs/status/pkg/utils"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 const googleUserInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -29,7 +31,7 @@ type user struct {
 	Email string `json:"email"`
 }
 
-// SetupGoogleOAuth initialises the oAuth conf
+// SetupGoogleOAuth initializes the oAuth conf
 func SetupGoogleOAuth() error {
 	conf := utils.StatusConf.Oauth.Google
 
@@ -46,13 +48,13 @@ func SetupGoogleOAuth() error {
 // HandleGoogleLogin sends the response as login url using google oauth
 func HandleGoogleLogin(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response.HTTPLogin{
-		LoginURL: getGoogleLoginURL(state),
+		LoginURL: getGoogleLoginURL(),
 	})
 }
 
 // HandleGoogleRedirect when user allows for oAuth access
 func HandleGoogleRedirect(ctx *gin.Context) {
-	token, err := config.Exchange(oauth2.NoContext, ctx.Query("code"))
+	token, err := config.Exchange(context.TODO(), ctx.Query("code"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.HTTPError{
 			Error: err.Error(),
@@ -60,7 +62,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 		return
 	}
 
-	client := config.Client(oauth2.NoContext, token)
+	client := config.Client(context.TODO(), token)
 	info, err := client.Get(googleUserInfoEndpoint)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.HTTPError{
@@ -68,7 +70,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 		})
 		return
 	}
-	defer info.Body.Close()
+	defer info.Body.Close() //nolint:errcheck
 
 	data, err := ioutil.ReadAll(info.Body)
 	if err != nil {
@@ -79,7 +81,7 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 	}
 
 	u := new(user)
-	if err := json.Unmarshal(data, u); err != nil {
+	if err = json.Unmarshal(data, u); err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.HTTPError{
 			Error: err.Error(),
 		})
@@ -113,11 +115,13 @@ func HandleGoogleRedirect(ctx *gin.Context) {
 
 func randToken() string {
 	b := make([]byte, 32)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
 	return base64.StdEncoding.EncodeToString(b)
 }
 
-func getGoogleLoginURL(state string) string {
+func getGoogleLoginURL() string {
 	state = randToken()
 	return config.AuthCodeURL(state)
 }

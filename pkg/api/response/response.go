@@ -1,3 +1,5 @@
+// Package response contains typed structs for various responses to api requests.
+// These can be used comfortably to produce swagger api documentation.
 package response
 
 import "time"

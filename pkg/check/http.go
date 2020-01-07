@@ -15,9 +15,13 @@ import (
 	"github.com/sdslabs/status/pkg/probes"
 )
 
-const headerDelimeter = "="
+const (
+	headerDelimeter = "="
+	keyHeader       = "header"
+	keyParameter    = "parameter"
+)
 
-var validHttpOutputTypes map[string]validationFunction = map[string]validationFunction{
+var validHTTPOutputTypes map[string]validationFunction = map[string]validationFunction{
 	"status_code": validateStatusCode,
 	"body":        validateBody,
 	"header":      validateKVPair,
@@ -42,9 +46,9 @@ func NewHTTPChecker(agentCheck config.Check) (*HTTPChecker, error) {
 		kv := strings.SplitN(payload.GetValue(), headerDelimeter, 2)
 
 		switch payload.GetType() {
-		case "header":
+		case keyHeader:
 			headers[kv[0]] = kv[1]
-		case "parameter":
+		case keyParameter:
 			params[kv[0]] = kv[1]
 		}
 	}
@@ -115,7 +119,7 @@ func validateHTTPCheck(agentCheck config.Check) error {
 	return validateHTTPPayload(agentCheck.GetPayloads())
 }
 
-func validateHTTPInput(input config.CheckComponent) error {
+func validateHTTPInput(input config.Component) error {
 	inputVal := input.GetValue()
 	if inputVal != "GET" && inputVal != "POST" && inputVal != "" {
 		return fmt.Errorf("for HTTP input the provided method(%s) is not supported", inputVal)
@@ -124,8 +128,8 @@ func validateHTTPInput(input config.CheckComponent) error {
 	return nil
 }
 
-func validateHTTPOutput(output config.CheckComponent) error {
-	validateFunc, ok := validHttpOutputTypes[output.GetType()]
+func validateHTTPOutput(output config.Component) error {
+	validateFunc, ok := validHTTPOutputTypes[output.GetType()]
 	if !ok {
 		return fmt.Errorf("provided Output Type(%s) is not valid for HTTP input", output.GetType())
 	}
@@ -133,7 +137,7 @@ func validateHTTPOutput(output config.CheckComponent) error {
 	return validateFunc(output.GetValue())
 }
 
-func validateHTTPTarget(target config.CheckComponent) error {
+func validateHTTPTarget(target config.Component) error {
 	// We don't check the value of type for the target here
 	// as for HTTP Check the target is always a URL and we can check it that way only.
 	// Just for consistency of types not being nil, we check if it's equal to "url"
@@ -141,24 +145,24 @@ func validateHTTPTarget(target config.CheckComponent) error {
 	if typ != "url" {
 		return fmt.Errorf("target type %s is not supported", typ)
 	}
-	url, err := url.Parse(target.GetValue())
+	u, err := url.Parse(target.GetValue())
 	if err != nil {
 		return fmt.Errorf("not a valid target, error while parsing as url: %s", err)
 	}
 
-	switch url.Scheme {
+	switch u.Scheme {
 	case "http", "https":
 	default:
-		return fmt.Errorf("not a valid target, requires http(s) url got %s", url.Scheme)
+		return fmt.Errorf("not a valid target, requires http(s) url got %s", u.Scheme)
 	}
 
 	return nil
 }
 
-func validateHTTPPayload(payloads []config.CheckComponent) error {
+func validateHTTPPayload(payloads []config.Component) error {
 	for _, payload := range payloads {
 		switch payload.GetType() {
-		case "header", "parameter":
+		case keyHeader, keyParameter:
 			if err := validateKVPair(payload.GetValue()); err != nil {
 				return fmt.Errorf("payload (%s) is not valid: %s", payload.GetValue(), err)
 			}
@@ -190,7 +194,7 @@ func (c *HTTPChecker) Type() string {
 }
 
 // ExecuteCheck runs the check for given HTTPChecker.
-func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFunctionResult, error) {
+func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult, error) {
 	prober := probes.NewHTTPProber()
 
 	result, err := prober.Probe(c.Method, c.URL, c.Headers, c.Payload, c.Timeout)
@@ -202,14 +206,20 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFu
 
 	switch c.HTTPOutput.Type {
 	case "status_code":
-		reqStatusCode, _ := strconv.Atoi(c.HTTPOutput.Value)
+		var reqStatusCode int
+		reqStatusCode, err = strconv.Atoi(c.HTTPOutput.Value)
+		if err != nil {
+			return Stats{}, err
+		}
 		if result.StatusCode == reqStatusCode {
 			checkSuccessful = true
 		}
 
 	case "body":
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(result.Body)
+		if _, err = buf.ReadFrom(result.Body); err != nil {
+			return Stats{}, err
+		}
 		if c.HTTPOutput.Value == buf.String() {
 			checkSuccessful = true
 		}
@@ -222,7 +232,7 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFu
 		}
 	}
 
-	return CheckStats{
+	return Stats{
 		Successful: checkSuccessful,
 
 		StartTime: result.StartTime,

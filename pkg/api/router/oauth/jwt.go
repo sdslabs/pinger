@@ -9,6 +9,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+
 	"github.com/sdslabs/status/pkg/api/response"
 	"github.com/sdslabs/status/pkg/defaults"
 	"github.com/sdslabs/status/pkg/utils"
@@ -150,11 +151,11 @@ func getClaimsFromToken(token string) (*Claims, error) {
 func getTokenFromCtx(ctx *gin.Context) (string, error) {
 	authHeader := ctx.GetHeader("Authorization")
 	if authHeader == "" {
-		return "", errors.New("Missing Authorization Header")
+		return "", errors.New("missing Authorization Header")
 	}
 	authTypeLen := len(defaults.JWTAuthType)
 	if authHeader[:authTypeLen] != defaults.JWTAuthType {
-		return "", fmt.Errorf("Missing '%s' Authorization type", defaults.JWTAuthType)
+		return "", fmt.Errorf("missing '%s' Authorization type", defaults.JWTAuthType)
 	}
 	return authHeader[authTypeLen+1:], nil
 }

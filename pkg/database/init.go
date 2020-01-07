@@ -1,3 +1,6 @@
+// Package database contains the connection to database for the status app
+// as well as the timeseries db (timescale) for storing the metrics. It
+// contains methods and types to interact with the database using an ORM.
 package database
 
 import (
@@ -5,6 +8,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // PostgreSQL
+
 	"github.com/sdslabs/status/pkg/utils"
 )
 
@@ -16,7 +20,13 @@ var (
 
 // GetSQLDB returns a connection to the sqlite database
 func GetSQLDB() (SQLDB, error) {
-	connectStr := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s", dbConf.Host, dbConf.Port, dbConf.Username, dbConf.Name, dbConf.Password)
+	connectStr := fmt.Sprintf(
+		"host=%s port=%d user=%s dbname=%s password=%s",
+		dbConf.Host,
+		dbConf.Port,
+		dbConf.Username,
+		dbConf.Name,
+		dbConf.Password)
 	if !dbConf.SSLMode {
 		connectStr = fmt.Sprintf("%s sslmode=disable", connectStr)
 	}

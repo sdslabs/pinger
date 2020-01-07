@@ -1,3 +1,4 @@
+// Package defaults contains the default values for various elements.
 package defaults
 
 import (
@@ -49,7 +50,7 @@ var (
 	DefaultAgentPort = 9009
 
 	// DefaultControllerType is the default type of the controller, other types can be
-	// specifed based on the type of checks/probes that the controller executes
+	// specified based on the type of checks/probes that the controller executes
 	DefaultControllerType = "default"
 
 	// DefaultInvalidDuration is the default value of time duration which will be considered

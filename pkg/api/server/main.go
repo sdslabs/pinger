@@ -6,14 +6,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type ApiServer struct {
+// APIServer runs the server that pushes checks to agents.
+type APIServer struct {
 	Agents []*StatusAgent
 
 	Host string
 	Port int64
 }
 
-func (s *ApiServer) Run() error {
+// Run starts the API server.
+func (s *APIServer) Run() error {
 	check := &proto.Check{
 		Name: "http-test-check",
 
@@ -43,12 +45,13 @@ func (s *ApiServer) Run() error {
 	return nil
 }
 
-func NewApiServer() ApiServer {
+// NewAPIServer returns a default API server.
+func NewAPIServer() APIServer {
 	agents := []*StatusAgent{
 		NewStatusAgent("0.0.0.0", 9009),
 	}
 
-	return ApiServer{
+	return APIServer{
 		Agents: agents,
 
 		Host: "0.0.0.0",

@@ -53,7 +53,7 @@ func validateICMPCheck(agentCheck config.Check) error {
 	return validateICMPPayload(agentCheck.GetPayloads())
 }
 
-func validateICMPInput(input config.CheckComponent) error {
+func validateICMPInput(input config.Component) error {
 	val := input.GetValue()
 	if val != "PING" && val != "ECHO" && val != "" { // all of these mean the same
 		return fmt.Errorf("for ICMP input provided method (%s) is not supported", val)
@@ -61,7 +61,7 @@ func validateICMPInput(input config.CheckComponent) error {
 	return nil
 }
 
-func validateICMPOutput(output config.CheckComponent) error {
+func validateICMPOutput(output config.Component) error {
 	typ := output.GetType()
 	if typ != "timeout" {
 		return fmt.Errorf("provided output type (%s) is not supported", typ)
@@ -75,7 +75,7 @@ func validateICMPOutput(output config.CheckComponent) error {
 	return nil
 }
 
-func validateICMPTarget(target config.CheckComponent) error {
+func validateICMPTarget(target config.Component) error {
 	// We don't check the value of type for the target here
 	// as for ICMP Check the target is always a address and we can check it that way only.
 	// Just for consistency of types not being nil, we check if it's equal to "address"
@@ -91,7 +91,7 @@ func validateICMPTarget(target config.CheckComponent) error {
 	return nil
 }
 
-func validateICMPPayload(payload []config.CheckComponent) error {
+func validateICMPPayload(payload []config.Component) error {
 	return nil // no payload required for ICMP check
 }
 
@@ -109,7 +109,7 @@ func (c *ICMPChecker) Type() string {
 }
 
 // ExecuteCheck starts the check with ICMP probe and validates if the given output is desired.
-func (c *ICMPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFunctionResult, error) {
+func (c *ICMPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult, error) {
 	prober, err := probes.NewICMPProbe(c.Address, c.Timeout)
 	if err != nil {
 		return nil, fmt.Errorf("ICMP probe error: %s", err.Error())
@@ -120,10 +120,14 @@ func (c *ICMPChecker) ExecuteCheck(ctx context.Context) (controller.ControllerFu
 		return nil, fmt.Errorf("ICMP probe error: %s", err.Error())
 	}
 
-	shouldTimeout, _ := strconv.ParseBool(c.ICMPOutput.Value) // even for errors, we set it to false
+	shouldTimeout, err := strconv.ParseBool(c.ICMPOutput.Value) // even for errors, we set it to false
+	if err != nil {
+		shouldTimeout = false
+	}
+
 	checkSuccessful := res.Timeout == shouldTimeout
 
-	return CheckStats{
+	return Stats{
 		Successful: checkSuccessful,
 		StartTime:  res.StartTime,
 		Duration:   res.Duration,
