@@ -7,20 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/sdslabs/status/pkg/api/router/oauth"
+	"github.com/sdslabs/status/pkg/api/router/providers"
 )
 
 // NewRouter returns the router for the main API service
 func NewRouter() (*gin.Engine, error) {
 	router := gin.Default()
 
-	if err := oauth.SetupGoogleOAuth(); err != nil {
+	oauthRouter := router.Group("/oauth")
+	if err := oauth.Initialize(oauthRouter, providers.Google); err != nil {
 		return nil, err
 	}
-
-	oauthRouter := router.Group("/oauth")
-	oauthRouter.GET("/google", oauth.HandleGoogleLogin) // sends the url for login
-	oauthRouter.GET("/google/redirect", oauth.HandleGoogleRedirect)
-	oauthRouter.GET("/refresh", oauth.RefreshTokenHandler)
 
 	apiRouter := router.Group("/api")
 	apiRouter.Use(oauth.JWTVerficationMiddleware)
