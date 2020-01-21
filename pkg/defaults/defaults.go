@@ -32,6 +32,9 @@ var (
 	// DefaultICMPProbeTimeout is the icmp request timeout for ICMP prober.
 	DefaultICMPProbeTimeout = time.Second * 10
 
+	// DefaultWSProbeTimeout is the websocket request timeout for WS prober.
+	DefaultWSProbeTimeout = time.Second * 10
+
 	// JWTExpireInterval is interval for which JWT is valid
 	JWTExpireInterval = time.Hour // 1 hour
 

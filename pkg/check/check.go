@@ -25,6 +25,7 @@ func NewChecker(agentCheck config.Check) (Checker, error) {
 		return NewHTTPChecker(agentCheck)
 	case TCPInputType:
 	case WebsocketInputType:
+		return NewWSChecker(agentCheck)
 	case ICMPInputType:
 		return NewICMPChecker(agentCheck)
 	}

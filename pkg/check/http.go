@@ -15,12 +15,6 @@ import (
 	"github.com/sdslabs/status/pkg/probes"
 )
 
-const (
-	headerDelimeter = "="
-	keyHeader       = "header"
-	keyParameter    = "parameter"
-)
-
 var validHTTPOutputTypes map[string]validationFunction = map[string]validationFunction{
 	"status_code": validateStatusCode,
 	"body":        validateBody,
@@ -29,8 +23,7 @@ var validHTTPOutputTypes map[string]validationFunction = map[string]validationFu
 
 // NewHTTPChecker creates a new Checker for HTTP requests.
 func NewHTTPChecker(agentCheck config.Check) (*HTTPChecker, error) {
-	err := validateHTTPCheck(agentCheck)
-	if err != nil {
+	if err := validateHTTPCheck(agentCheck); err != nil {
 		return nil, fmt.Errorf("VALIDATION_ERROR: %s", err)
 	}
 
@@ -43,7 +36,7 @@ func NewHTTPChecker(agentCheck config.Check) (*HTTPChecker, error) {
 	headers := make(map[string]string)
 
 	for _, payload := range agentCheck.GetPayloads() {
-		kv := strings.SplitN(payload.GetValue(), headerDelimeter, 2)
+		kv := strings.SplitN(payload.GetValue(), splitDelimeter, 2)
 
 		switch payload.GetType() {
 		case keyHeader:
@@ -72,35 +65,6 @@ func NewHTTPChecker(agentCheck config.Check) (*HTTPChecker, error) {
 
 		Timeout: timeout,
 	}, nil
-}
-
-func validateStatusCode(val string) error {
-	intVal, err := strconv.Atoi(val)
-	if err != nil {
-		return fmt.Errorf("status code prvoided is not parsable: %s", err)
-	}
-	if intVal > 599 || intVal < 100 {
-		return fmt.Errorf("status code is not valid (expected between: 100 - 599) got %d", intVal)
-	}
-
-	return nil
-}
-
-func validateBody(val string) error {
-	if val == "" {
-		return fmt.Errorf("cannot have empty body as http check output")
-	}
-
-	return nil
-}
-
-func validateKVPair(val string) error {
-	kv := strings.SplitN(val, headerDelimeter, 2)
-	if len(kv) != 2 {
-		return fmt.Errorf("header value is not valid, must have format: HEADER=<Header value>")
-	}
-
-	return nil
 }
 
 func validateHTTPCheck(agentCheck config.Check) error {
@@ -173,9 +137,7 @@ func validateHTTPPayload(payloads []config.Component) error {
 	return nil
 }
 
-type validationFunction func(string) error
-
-// HTTPChecker represents a HTTP check we can employ for a given target
+// HTTPChecker represents a HTTP check we can employ for a given target.
 type HTTPChecker struct {
 	Method string
 
@@ -225,7 +187,7 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResu
 		}
 
 	case "header":
-		kv := strings.SplitN(c.HTTPOutput.Value, headerDelimeter, 2)
+		kv := strings.SplitN(c.HTTPOutput.Value, splitDelimeter, 2)
 
 		if kv[1] == result.Headers.Get(kv[0]) {
 			checkSuccessful = true
