@@ -26,7 +26,7 @@ lint:
 # Setup SDS Status with config.
 setup:
 	@echo "[*] Setting up SDS Status"
-	@cp _examples/sample.config.yml config.yml
+	@test -f config.yml || cp _examples/sample.config.yml config.yml # Create the file if it doesn't exist
 	@echo "[+] Done! Edit the config.yml file and get started"
 
 .PHONY: build format help install lint setup
