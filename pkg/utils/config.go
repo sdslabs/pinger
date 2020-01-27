@@ -2,6 +2,7 @@ package utils
 
 import (
 	"io/ioutil"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -40,7 +41,7 @@ type Config struct {
 
 // Parse takes the path of config file and uses a *Config to store data
 func (c *Config) Parse(path string) error {
-	data, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return err
 	}
@@ -56,12 +57,4 @@ func GetConfig() (Config, error) {
 		return Config{}, err
 	}
 	return *c, nil
-}
-
-func init() {
-	var err error
-	StatusConf, err = GetConfig()
-	if err != nil {
-		panic(err)
-	}
 }

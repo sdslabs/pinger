@@ -17,6 +17,7 @@ func SetupPrometheusMetrics(config *ProviderConfig, manager *controller.Manager)
 	go runPrometheusMetricsServer(config.Port, manager)
 }
 
+// PrometheusExporter for exporting metrics to prometheus db.
 type PrometheusExporter struct {
 	Manager *controller.Manager
 	Port    int
@@ -24,6 +25,7 @@ type PrometheusExporter struct {
 	Metrics map[string]*prometheus.Desc
 }
 
+// NewPrometheusExporter creates an empty but not-nil `*PrometheusExporter`.
 func NewPrometheusExporter(port int, manager *controller.Manager) *PrometheusExporter {
 	metrics := make(map[string]*prometheus.Desc)
 
@@ -33,7 +35,7 @@ func NewPrometheusExporter(port int, manager *controller.Manager) *PrometheusExp
 		"probe_latency",
 		// Help message for the metrics
 		"Time in micro seconds which measures the latency of the probe defined by the controller",
-		// Metrics varaible level dimensions
+		// Metrics variable level dimensions
 		[]string{"probe_type", "check_name"},
 
 		// Metrics constant label dimensions.

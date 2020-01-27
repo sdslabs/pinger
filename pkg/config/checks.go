@@ -7,50 +7,54 @@ import (
 // Check is the interface which every check that needs to be processed here
 // should implement.
 type Check interface {
-	GetInput() CheckComponent
-	GetOutput() CheckComponent
-	GetTarget() CheckComponent
+	GetInput() Component
+	GetOutput() Component
+	GetTarget() Component
 
-	GetPayloads() []CheckComponent
+	GetPayloads() []Component
 	GetInterval() int64
 	GetTimeout() int64
 
 	GetName() string
 }
 
-// CheckComponent is the Type Value component for check components like Input, Output, Target etc.
-type CheckComponent interface {
+// Component is the Type Value component for check components like Input, Output, Target etc.
+type Component interface {
 	GetType() string
 	GetValue() string
 }
 
 // Config Associated with each check.
-type CheckConfig struct {
-	Input  *CheckComponentConfig `yaml:"input"`
-	Output *CheckComponentConfig `yaml:"output"`
-	Target *CheckComponentConfig `yaml:"target"`
+type Config struct {
+	Input  *ComponentConfig `yaml:"input"`
+	Output *ComponentConfig `yaml:"output"`
+	Target *ComponentConfig `yaml:"target"`
 
-	Payloads []*CheckComponentConfig `yaml:"payloads"`
+	Payloads []*ComponentConfig `yaml:"payloads"`
 
 	Name     string `yaml:"name"`
 	Timeout  int64  `yaml:"timeout"`
 	Interval int64  `yaml:"interval"`
 }
 
-func (m *CheckConfig) GetInput() CheckComponent {
+// GetInput returns the input of the check.
+func (m *Config) GetInput() Component {
 	return m.Input
 }
 
-func (m *CheckConfig) GetTarget() CheckComponent {
+// GetTarget returns the target of the check.
+func (m *Config) GetTarget() Component {
 	return m.Target
 }
 
-func (m *CheckConfig) GetOutput() CheckComponent {
+// GetOutput returns the output of the check.
+func (m *Config) GetOutput() Component {
 	return m.Output
 }
 
-func (m *CheckConfig) GetPayloads() []CheckComponent {
-	payloads := make([]CheckComponent, len(m.Payloads))
+// GetPayloads returns the payloads of the check.
+func (m *Config) GetPayloads() []Component {
+	payloads := make([]Component, len(m.Payloads))
 	for i, payload := range m.Payloads {
 		payloads[i] = payload
 	}
@@ -58,65 +62,71 @@ func (m *CheckConfig) GetPayloads() []CheckComponent {
 	return payloads
 }
 
-func (m *CheckConfig) GetInterval() int64 {
+// GetInterval returns the time interval between indivudal checks with this config.
+func (m *Config) GetInterval() int64 {
 	return m.Interval
 }
 
-func (m *CheckConfig) GetTimeout() int64 {
+// GetTimeout returns the timeout interval of the check.
+func (m *Config) GetTimeout() int64 {
 	return m.Timeout
 }
 
-func (m *CheckConfig) GetName() string {
+// GetName returns the name of the check.
+func (m *Config) GetName() string {
 	return m.Name
 }
 
-// CheckComponentConfig is the config of the TypeValue component of the check
+// ComponentConfig is the config of the TypeValue component of the check
 // config. It stores a Type Value pair used within CheckConfig
-type CheckComponentConfig struct {
+type ComponentConfig struct {
 	Type  string `yaml:"type"`
 	Value string `yaml:"value"`
 }
 
-func (c *CheckComponentConfig) GetType() string {
+// GetType returns the type of check component.
+func (c *ComponentConfig) GetType() string {
 	return c.Type
 }
 
-func (c *CheckComponentConfig) GetValue() string {
+// GetValue returns the value of check component.
+func (c *ComponentConfig) GetValue() string {
 	return c.Value
 }
 
+// GetCheckFromCheckProto returns a `Check` from proto.
 func GetCheckFromCheckProto(agentCheck *proto.Check) Check {
-	payloads := []*CheckComponentConfig{}
+	payloads := []*ComponentConfig{}
 	for _, payload := range agentCheck.GetPayloads() {
-		payloads = append(payloads, &CheckComponentConfig{
+		payloads = append(payloads, &ComponentConfig{
 			Type:  payload.Type,
 			Value: payload.Value,
 		})
 	}
 
-	var input, output, target *CheckComponentConfig
+	var input, output, target *ComponentConfig
 	if agentCheck.GetInput() != nil {
-		input = &CheckComponentConfig{
+		input = &ComponentConfig{
 			Type:  agentCheck.Input.Type,
 			Value: agentCheck.Input.Value,
 		}
 	}
 
 	if agentCheck.GetOutput() != nil {
-		output = &CheckComponentConfig{
+		output = &ComponentConfig{
 			Type:  agentCheck.Output.Type,
 			Value: agentCheck.Output.Value,
 		}
 	}
 
 	if agentCheck.GetTarget() != nil {
-		target = &CheckComponentConfig{
+		target = &ComponentConfig{
 			Type:  agentCheck.Target.Type,
 			Value: agentCheck.Target.Value,
 		}
 	}
 
-	return &CheckConfig{
+	return &Config{
 		Input:  input,
 		Output: output,
 		Target: target,

@@ -25,7 +25,9 @@ var (
 var agentCmd = &cobra.Command{
 	Use:   "agent",
 	Short: "Run status page agent.",
-	Long:  "Run status page agent on the given host, this agent will expose a GRPC api to accept checks to perform and execute that. The agent also has the ability to run in a standalone mode where it does not run any GRPC server.",
+	Long: "Run status page agent on the given host, " +
+		"this agent will expose a GRPC api to accept checks to perform and execute that. " +
+		"The agent also has the ability to run in a standalone mode where it does not run any GRPC server.",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Trying to run agent for the status page.")
@@ -68,7 +70,7 @@ var agentCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
-			agent.RunGrpcServer(agentRunPort, getMetricsProviderConfig())
+			agent.RunGRPCServer(agentRunPort, getMetricsProviderConfig())
 		}
 	},
 }
@@ -107,8 +109,28 @@ func init() {
 	agentCmd.PersistentFlags().IntVarP(&prometheusMetricsPort, "metrics-port", "m", 0, "Port to host prometheus metrics on.")
 	agentCmd.PersistentFlags().BoolVarP(&shouldRunPrometheus, "prometheus", "v", false, "Should we expose metrics using prometheus.")
 	agentCmd.PersistentFlags().IntVarP(&agentRunPort, "port", "p", defaults.DefaultAgentPort, "Port to run the agent on grpc server on.")
-	agentCmd.PersistentFlags().StringVarP(&timescaleMetricsHost, "ts-metrics", "t", "", "Run the agent with push timescale metrics, provide timescale host information int this string.")
 
-	agentCmd.PersistentFlags().BoolVarP(&standaloneMode, "standalone", "s", false, "Run agent in the standalone mode, this does not expose any grpc server to collect the work, it takes that data from a config file mentioned in another argument.")
-	agentCmd.PersistentFlags().StringVarP(&agentConfigPath, "config", "c", defaults.DefaultStatusPageConfigPath, "Path to where find the config for the agent in standalone mode, this file contains all information including the hosts to ping using which checks")
+	agentCmd.PersistentFlags().StringVarP(
+		&timescaleMetricsHost,
+		"ts-metrics",
+		"t",
+		"",
+		"Run the agent with push timescale metrics, provide timescale host information int this string.")
+
+	agentCmd.PersistentFlags().BoolVarP(
+		&standaloneMode,
+		"standalone",
+		"s",
+		false,
+		"Run agent in the standalone mode, "+
+			"this does not expose any grpc server to collect the work, "+
+			"it takes that data from a config file mentioned in another argument.")
+
+	agentCmd.PersistentFlags().StringVarP(
+		&agentConfigPath,
+		"config",
+		"c",
+		defaults.DefaultStatusPageConfigPath,
+		"Path to where find the config for the agent in standalone mode, "+
+			"this file contains all information including the hosts to ping using which checks")
 }

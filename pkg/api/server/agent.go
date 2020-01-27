@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/sdslabs/status/pkg/agent/proto"
 	"github.com/sdslabs/status/pkg/defaults"
-	"google.golang.org/grpc"
 
 	log "github.com/sirupsen/logrus"
 )
 
 var grpcOpts = []grpc.DialOption{grpc.WithInsecure()}
 
+// StatusAgent is the type for agent that runs the GRPC server.
 type StatusAgent struct {
 	Host string
 	Port int64
@@ -21,6 +23,7 @@ type StatusAgent struct {
 	Timeout time.Duration
 }
 
+// NewStatusAgent creates a new status agent from host and port.
 func NewStatusAgent(host string, port int64) *StatusAgent {
 	return &StatusAgent{
 		Host: host,
@@ -30,6 +33,7 @@ func NewStatusAgent(host string, port int64) *StatusAgent {
 	}
 }
 
+// PushCheckToAgent takes a proto.Check and pushes it to the agent.
 func (a *StatusAgent) PushCheckToAgent(check *proto.Check) error {
 	agentAddr := fmt.Sprintf("%s:%d", a.Host, a.Port)
 	log.Debugf("Pushing check to the agent: %s", agentAddr)
@@ -38,7 +42,7 @@ func (a *StatusAgent) PushCheckToAgent(check *proto.Check) error {
 	if err != nil {
 		return fmt.Errorf("ERROR while dailing RPC for agent at %s : %s", agentAddr, err)
 	}
-	defer conn.Close()
+	defer conn.Close() //nolint:errcheck
 
 	client := proto.NewAgentServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), a.Timeout)

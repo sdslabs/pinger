@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-// ControllerMap is the map of a controller name with the underlying Controller.
-type ControllerMap map[string]*Controller
+// Map is the map of a controller name with the underlying Controller.
+type Map map[string]*Controller
 
 // Manager manages a ControllerMap and perform actions on it.
 type Manager struct {
-	controllers ControllerMap
+	controllers Map
 
 	terminate chan struct{}
 	mutex     sync.RWMutex
@@ -21,14 +21,14 @@ type Manager struct {
 // NewManager Creates a new manager instance for the controller map.
 func NewManager() *Manager {
 	return &Manager{
-		controllers: ControllerMap{},
+		controllers: Map{},
 
 		terminate: make(chan struct{}),
 	}
 }
 
 // NoopFunc is a nil function.
-func NoopFunc(_ctx context.Context) (ControllerFunctionResult, error) {
+func NoopFunc(_ctx context.Context) (FunctionResult, error) {
 	return nil, nil
 }
 
@@ -50,23 +50,23 @@ func (m *Manager) GetAllControllers() []string {
 // controller. Updating a controller will cause the DoFunc to be run
 // immediately regardless of any previous conditions. It will also cause any
 // statistics to be reset.
-func (m *Manager) UpdateController(name string, cType string, internal ControllerInternal) error {
+func (m *Manager) UpdateController(name, cType string, internal Internal) error {
 	_, err := m.updateController(name, cType, internal)
 
 	return err
 }
 
-func (m *Manager) updateController(name string, cType string, internal ControllerInternal) (*Controller, error) {
+func (m *Manager) updateController(name, cType string, internal Internal) (*Controller, error) {
 	start := time.Now()
 
 	if internal.StopFunc == nil {
-		internal.StopFunc, _ = NewControllerFunction(NoopFunc)
+		internal.StopFunc, _ = NewControllerFunction(NoopFunc) //nolint:errcheck
 	}
 
 	m.mutex.Lock()
 
 	if m.controllers == nil {
-		m.controllers = ControllerMap{}
+		m.controllers = Map{}
 	}
 
 	ctrl, exists := m.controllers[name]
@@ -197,13 +197,14 @@ func (m *Manager) Terminate() {
 	close(m.terminate)
 }
 
+// Wait waits for the manager to terminate the controllers.
 func (m *Manager) Wait() {
 	<-m.terminate
 }
 
 // GetStats Return the entire stats for manager.
-func (m *Manager) GetStats() []*ControllerStatus {
-	var stats []*ControllerStatus
+func (m *Manager) GetStats() []*Status {
+	var stats []*Status
 
 	for _, controller := range m.controllers {
 		stats = append(stats, controller.Status())
@@ -212,14 +213,15 @@ func (m *Manager) GetStats() []*ControllerStatus {
 	return stats
 }
 
-func (m *Manager) PullLatestControllerStatistics() []ControllerExecutionStat {
-	stat := []ControllerExecutionStat{}
+// PullLatestControllerStatistics pulls the latest controller stats.
+func (m *Manager) PullLatestControllerStatistics() []ExecutionStat {
+	stat := []ExecutionStat{}
 
 	for _, controller := range m.controllers {
 		statMap := controller.ExtractExecutionStatistics()
 
 		for t, duration := range statMap {
-			stat = append(stat, ControllerExecutionStat{
+			stat = append(stat, ExecutionStat{
 				Name: controller.Name(),
 				Type: controller.Type(),
 

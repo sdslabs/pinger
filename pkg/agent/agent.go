@@ -17,7 +17,7 @@ var ControllerManager *controller.Manager
 
 // RunStandaloneAgent runs a standalone status page agent with the provided agent config
 // and the metrics config.
-func RunStandaloneAgent(config *config.AgentConfig, metricsConfig *metrics.ProviderConfig) {
+func RunStandaloneAgent(conf *config.AgentConfig, metricsConfig *metrics.ProviderConfig) {
 	log.Infof("Starting to run agent in standalone mode")
 
 	ControllerManager = controller.NewManager()
@@ -31,7 +31,7 @@ func RunStandaloneAgent(config *config.AgentConfig, metricsConfig *metrics.Provi
 	}
 
 	log.Info("Creating contorllers for checks to be performed.")
-	for _, checkConfig := range config.Checks {
+	for _, checkConfig := range conf.Checks {
 		log.Debugf("Creating controller for check: %s", checkConfig.GetName())
 		checker, err := check.NewChecker(checkConfig)
 		if err != nil {
@@ -47,7 +47,7 @@ func RunStandaloneAgent(config *config.AgentConfig, metricsConfig *metrics.Provi
 			continue
 		}
 
-		executor := controller.ControllerInternal{
+		executor := controller.Internal{
 			DoFunc:      cFunc,
 			RunInterval: time.Second * time.Duration(checkConfig.GetInterval()),
 		}

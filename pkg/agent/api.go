@@ -18,14 +18,14 @@ import (
 )
 
 const (
-	// AGENT_GRPC_HOST: Host to run the GRPC server on.
-	AGENT_GRPC_HOST = "0.0.0.0"
+	// AgentGRPCHost is the host to run the GRPC server on.
+	AgentGRPCHost = "0.0.0.0"
 )
 
 type agentServer struct{}
 
 func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*proto.PushStatus, error) {
-	log.Debug("Recieved the push for a new check.")
+	log.Debug("Received the push for a new check.")
 	cfg := config.GetCheckFromCheckProto(agentCheck)
 	checker, err := check.NewChecker(cfg)
 	if err != nil {
@@ -38,7 +38,7 @@ func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*p
 
 	cFunc, err := controller.NewControllerFunction(checker.ExecuteCheck)
 	if err != nil {
-		sErr := fmt.Errorf("Error while creating controller function: %s", err)
+		sErr := fmt.Errorf("error while creating controller function: %s", err)
 		log.Error(sErr)
 		return &proto.PushStatus{
 			Pushed: false,
@@ -46,7 +46,7 @@ func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*p
 		}, sErr
 	}
 
-	executor := controller.ControllerInternal{
+	executor := controller.Internal{
 		DoFunc:      cFunc,
 		RunInterval: time.Second * time.Duration(agentCheck.Interval),
 	}
@@ -115,11 +115,11 @@ func (a agentServer) ListChecks(context.Context, *proto.None) (*proto.ChecksList
 	return &proto.ChecksList{Checks: checksList}, nil
 }
 
-// RunGrpcServer starts a GRPC server at the specified port.
+// RunGRPCServer starts a GRPC server at the specified port.
 // This also initializes the controller manager instance, which is used further
 // to interact with the controllers.
-func RunGrpcServer(port int, config *metrics.ProviderConfig) {
-	listner, err := net.Listen("tcp", fmt.Sprintf("%s:%d", AGENT_GRPC_HOST, port))
+func RunGRPCServer(port int, conf *metrics.ProviderConfig) {
+	listner, err := net.Listen("tcp", fmt.Sprintf("%s:%d", AgentGRPCHost, port))
 	if err != nil {
 		log.Errorf("Error while starting listner : %s", err)
 		return
@@ -132,19 +132,22 @@ func RunGrpcServer(port int, config *metrics.ProviderConfig) {
 
 	ControllerManager = controller.NewManager()
 
-	switch config.PType {
+	switch conf.PType {
 	case metrics.PrometheusProviderType:
-		metrics.SetupPrometheusMetrics(config, ControllerManager)
+		metrics.SetupPrometheusMetrics(conf, ControllerManager)
 	case metrics.TimeScaleProviderType:
 	case metrics.EmptyProviderType:
 	default:
 	}
 
 	if err != nil {
-		log.Error("Error while creating controller manager: %s", err)
+		log.Error("Error while creating controller manager:", err)
 		return
 	}
 
 	log.Infof("Starting new server at port : %d", port)
-	grpcServer.Serve(listner)
+
+	if err = grpcServer.Serve(listner); err != nil {
+		log.Fatalf("Error starting the grpc server: %s", err.Error())
+	}
 }

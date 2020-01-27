@@ -17,25 +17,28 @@ type SQLDB interface {
 	DeleteUserByEmail(email string) error
 	GetAllChecksByOwner(ownerID int) ([]Check, error)
 	GetCheckByID(id int) (Check, error)
-	CreateCheck(ownerID, interval, timeout int, inputType, inputValue, outputType, outputValue, targetType, targetValue, title string, payloads []Payload) (Check, error)
-	UpdateCheckByID(id uint, check Check) (Check, error)
+	CreateCheck(
+		ownerID, interval, timeout int,
+		inputType, inputValue, outputType, outputValue, targetType, targetValue, title string,
+		payloads []Payload) (Check, error)
+	UpdateCheckByID(id uint, check *Check) (Check, error)
 	DeleteCheckByID(id int) error
 	GetAllPayloadsByCheck(checkID int) ([]Payload, error)
 	GetPayloadByID(id int) (Payload, error)
 	CreatePayload(checkID int, payloadType, value string) (Payload, error)
-	UpdatePayloadByID(id uint, payload Payload) (Payload, error)
+	UpdatePayloadByID(id uint, payload *Payload) (Payload, error)
 	DeletePayloadByID(id int) error
 	AddPayloadsToCheck(checkID uint, payloads []*Payload) error
 	// RemovePayloadsFromCheck(checkID uint, payloads []*Payload) error
 	GetAllPagesByOwner(ownerID int) ([]Page, error)
 	GetPageByID(id int) (Page, error)
 	CreatePage(ownerID int, visibility bool, title, description string, incidents []Incident) (Page, error)
-	UpdatePageByID(id uint, page Page) (Page, error)
+	UpdatePageByID(id uint, page *Page) (Page, error)
 	DeletePageByID(id int) error
 	GetAllIncidentsByPage(pageID int) ([]Incident, error)
 	GetIncidentByID(id int) (Incident, error)
 	CreateIncident(pageID int, timestamp *time.Time, duration int, title, description string, resolved bool) (Incident, error)
-	UpdateIncidentByID(id uint, incident Incident) (Incident, error)
+	UpdateIncidentByID(id uint, incident *Incident) (Incident, error)
 	DeleteIncidentByID(id int) error
 	AddIncidentsToPage(pageID uint, incidents []*Incident) error
 	// RemoveIncidentsFromPage(pageID uint, incidents []*Incident) error
@@ -135,7 +138,10 @@ func (db *sqldb) GetCheckByID(id int) (Check, error) {
 }
 
 // CreateCheck creates a new check
-func (db *sqldb) CreateCheck(ownerID, interval, timeout int, inputType, inputValue, outputType, outputValue, targetType, targetValue, title string, payloads []Payload) (Check, error) {
+func (db *sqldb) CreateCheck(
+	ownerID, interval, timeout int,
+	inputType, inputValue, outputType, outputValue, targetType, targetValue, title string,
+	payloads []Payload) (Check, error) {
 	check := Check{
 		OwnerID:     ownerID,
 		Interval:    interval,
@@ -154,10 +160,10 @@ func (db *sqldb) CreateCheck(ownerID, interval, timeout int, inputType, inputVal
 }
 
 // UpdateCheckByID updates the check for given ID
-func (db *sqldb) UpdateCheckByID(id uint, check Check) (Check, error) {
+func (db *sqldb) UpdateCheckByID(id uint, check *Check) (Check, error) {
 	c := Check{}
 	c.ID = id
-	tx := db.Model(&c).Updates(check)
+	tx := db.Model(&c).Updates(*check)
 	return c, tx.Error
 }
 
@@ -199,10 +205,10 @@ func (db *sqldb) CreatePayload(checkID int, payloadType, value string) (Payload,
 }
 
 // UpdatePayloadByID updates the payload for given ID
-func (db *sqldb) UpdatePayloadByID(id uint, payload Payload) (Payload, error) {
+func (db *sqldb) UpdatePayloadByID(id uint, payload *Payload) (Payload, error) {
 	p := Payload{}
 	p.ID = id
-	tx := db.Model(&p).Updates(payload)
+	tx := db.Model(&p).Updates(*payload)
 	return p, tx.Error
 }
 
@@ -267,10 +273,10 @@ func (db *sqldb) CreatePage(ownerID int, visibility bool, title, description str
 }
 
 // UpdatePageByID updates the page for given ID
-func (db *sqldb) UpdatePageByID(id uint, page Page) (Page, error) {
+func (db *sqldb) UpdatePageByID(id uint, page *Page) (Page, error) {
 	p := Page{}
 	p.ID = id
-	tx := db.Model(&p).Updates(page)
+	tx := db.Model(&p).Updates(*page)
 	return p, tx.Error
 }
 
@@ -301,7 +307,12 @@ func (db *sqldb) GetIncidentByID(id int) (Incident, error) {
 }
 
 // CreateIncident creates an incident with given type and value
-func (db *sqldb) CreateIncident(pageID int, timestamp *time.Time, duration int, title, description string, resolved bool) (Incident, error) {
+func (db *sqldb) CreateIncident(
+	pageID int,
+	timestamp *time.Time,
+	duration int,
+	title, description string,
+	resolved bool) (Incident, error) {
 	incident := Incident{
 		PageID:      pageID,
 		TimeStamp:   timestamp,
@@ -315,10 +326,10 @@ func (db *sqldb) CreateIncident(pageID int, timestamp *time.Time, duration int, 
 }
 
 // UpdateIncidentByID updates the incident for given ID
-func (db *sqldb) UpdateIncidentByID(id uint, incident Incident) (Incident, error) {
+func (db *sqldb) UpdateIncidentByID(id uint, incident *Incident) (Incident, error) {
 	i := Incident{}
 	i.ID = id
-	tx := db.Model(&i).Updates(incident)
+	tx := db.Model(&i).Updates(*incident)
 	return i, tx.Error
 }
 

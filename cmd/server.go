@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/sdslabs/status/pkg/api/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/sdslabs/status/pkg/api/server"
 )
 
 var serverCmd = &cobra.Command{
@@ -14,7 +15,9 @@ var serverCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Trying to run server for the status page.")
 
-		apiServer := server.NewApiServer()
-		apiServer.Run()
+		apiServer := server.NewAPIServer()
+		if err := apiServer.Run(); err != nil {
+			log.Fatalf("Error while running API server: %s", err.Error())
+		}
 	},
 }

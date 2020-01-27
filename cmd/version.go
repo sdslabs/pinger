@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sdslabs/status/version"
 	"github.com/spf13/cobra"
+
+	"github.com/sdslabs/status/version"
 )
 
 var versionCmd = &cobra.Command{

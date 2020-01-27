@@ -1,26 +1,32 @@
-GO := go
-pkgs  = $(shell $(GO) list ./... | grep -v vendor)
-
-help:
-	@echo "Status Page - Makefile"
-
 # Build status
 build:
 	@./scripts/build/build.sh
 
-# Check go formatting
-check_format:
-	@echo "[*] Checking for formatting errors using gofmt"
-	@./scripts/build/check_gofmt.sh
-
-# Format code using gofmt
+# Format code using golangci-lint
 format:
-	@echo "[*] Formatting code"
-	@$(GO) fmt $(pkgs)
+	@./scripts/build/format.sh
 
-# Vet code using go vet
-govet:
-	@echo "[*] Vetting code, checking for mistakes"
-	@$(GO) vet $(pkgs)
+# Prints help message
+help:
+	@echo "SDS Status Makefile"
+	@echo "build   - Build status"
+	@echo "format  - Format code using golangci-lint"
+	@echo "help    - Prints help message"
+	@echo "install - Install required tools"
+	@echo "lint    - Lint code using golangci-lint"
 
-.PHONY: build format check_format govet help
+# Install required tools
+install:
+	@./scripts/build/install.sh
+
+# Lint code using golangci-lint
+lint:
+	@./scripts/build/lint.sh
+
+# Setup SDS Status with config.
+setup:
+	@echo "[*] Setting up SDS Status"
+	@test -f config.yml || cp _examples/sample.config.yml config.yml # Create the file if it doesn't exist
+	@echo "[+] Done! Edit the config.yml file and get started"
+
+.PHONY: build format help install lint setup

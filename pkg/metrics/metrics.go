@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// ProviderConfig is the config for metrics database provider.
 type ProviderConfig struct {
 	PType ProviderType
 
@@ -16,8 +17,10 @@ type ProviderConfig struct {
 	Interval time.Duration
 }
 
+// ProviderType is the type of database.
 type ProviderType string
 
+// Various metrics providers.
 var (
 	PrometheusProviderType ProviderType = "Prometheus"
 	TimeScaleProviderType  ProviderType = "TimeScale"
