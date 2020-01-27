@@ -1,11 +1,3 @@
-# Build status
-build:
-	@./scripts/build/build.sh
-
-# Format code using golangci-lint
-format:
-	@./scripts/build/format.sh
-
 # Prints help message
 help:
 	@echo "SDS Status Makefile"
@@ -14,6 +6,14 @@ help:
 	@echo "help    - Prints help message"
 	@echo "install - Install required tools"
 	@echo "lint    - Lint code using golangci-lint"
+
+# Build status
+build:
+	@./scripts/build/build.sh
+
+# Format code using golangci-lint
+format:
+	@./scripts/build/format.sh
 
 # Install required tools
 install:

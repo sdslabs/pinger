@@ -17,6 +17,7 @@ type SQLDB interface {
 	DeleteUserByEmail(email string) error
 	GetAllChecksByOwner(ownerID int) ([]Check, error)
 	GetCheckByID(id int) (Check, error)
+	// TODO: Rafactor using structs.
 	CreateCheck(
 		ownerID, interval, timeout int,
 		inputType, inputValue, outputType, outputValue, targetType, targetValue, title string,
