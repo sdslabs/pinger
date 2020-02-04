@@ -8,18 +8,19 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // PostgreSQL
+	log "github.com/sirupsen/logrus"
 
 	"github.com/sdslabs/status/pkg/utils"
 )
 
 var (
 	dbConf = utils.StatusConf.Database
-	// DBConn for sending API Queries
-	DBConn SQLDB
+	db     *gorm.DB
 )
 
-// GetSQLDB returns a connection to the sqlite database
-func GetSQLDB() (SQLDB, error) {
+func setupDB() error {
+	var err error
+
 	connectStr := fmt.Sprintf(
 		"host=%s port=%d user=%s dbname=%s password=%s",
 		dbConf.Host,
@@ -30,28 +31,36 @@ func GetSQLDB() (SQLDB, error) {
 	if !dbConf.SSLMode {
 		connectStr = fmt.Sprintf("%s sslmode=disable", connectStr)
 	}
-	db, err := gorm.Open("postgres", connectStr)
+
+	db, err = gorm.Open("postgres", connectStr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&User{},
 		&Check{},
 		&Payload{},
 		&Page{},
-		&Incident{})
+		&Incident{}).Error; err != nil {
+		return err
+	}
 
-	db.Model(&Payload{}).AddForeignKey("check_id", "checks(id)", "CASCADE", "CASCADE")
-	db.Model(&Incident{}).AddForeignKey("page_id", "pages(id)", "CASCADE", "CASCADE")
+	if err := db.Model(&Payload{}).AddForeignKey(
+		"check_id", "checks(id)", "CASCADE", "CASCADE").Error; err != nil {
+		return err
+	}
 
-	return &sqldb{DB: db}, nil
+	if err := db.Model(&Incident{}).AddForeignKey(
+		"page_id", "pages(id)", "CASCADE", "CASCADE").Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func init() {
-	var err error
-	DBConn, err = GetSQLDB()
-	if err != nil {
-		panic(err)
+	if err := setupDB(); err != nil {
+		log.Fatalf("Error while connecting to PostgreSQL database: %s", err.Error())
 	}
 }

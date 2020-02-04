@@ -6,14 +6,14 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// User model
+// User model.
 type User struct {
 	gorm.Model
 	Email string `gorm:"UNIQUE;NOT NULL"`
 	Name  string `gorm:"NOT NULL"`
 }
 
-// Check model
+// Check model.
 type Check struct {
 	gorm.Model
 	OwnerID     int
@@ -30,7 +30,7 @@ type Check struct {
 	Payloads    []Payload `gorm:"foreignkey:CheckID"`
 }
 
-// Payload model
+// Payload model.
 type Payload struct {
 	gorm.Model
 	CheckID int
@@ -39,7 +39,7 @@ type Payload struct {
 	Value   string `gorm:"NOT NULL;TYPE:text"`
 }
 
-// Page model
+// Page model.
 type Page struct {
 	gorm.Model
 	OwnerID     int
@@ -52,7 +52,7 @@ type Page struct {
 	Incidents   []Incident `gorm:"foreignkey:PageID"`
 }
 
-// Incident model
+// Incident model.
 type Incident struct {
 	gorm.Model
 	PageID      int
