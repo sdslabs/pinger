@@ -16,7 +16,7 @@ type User struct {
 // Check model.
 type Check struct {
 	gorm.Model
-	OwnerID     int
+	OwnerID     uint
 	Owner       User
 	Interval    int       `gorm:"DEFAULT:30"`
 	Timeout     int       `gorm:"DEFAULT:30"`
@@ -33,7 +33,7 @@ type Check struct {
 // Payload model.
 type Payload struct {
 	gorm.Model
-	CheckID int
+	CheckID uint
 	Check   Check
 	Type    string `gorm:"NOT NULL"`
 	Value   string `gorm:"NOT NULL;TYPE:text"`
@@ -42,7 +42,7 @@ type Payload struct {
 // Page model.
 type Page struct {
 	gorm.Model
-	OwnerID     int
+	OwnerID     uint
 	Owner       User
 	Visibility  bool       `gorm:"DEFAULT:false"`
 	Title       string     `gorm:"NOT NULL"`
@@ -55,7 +55,7 @@ type Page struct {
 // Incident model.
 type Incident struct {
 	gorm.Model
-	PageID      int
+	PageID      uint
 	Page        Page
 	TimeStamp   *time.Time `gorm:"NOT NULL"`
 	Duration    int        `gorm:"NOT NULL"`

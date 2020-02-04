@@ -140,7 +140,10 @@ func redirectHandler(provider Provider) ginHandler {
 			return
 		}
 
-		createdUser, err := database.CreateUser(u.Email, u.Name)
+		createdUser, err := database.CreateUser(&database.User{
+			Email: u.Email,
+			Name:  u.Name,
+		})
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.HTTPError{
 				Error: err.Error(),

@@ -1,75 +1,66 @@
 package database
 
-import (
-	"time"
-)
-
 // GetUserByID gets user by ID.
-func GetUserByID(id int) (User, error) {
+func GetUserByID(id uint) (*User, error) {
 	user := User{}
 	tx := db.Where("id = ?", id).Find(&user)
 	if tx.RecordNotFound() {
-		return User{}, nil
+		return nil, nil
 	}
-	return user, tx.Error
+	return &user, tx.Error
 }
 
 // GetUserByEmail gets user by Email.
-func GetUserByEmail(email string) (User, error) {
+func GetUserByEmail(email string) (*User, error) {
 	user := User{}
 	tx := db.Where("email = ?", email).Find(&user)
 	if tx.RecordNotFound() {
-		return User{}, nil
+		return nil, nil
 	}
-	return user, tx.Error
+	return &user, tx.Error
 }
 
 // CreateUser adds an entry for new user. If the user already exists, does nothing.
-func CreateUser(email, name string) (User, error) {
-	u, err := GetUserByEmail(email)
+func CreateUser(user *User) (*User, error) {
+	u, err := GetUserByEmail(user.Email)
 	if err != nil {
-		return User{}, err
+		return nil, err
 	}
-	if u.Email == email {
+	if u != nil && u.Email == user.Email {
 		return u, nil
 	}
-	user := User{
-		Email: email,
-		Name:  name,
-	}
-	tx := db.Create(&user)
+	tx := db.Create(user)
 	return user, tx.Error
 }
 
-// UpdateUserNameByID updates the Name of the user.
-func UpdateUserNameByID(id uint, name string) (User, error) {
-	user := User{}
-	user.ID = id
-	tx := db.Model(&user).Update("name", name)
-	return user, tx.Error
+// UpdateUserByID updates the user for given ID.
+func UpdateUserByID(id uint, user *User) (*User, error) {
+	u := User{}
+	u.ID = id
+	tx := db.Model(&u).Updates(*user)
+	return &u, tx.Error
 }
 
 // UpdateUserNameByEmail updates the Name of the user.
-func UpdateUserNameByEmail(email, name string) (User, error) {
-	user := User{Email: email}
-	tx := db.Model(&user).Update("name", name)
-	return user, tx.Error
+func UpdateUserNameByEmail(email string, user *User) (*User, error) {
+	u := User{}
+	u.Email = email
+	tx := db.Model(&u).Updates(*user)
+	return &u, tx.Error
 }
 
 // DeleteUserByID deletes a user entry.
-func DeleteUserByID(id int) error {
-	tx := db.Where("id = ?", id).Delete(&User{})
-	return tx.Error
+func DeleteUserByID(id uint) error {
+	return db.Where("id = ?", id).Delete(&User{}).Error
 }
 
 // DeleteUserByEmail deletes a user entry.
 func DeleteUserByEmail(email string) error {
-	tx := db.Where("email = ?", email).Delete(&User{})
-	return tx.Error
+	return db.Where("email = ?", email).Delete(&User{}).Error
 }
 
 // GetAllChecksByOwner gets all the checks in owned by the user.
-func GetAllChecksByOwner(ownerID int) ([]Check, error) {
+func GetAllChecksByOwner(ownerID uint) ([]Check, error) {
 	checks := []Check{}
 	tx := db.Where("owner_id = ?", ownerID).Preload("Payloads").Preload("Owner").Find(&checks)
 	if tx.RecordNotFound() {
@@ -79,53 +70,36 @@ func GetAllChecksByOwner(ownerID int) ([]Check, error) {
 }
 
 // GetCheckByID gets a check by its ID.
-func GetCheckByID(id int) (Check, error) {
+func GetCheckByID(id uint) (*Check, error) {
 	check := Check{}
 	tx := db.Where("id = ?", id).Preload("Payloads").Preload("Owner").Find(&check)
 	if tx.RecordNotFound() {
-		return Check{}, nil
+		return nil, nil
 	}
-	return check, tx.Error
+	return &check, tx.Error
 }
 
 // CreateCheck creates a new check.
-func CreateCheck(
-	ownerID, interval, timeout int,
-	inputType, inputValue, outputType, outputValue, targetType, targetValue, title string,
-	payloads []Payload) (Check, error) {
-	check := Check{
-		OwnerID:     ownerID,
-		Interval:    interval,
-		Timeout:     timeout,
-		InputType:   inputType,
-		InputValue:  inputValue,
-		OutputType:  outputType,
-		OutputValue: outputValue,
-		TargetType:  targetType,
-		TargetValue: targetValue,
-		Title:       title,
-		Payloads:    payloads,
-	}
-	tx := db.Create(&check)
+func CreateCheck(check *Check) (*Check, error) {
+	tx := db.Create(check)
 	return check, tx.Error
 }
 
 // UpdateCheckByID updates the check for given ID.
-func UpdateCheckByID(id uint, check *Check) (Check, error) {
+func UpdateCheckByID(id uint, check *Check) (*Check, error) {
 	c := Check{}
 	c.ID = id
 	tx := db.Model(&c).Updates(*check)
-	return c, tx.Error
+	return &c, tx.Error
 }
 
 // DeleteCheckByID deletes check corresponding to given ID.
-func DeleteCheckByID(id int) error {
-	tx := db.Where("id = ?", id).Unscoped().Delete(&Check{})
-	return tx.Error
+func DeleteCheckByID(id uint) error {
+	return db.Where("id = ?", id).Unscoped().Delete(&Check{}).Error
 }
 
 // GetAllPayloadsByCheck gets all the payloads belonging to a check.
-func GetAllPayloadsByCheck(checkID int) ([]Payload, error) {
+func GetAllPayloadsByCheck(checkID uint) ([]Payload, error) {
 	payloads := []Payload{}
 	tx := db.Where("check_id = ?", checkID).Preload("Check").Find(&payloads)
 	if tx.RecordNotFound() {
@@ -135,63 +109,52 @@ func GetAllPayloadsByCheck(checkID int) ([]Payload, error) {
 }
 
 // GetPayloadByID gets a payload corresponding to the ID.
-func GetPayloadByID(id int) (Payload, error) {
+func GetPayloadByID(id uint) (*Payload, error) {
 	payload := Payload{}
 	tx := db.Where("id = ?", id).Preload("Check").Find(&payload)
 	if tx.RecordNotFound() {
-		return Payload{}, nil
+		return nil, nil
 	}
-	return payload, tx.Error
+	return &payload, tx.Error
 }
 
 // CreatePayload creates a payload with given type and value.
-func CreatePayload(checkID int, payloadType, value string) (Payload, error) {
-	payload := Payload{
-		CheckID: checkID,
-		Type:    payloadType,
-		Value:   value,
-	}
-	tx := db.Create(&payload)
+func CreatePayload(payload *Payload) (*Payload, error) {
+	tx := db.Create(payload)
 	return payload, tx.Error
 }
 
 // UpdatePayloadByID updates the payload for given ID.
-func UpdatePayloadByID(id uint, payload *Payload) (Payload, error) {
+func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
 	p := Payload{}
 	p.ID = id
 	tx := db.Model(&p).Updates(*payload)
-	return p, tx.Error
+	return &p, tx.Error
 }
 
 // DeletePayloadByID deletes a payload corresponding to given ID.
-func DeletePayloadByID(id int) error {
-	tx := db.Where("id = ?", id).Unscoped().Delete(&Payload{})
-	return tx.Error
+func DeletePayloadByID(id uint) error {
+	return db.Where("id = ?", id).Unscoped().Delete(&Payload{}).Error
 }
 
 // AddPayloadsToCheck adds multiple payloads to page.
 func AddPayloadsToCheck(checkID uint, payloads []*Payload) error {
 	check := Check{}
 	check.ID = checkID
-	tx := db.Model(&check).Association("Payloads").Append(payloads)
-	return tx.Error
+	return db.Model(&check).Association("Payloads").Append(payloads).Error
 }
 
-// ***
-// [TODO]
-// *gorm.Association.Delete() only deletes the relationship but not the elements
-// currently not using this for bulk delete
-// ***
-// // RemovePayloadsFromCheck adds multiple checks to page.
-// func RemovePayloadsFromCheck(checkID uint, payloads []*Payload) error {
-// 	check := Check{}
-// 	check.ID = checkID
-// 	tx := db.Model(&check).Association("Payloads").Delete(payloads)
-// 	return tx.Error
-// }
+// RemovePayloadsFromCheck removes multiple checks from a page.
+//
+// BUG(vrongmeal): This only removes the relationship and not the payloads.
+func RemovePayloadsFromCheck(checkID uint, payloads []*Payload) error {
+	check := Check{}
+	check.ID = checkID
+	return db.Model(&check).Association("Payloads").Delete(payloads).Error
+}
 
 // GetAllPagesByOwner gets all the pages in owned by the user.
-func GetAllPagesByOwner(ownerID int) ([]Page, error) {
+func GetAllPagesByOwner(ownerID uint) ([]Page, error) {
 	pages := []Page{}
 	tx := db.Where("owner_id = ?", ownerID).Preload("Checks").Preload("Team").Preload("Incidents").Preload("Owner").Find(&pages)
 	if tx.RecordNotFound() {
@@ -201,44 +164,36 @@ func GetAllPagesByOwner(ownerID int) ([]Page, error) {
 }
 
 // GetPageByID gets a check by its ID.
-func GetPageByID(id int) (Page, error) {
+func GetPageByID(id uint) (*Page, error) {
 	page := Page{}
 	tx := db.Where("id = ?", id).Preload("Checks").Preload("Team").Preload("Incidents").Preload("Owner").Find(&page)
 	if tx.RecordNotFound() {
-		return Page{}, nil
+		return nil, nil
 	}
-	return page, tx.Error
+	return &page, tx.Error
 }
 
 // CreatePage creates a new page.
-func CreatePage(ownerID int, visibility bool, title, description string, incidents []Incident) (Page, error) {
-	page := Page{
-		OwnerID:     ownerID,
-		Visibility:  visibility,
-		Title:       title,
-		Description: description,
-		Incidents:   incidents,
-	}
-	tx := db.Create(&page)
+func CreatePage(page *Page) (*Page, error) {
+	tx := db.Create(page)
 	return page, tx.Error
 }
 
 // UpdatePageByID updates the page for given ID.
-func UpdatePageByID(id uint, page *Page) (Page, error) {
+func UpdatePageByID(id uint, page *Page) (*Page, error) {
 	p := Page{}
 	p.ID = id
 	tx := db.Model(&p).Updates(*page)
-	return p, tx.Error
+	return &p, tx.Error
 }
 
 // DeletePageByID deletes a page corresponding to the given ID.
-func DeletePageByID(id int) error {
-	tx := db.Where("id = ?", id).Delete(&Page{})
-	return tx.Error
+func DeletePageByID(id uint) error {
+	return db.Where("id = ?", id).Delete(&Page{}).Error
 }
 
 // GetAllIncidentsByPage gets all the incidents for the given page ID.
-func GetAllIncidentsByPage(pageID int) ([]Incident, error) {
+func GetAllIncidentsByPage(pageID uint) ([]Incident, error) {
 	incidents := []Incident{}
 	tx := db.Where("page_id = ?", pageID).Preload("Page").Find(&incidents)
 	if tx.RecordNotFound() {
@@ -248,97 +203,74 @@ func GetAllIncidentsByPage(pageID int) ([]Incident, error) {
 }
 
 // GetIncidentByID gets incident corresponding to given ID.
-func GetIncidentByID(id int) (Incident, error) {
+func GetIncidentByID(id uint) (*Incident, error) {
 	incident := Incident{}
 	tx := db.Where("id = ?", id).Preload("Page").Find(&incident)
 	if tx.RecordNotFound() {
-		return Incident{}, nil
+		return nil, nil
 	}
-	return incident, tx.Error
+	return &incident, tx.Error
 }
 
 // CreateIncident creates an incident with given type and value.
-func CreateIncident(
-	pageID int,
-	timestamp *time.Time,
-	duration int,
-	title, description string,
-	resolved bool) (Incident, error) {
-	incident := Incident{
-		PageID:      pageID,
-		TimeStamp:   timestamp,
-		Duration:    duration,
-		Title:       title,
-		Description: description,
-		Resolved:    resolved,
-	}
-	tx := db.Create(&incident)
+func CreateIncident(incident *Incident) (*Incident, error) {
+	tx := db.Create(incident)
 	return incident, tx.Error
 }
 
 // UpdateIncidentByID updates the incident for given ID.
-func UpdateIncidentByID(id uint, incident *Incident) (Incident, error) {
+func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
 	i := Incident{}
 	i.ID = id
 	tx := db.Model(&i).Updates(*incident)
-	return i, tx.Error
+	return &i, tx.Error
 }
 
 // DeleteIncidentByID deletes a Incident corresponding to given ID.
-func DeleteIncidentByID(id int) error {
-	tx := db.Where("id = ?", id).Unscoped().Delete(&Incident{})
-	return tx.Error
+func DeleteIncidentByID(id uint) error {
+	return db.Where("id = ?", id).Unscoped().Delete(&Incident{}).Error
 }
 
 // AddIncidentsToPage adds multiple incidents to page.
 func AddIncidentsToPage(pageID uint, incidents []*Incident) error {
 	page := Page{}
 	page.ID = pageID
-	tx := db.Model(&page).Association("Incidents").Append(incidents)
-	return tx.Error
+	return db.Model(&page).Association("Incidents").Append(incidents).Error
 }
 
-// ***
-// [TODO]
-// *gorm.Association.Delete() only deletes the relationship but not the elements
-// currently not using this for bulk delete
-// ***
-// // RemoveIncidentsFromPage adds multiple checks to page
-// func RemoveIncidentsFromPage(pageID uint, incidents []*Incident) error {
-// 	page := Page{}
-// 	page.ID = pageID
-// 	tx := db.Model(&page).Association("Incidents").Delete(incidents)
-// 	return tx.Error
-// }
+// RemoveIncidentsFromPage adds multiple checks to page.
+//
+// BUG(vrongmeal): This only removes the relationship and not the incidents.
+func RemoveIncidentsFromPage(pageID uint, incidents []*Incident) error {
+	page := Page{}
+	page.ID = pageID
+	return db.Model(&page).Association("Incidents").Delete(incidents).Error
+}
 
 // AddChecksToPage adds multiple checks to page.
 func AddChecksToPage(pageID uint, checks []*Check) error {
 	page := Page{}
 	page.ID = pageID
-	tx := db.Model(&page).Association("Checks").Append(checks)
-	return tx.Error
+	return db.Model(&page).Association("Checks").Append(checks).Error
 }
 
 // RemoveChecksFromPage adds multiple checks to page.
 func RemoveChecksFromPage(pageID uint, checks []*Check) error {
 	page := Page{}
 	page.ID = pageID
-	tx := db.Model(&page).Association("Checks").Delete(checks)
-	return tx.Error
+	return db.Model(&page).Association("Checks").Delete(checks).Error
 }
 
 // AddMembersToPageTeam adds multiple checks to page.
 func AddMembersToPageTeam(pageID uint, users []*User) error {
 	page := Page{}
 	page.ID = pageID
-	tx := db.Model(&page).Association("Team").Append(users)
-	return tx.Error
+	return db.Model(&page).Association("Team").Append(users).Error
 }
 
 // RemoveMembersFromPageTeam adds multiple checks to page.
 func RemoveMembersFromPageTeam(pageID uint, users []*User) error {
 	page := Page{}
 	page.ID = pageID
-	tx := db.Model(&page).Association("Team").Delete(users)
-	return tx.Error
+	return db.Model(&page).Association("Team").Delete(users).Error
 }
