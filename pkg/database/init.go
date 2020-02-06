@@ -8,7 +8,6 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // PostgreSQL
-	log "github.com/sirupsen/logrus"
 
 	"github.com/sdslabs/status/pkg/utils"
 )
@@ -18,7 +17,8 @@ var (
 	db     *gorm.DB
 )
 
-func setupDB() error {
+// SetupDB sets up the PostgreSQL API.
+func SetupDB() error {
 	var err error
 
 	connectStr := fmt.Sprintf(
@@ -71,10 +71,4 @@ func setupDB() error {
 	}
 
 	return nil
-}
-
-func init() {
-	if err := setupDB(); err != nil {
-		log.Fatalf("Error while connecting to PostgreSQL database: %s", err.Error())
-	}
 }

@@ -8,10 +8,10 @@ import (
 
 	"github.com/sdslabs/status/pkg/api/router/oauth"
 	"github.com/sdslabs/status/pkg/api/router/providers"
+	"github.com/sdslabs/status/pkg/database"
 )
 
-// NewRouter returns the router for the main API service
-func NewRouter() (*gin.Engine, error) {
+func getRouter() (*gin.Engine, error) {
 	router := gin.Default()
 
 	oauthRouter := router.Group("/oauth")
@@ -36,4 +36,18 @@ func NewRouter() (*gin.Engine, error) {
 	})
 
 	return router, nil
+}
+
+// Serve starts the HTTP server on default port "8080".
+func Serve() error {
+	if err := database.SetupDB(); err != nil {
+		return err
+	}
+
+	r, err := getRouter()
+	if err != nil {
+		return err
+	}
+
+	return r.Run()
 }
