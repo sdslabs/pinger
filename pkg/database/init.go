@@ -37,12 +37,17 @@ func setupDB() error {
 		return err
 	}
 
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;").Error; err != nil {
+		return err
+	}
+
 	if err := db.AutoMigrate(
 		&User{},
 		&Check{},
 		&Payload{},
 		&Page{},
-		&Incident{}).Error; err != nil {
+		&Incident{},
+		&Metric{}).Error; err != nil {
 		return err
 	}
 
@@ -53,6 +58,15 @@ func setupDB() error {
 
 	if err := db.Model(&Incident{}).AddForeignKey(
 		"page_id", "pages(id)", "CASCADE", "CASCADE").Error; err != nil {
+		return err
+	}
+
+	if err := db.Exec("CREATE INDEX ON metrics (check_id, start_time DESC);").Error; err != nil {
+		return err
+	}
+
+	if err := db.Exec(
+		"SELECT create_hypertable('metrics', 'start_time', if_not_exists => TRUE, create_default_indexes => FALSE);").Error; err != nil {
 		return err
 	}
 

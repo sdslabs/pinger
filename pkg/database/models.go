@@ -63,3 +63,13 @@ type Incident struct {
 	Description string     `gorm:"TYPE:text"`
 	Resolved    bool       `gorm:"DEFAULT:false"`
 }
+
+// Metric model.
+type Metric struct {
+	CheckID   uint
+	Check     Check
+	StartTime *time.Time    `gorm:"NOT NULL"`
+	Duration  time.Duration `gorm:"NOT NULL"`
+	Timeout   bool          `gorm:"NOT NULL"`
+	Success   bool          `gorm:"NOT NULL"`
+}
