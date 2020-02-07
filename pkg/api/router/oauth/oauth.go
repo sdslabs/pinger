@@ -10,6 +10,7 @@ import (
 	"github.com/sdslabs/status/pkg/api/response"
 	"github.com/sdslabs/status/pkg/database"
 	"github.com/sdslabs/status/pkg/defaults"
+	"github.com/sdslabs/status/pkg/utils"
 )
 
 var (
@@ -36,7 +37,7 @@ type Provider interface {
 	Type() ProviderType
 
 	// Setup enables us to initialize any variables or setup requirements.
-	Setup() error
+	Setup(*utils.OauthProviderConfig) error
 
 	// GetLoginURL returns the URL which redirects user to the providers login page.
 	GetLoginURL() string
@@ -57,15 +58,21 @@ func Setup(oauthRouter *gin.RouterGroup) error {
 			continue
 		}
 
-		if err := provider.Setup(); err != nil {
+		typStr := string(typ)
+
+		config, ok := utils.StatusConf.Oauth[typStr]
+		if !ok {
+			return fmt.Errorf("could not find conf for %s OAuth provider", typStr)
+		}
+		if err := provider.Setup(&config); err != nil {
 			return fmt.Errorf(
 				"error while setting up %s OAuth provider: %s",
-				string(typ),
+				typStr,
 				err.Error())
 		}
 
-		loginRoute := fmt.Sprintf("/%s", string(typ))
-		redirectRoute := fmt.Sprintf("/%s/redirect", string(typ))
+		loginRoute := fmt.Sprintf("/%s", typStr)
+		redirectRoute := fmt.Sprintf("/%s/redirect", typStr)
 
 		// Add login route.
 		oauthRouter.GET(loginRoute, loginHandler(provider))

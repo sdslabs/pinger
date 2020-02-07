@@ -2,6 +2,7 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,13 +10,40 @@ import (
 	"github.com/sdslabs/status/pkg/api/router/oauth"
 	"github.com/sdslabs/status/pkg/api/router/providers"
 	"github.com/sdslabs/status/pkg/database"
+	"github.com/sdslabs/status/pkg/utils"
 )
+
+func getProvider(providerType string) (oauth.Provider, error) {
+	switch oauth.ProviderType(providerType) {
+	case providers.Google.Type():
+		return providers.Google, nil
+	default:
+		return nil, fmt.Errorf("invalid oauth provider '%s'", providerType)
+	}
+}
+
+func getProvidersFromConf() ([]oauth.Provider, error) {
+	oauthConf := utils.StatusConf.Oauth
+	p := []oauth.Provider{}
+	for key := range oauthConf {
+		provider, err := getProvider(key)
+		if err != nil {
+			return nil, err
+		}
+		p = append(p, provider)
+	}
+	return p, nil
+}
 
 func getRouter() (*gin.Engine, error) {
 	router := gin.Default()
 
+	oauthProviders, err := getProvidersFromConf()
+	if err != nil {
+		return nil, err
+	}
 	oauthRouter := router.Group("/oauth")
-	if err := oauth.Initialize(oauthRouter, providers.Google); err != nil {
+	if err := oauth.Initialize(oauthRouter, oauthProviders...); err != nil {
 		return nil, err
 	}
 

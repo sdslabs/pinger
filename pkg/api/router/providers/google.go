@@ -31,8 +31,7 @@ func (p *googleProvider) Type() oauth.ProviderType {
 	return oauth.ProviderType(googleProviderType)
 }
 
-func (p *googleProvider) Setup() error {
-	conf := utils.StatusConf.Oauth.Google
+func (p *googleProvider) Setup(conf *utils.OauthProviderConfig) error {
 	p.config = &oauth2.Config{
 		ClientID:     conf.ClientID,
 		ClientSecret: conf.ClientSecret,

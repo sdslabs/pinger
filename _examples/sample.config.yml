@@ -1,5 +1,11 @@
+# Configuration file for status application server.
+
+# JWT Secret to encrypt tokens.
 jwt_secret: ''
+
+# OAuth Providers.
 oauth:
+  # Google
   google:
     client_id: ''
     client_secret: ''
@@ -7,10 +13,13 @@ oauth:
     scopes:
       - 'profile'
       - 'email'
+      - 'openid'
+
+# PostgreSQL database.
 database:
-  host: 'localhost'
+  host: '127.0.0.1'
   port: 5432
   username: ''
   password: ''
-  name: 'sds_status'
+  name: ''
   ssl_mode: false

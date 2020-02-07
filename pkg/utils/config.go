@@ -12,16 +12,15 @@ const configPath = "config.yml"
 // StatusConf is the data from `config.yml`
 var StatusConf Config
 
-type googleOauth struct {
+// OauthProviderConfig provides configuration settings for an OAuth Provider.
+type OauthProviderConfig struct {
 	ClientID     string   `yaml:"client_id"`
 	ClientSecret string   `yaml:"client_secret"`
 	RedirectURL  string   `yaml:"redirect_url"`
 	Scopes       []string `yaml:"scopes"`
 }
 
-type oauth struct {
-	Google googleOauth `yaml:"google"`
-}
+type oauth = map[string]OauthProviderConfig
 
 type database struct {
 	Host     string `yaml:"host"`
