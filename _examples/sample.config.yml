@@ -14,6 +14,13 @@ oauth:
       - 'profile'
       - 'email'
       - 'openid'
+  # Github
+  github:
+    client_id: ''
+    client_secret: ''
+    redirect_url: ''
+    scopes:
+      - 'user'
 
 # PostgreSQL database.
 database:

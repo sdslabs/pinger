@@ -17,6 +17,8 @@ func getProvider(providerType string) (oauth.Provider, error) {
 	switch oauth.ProviderType(providerType) {
 	case providers.Google.Type():
 		return providers.Google, nil
+	case providers.Github.Type():
+		return providers.Github, nil
 	default:
 		return nil, fmt.Errorf("invalid oauth provider '%s'", providerType)
 	}
