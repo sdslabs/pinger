@@ -36,7 +36,7 @@ var agentCmd = &cobra.Command{
 		if standaloneMode {
 			log.Info("Running status page agent in standalone mode.")
 			if agentConfigPath == "" {
-				agentConfigPath = defaults.DefaultStatusPageConfigPath
+				agentConfigPath = defaults.StatusConfigPath
 			}
 			cfg, err = config.NewAgentConfig(agentConfigPath)
 			if err != nil {
@@ -44,7 +44,7 @@ var agentCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
-			if agentRunPort == defaults.DefaultAgentPort {
+			if agentRunPort == defaults.AgentPort {
 				agentRunPort = cfg.Port
 			}
 
@@ -59,7 +59,7 @@ var agentCmd = &cobra.Command{
 		}
 
 		if shouldRunPrometheus && prometheusMetricsPort == 0 {
-			prometheusMetricsPort = defaults.DefaultAgentPrometheusMetricsPort
+			prometheusMetricsPort = defaults.AgentPrometheusMetricsPort
 		}
 
 		if standaloneMode {
@@ -106,9 +106,24 @@ func getMetricsProviderConfig() *metrics.ProviderConfig {
 }
 
 func init() {
-	agentCmd.PersistentFlags().IntVarP(&prometheusMetricsPort, "metrics-port", "m", 0, "Port to host prometheus metrics on.")
-	agentCmd.PersistentFlags().BoolVarP(&shouldRunPrometheus, "prometheus", "v", false, "Should we expose metrics using prometheus.")
-	agentCmd.PersistentFlags().IntVarP(&agentRunPort, "port", "p", defaults.DefaultAgentPort, "Port to run the agent on grpc server on.")
+	agentCmd.PersistentFlags().IntVar(
+		&prometheusMetricsPort,
+		"prometheus-port",
+		defaults.AgentPrometheusMetricsPort,
+		"Port to host prometheus metrics on.")
+
+	agentCmd.PersistentFlags().BoolVar(
+		&shouldRunPrometheus,
+		"prometheus",
+		false,
+		"Should we expose metrics using prometheus.")
+
+	agentCmd.PersistentFlags().IntVarP(
+		&agentRunPort,
+		"port",
+		"p",
+		defaults.AgentPort,
+		"Port to run the agent on grpc server on.")
 
 	agentCmd.PersistentFlags().StringVarP(
 		&timescaleMetricsHost,
@@ -130,7 +145,7 @@ func init() {
 		&agentConfigPath,
 		"config",
 		"c",
-		defaults.DefaultStatusPageConfigPath,
+		defaults.StatusConfigPath,
 		"Path to where find the config for the agent in standalone mode, "+
 			"this file contains all information including the hosts to ping using which checks")
 }

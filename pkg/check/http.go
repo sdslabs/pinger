@@ -29,7 +29,7 @@ func NewHTTPChecker(agentCheck config.Check) (*HTTPChecker, error) {
 
 	method := agentCheck.GetInput().GetValue()
 	if method == "" {
-		method = defaults.DefaultHTTPMethod
+		method = defaults.HTTPMethod
 	}
 
 	params := make(map[string]string)
@@ -48,7 +48,7 @@ func NewHTTPChecker(agentCheck config.Check) (*HTTPChecker, error) {
 
 	timeout := time.Duration(agentCheck.GetTimeout()) * time.Second
 	if timeout <= 0 {
-		timeout = defaults.DefaultHTTPProbeTimeout
+		timeout = defaults.HTTPProbeTimeout
 	}
 
 	return &HTTPChecker{

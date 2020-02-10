@@ -23,7 +23,7 @@ func NewICMPChecker(agentCheck config.Check) (*ICMPChecker, error) {
 	address := agentCheck.GetTarget().GetValue()
 	timeout := time.Duration(agentCheck.GetTimeout()) * time.Second
 	if timeout <= 0 {
-		timeout = defaults.DefaultICMPProbeTimeout
+		timeout = defaults.ICMPProbeTimeout
 	}
 
 	return &ICMPChecker{

@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	jwtSecret = []byte(utils.StatusConf.JWTSecret)
+	jwtSecret = []byte(utils.Config.Application.Secret)
 )
 
 // Claims represent the claims of an authorization JSON Web Token.

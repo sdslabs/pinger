@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	dbConf = utils.StatusConf.Database
+	dbConf = utils.Config.Application.Database
 	db     *gorm.DB
 )
 

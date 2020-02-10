@@ -1,32 +1,45 @@
-# Configuration file for status application server.
+# SDS Status configuration file.
 
-# JWT Secret to encrypt tokens.
-jwt_secret: ''
+# Central server configuration.
+# Exposes gRPC API that deploys and schedules checks.
+central:
 
-# OAuth Providers.
-oauth:
-  # Google
-  google:
-    client_id: ''
-    client_secret: ''
-    redirect_url: ''
-    scopes:
-      - 'profile'
-      - 'email'
-      - 'openid'
-  # Github
-  github:
-    client_id: ''
-    client_secret: ''
-    redirect_url: ''
-    scopes:
-      - 'user'
+# Application server configuration.
+# Required when running the complete app with PostgreSQL (& Timescale) database.
+application:
 
-# PostgreSQL database.
-database:
-  host: '127.0.0.1'
-  port: 5432
-  username: ''
-  password: ''
-  name: ''
-  ssl_mode: false
+  # Application secret. Used to encrypt tokens.
+  secret: ""
+
+  # Oauth providers. Comment out the ones not to be deployed.
+  # To add new providers add the providers implementing the
+  # `Provider` interface (@/pkg/api/application/oauth/oauth.go)
+  # Examples in @/pkg/api/application/providers/
+  oauth:
+
+    # Google
+    google:
+      client_id: ""
+      client_secret: ""
+      redirect_url: ""
+      scopes:
+        - "profile"
+        - "email"
+        - "openid"
+
+    # Github
+    github:
+      client_id: ""
+      client_secret: ""
+      redirect_url: ""
+      scopes:
+        - "user"
+
+  # PostgreSQL (with Timescale) database.
+  database:
+    host: "127.0.0.1"
+    port: 5432
+    username: ""
+    password: ""
+    name: ""
+    ssl_mode: false

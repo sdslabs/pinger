@@ -65,8 +65,6 @@ func (e *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
 
 	// Iterate over statistics of each controller and send them to prometheus.
 	for _, cStats := range stats {
-		fmt.Println("STATS for prometheus: ", cStats.StartTime, float64(cStats.Duration/1e3))
-
 		m := prometheus.MustNewConstMetric(
 			e.Metrics["probe_latency"],
 			prometheus.GaugeValue,

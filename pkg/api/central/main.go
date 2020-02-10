@@ -1,4 +1,4 @@
-package server
+package central
 
 import (
 	"github.com/sdslabs/status/pkg/agent/proto"
@@ -46,9 +46,9 @@ func (s *APIServer) Run() error {
 }
 
 // NewAPIServer returns a default API server.
-func NewAPIServer() APIServer {
+func NewAPIServer(port int) APIServer {
 	agents := []*StatusAgent{
-		NewStatusAgent("0.0.0.0", 9009),
+		NewStatusAgent("0.0.0.0", int64(port)),
 	}
 
 	return APIServer{

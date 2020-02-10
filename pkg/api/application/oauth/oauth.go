@@ -60,7 +60,7 @@ func Setup(oauthRouter *gin.RouterGroup) error {
 
 		typStr := string(typ)
 
-		config, ok := utils.StatusConf.Oauth[typStr]
+		config, ok := utils.Config.Application.Oauth[typStr]
 		if !ok {
 			return fmt.Errorf("could not find conf for %s OAuth provider", typStr)
 		}

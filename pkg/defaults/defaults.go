@@ -19,21 +19,21 @@ var (
 	// that the controller accepts.
 	MinControllerTimeout = time.Second * 5
 
-	// DefaultHTTPMethod is the default method to use for HTTP Input
-	DefaultHTTPMethod = "GET"
+	// HTTPMethod is the default method to use for HTTP Input
+	HTTPMethod = "GET"
 
-	// DefaultGRPCRequestTimeout is the default timeout for the GRPC request we
+	// GRPCRequestTimeout is the default timeout for the GRPC request we
 	// are making between the server and the agent and vice versa.
-	DefaultGRPCRequestTimeout = time.Second * 10
+	GRPCRequestTimeout = time.Second * 10
 
-	// DefaultHTTPProbeTimeout is the http request timeout for HTTP prober.
-	DefaultHTTPProbeTimeout = time.Second * 10
+	// HTTPProbeTimeout is the http request timeout for HTTP prober.
+	HTTPProbeTimeout = time.Second * 10
 
-	// DefaultICMPProbeTimeout is the icmp request timeout for ICMP prober.
-	DefaultICMPProbeTimeout = time.Second * 10
+	// ICMPProbeTimeout is the icmp request timeout for ICMP prober.
+	ICMPProbeTimeout = time.Second * 10
 
-	// DefaultWSProbeTimeout is the websocket request timeout for WS prober.
-	DefaultWSProbeTimeout = time.Second * 10
+	// WSProbeTimeout is the websocket request timeout for WS prober.
+	WSProbeTimeout = time.Second * 10
 
 	// JWTExpireInterval is interval for which JWT is valid
 	JWTExpireInterval = time.Hour // 1 hour
@@ -45,22 +45,28 @@ var (
 	// JWTAuthType is the token type of the authorization header
 	JWTAuthType = "Bearer"
 
-	// DefaultAgentPrometheusMetricsPort is the default port for the agent to host
+	// AgentPrometheusMetricsPort is the default port for the agent to host
 	// prometheus metrics enpoint on.
-	DefaultAgentPrometheusMetricsPort = 9008
+	AgentPrometheusMetricsPort = 9008
 
-	// DefaultAgentPort is the default value of port to run the status agent on
-	DefaultAgentPort = 9009
+	// AgentPort is the default value of port to run the status agent on
+	AgentPort = 9009
 
-	// DefaultControllerType is the default type of the controller, other types can be
+	// CentralAPIPort is default the central api server port.
+	CentralAPIPort = 9010
+
+	// ApplicationAPIPort is the default application api server port.
+	ApplicationAPIPort = 8080
+
+	// ControllerType is the default type of the controller, other types can be
 	// specified based on the type of checks/probes that the controller executes
-	DefaultControllerType = "default"
+	ControllerType = "default"
 
-	// DefaultInvalidDuration is the default value of time duration which will be considered
+	// InvalidDuration is the default value of time duration which will be considered
 	// as a failed controller execution
-	DefaultInvalidDuration = time.Second * 360
+	InvalidDuration = time.Second * 360
 
-	// DefaultStatusPageConfigPath is the default path of the config file for the status page
+	// StatusConfigPath is the default path of the config file for the status page
 	// agent. This is mostly used in case when we run the agent in a standalone mode.
-	DefaultStatusPageConfigPath = filepath.Join(os.Getenv("HOME"), "/.sp.yml")
+	StatusConfigPath = filepath.Join(os.Getenv("HOME"), "/.status.yml")
 )

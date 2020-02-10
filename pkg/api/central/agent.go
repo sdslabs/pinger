@@ -1,4 +1,4 @@
-package server
+package central
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func NewStatusAgent(host string, port int64) *StatusAgent {
 		Host: host,
 		Port: port,
 
-		Timeout: defaults.DefaultGRPCRequestTimeout,
+		Timeout: defaults.GRPCRequestTimeout,
 	}
 }
 

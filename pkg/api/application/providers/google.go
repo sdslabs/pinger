@@ -8,53 +8,53 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
+	"golang.org/x/oauth2/google"
 
-	"github.com/sdslabs/status/pkg/api/router/oauth"
+	"github.com/sdslabs/status/pkg/api/application/oauth"
 	"github.com/sdslabs/status/pkg/utils"
 )
 
 const (
-	githubUserInfoEndpoint = "https://api.github.com/user"
-	githubProviderType     = "github"
+	googleUserInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo"
+	googleProviderType     = "google"
 )
 
-// Github oauth `Provider`.
-var Github = &githubProvider{}
+// Google oauth `Provider`.
+var Google = &googleProvider{}
 
-type githubProvider struct {
+type googleProvider struct {
 	config *oauth2.Config
 	state  string
 }
 
-func (p *githubProvider) Type() oauth.ProviderType {
-	return oauth.ProviderType(githubProviderType)
+func (p *googleProvider) Type() oauth.ProviderType {
+	return oauth.ProviderType(googleProviderType)
 }
 
-func (p *githubProvider) Setup(conf *utils.OauthProviderConfig) error {
+func (p *googleProvider) Setup(conf *utils.OauthProviderConfig) error {
 	p.config = &oauth2.Config{
 		ClientID:     conf.ClientID,
 		ClientSecret: conf.ClientSecret,
 		RedirectURL:  conf.RedirectURL,
 		Scopes:       conf.Scopes,
-		Endpoint:     github.Endpoint,
+		Endpoint:     google.Endpoint,
 	}
 	return nil
 }
 
-func (p *githubProvider) GetLoginURL() string {
+func (p *googleProvider) GetLoginURL() string {
 	p.state = randToken()
 	return p.config.AuthCodeURL(p.state)
 }
 
-func (p *githubProvider) GetUser(ctx *gin.Context) (*oauth.User, int, error) {
+func (p *googleProvider) GetUser(ctx *gin.Context) (*oauth.User, int, error) {
 	token, err := p.config.Exchange(context.TODO(), ctx.Query("code"))
 	if err != nil {
 		return nil, http.StatusBadRequest, err
 	}
 
 	client := p.config.Client(context.TODO(), token)
-	info, err := client.Get(githubUserInfoEndpoint)
+	info, err := client.Get(googleUserInfoEndpoint)
 	if err != nil {
 		return nil, http.StatusBadRequest, err
 	}

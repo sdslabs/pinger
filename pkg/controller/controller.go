@@ -241,7 +241,7 @@ func (c *Controller) Name() string {
 // Type returns the controller type.
 func (c *Controller) Type() string {
 	if c.cType == "" {
-		return defaults.DefaultControllerType
+		return defaults.ControllerType
 	}
 
 	return c.cType
@@ -299,7 +299,7 @@ func (c *Controller) RunController() {
 			c.getLogger().Debug("Controller func execution time: ", c.lastDuration)
 			if res != nil {
 				c.getLogger().Debug("Controller reported runtime: ", res.GetDuration())
-				duration := defaults.DefaultInvalidDuration
+				duration := defaults.InvalidDuration
 				if res.IsSuccessful() {
 					duration = res.GetDuration()
 				}

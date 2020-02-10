@@ -9,8 +9,8 @@ import (
 
 const configPath = "config.yml"
 
-// StatusConf is the data from `config.yml`
-var StatusConf Config
+// Config is the data from `config.yml`
+var Config ConfigFile
 
 // OauthProviderConfig provides configuration settings for an OAuth Provider.
 type OauthProviderConfig struct {
@@ -31,15 +31,22 @@ type database struct {
 	SSLMode  bool   `yaml:"ssl_mode"`
 }
 
-// Config for `config.yml`
-type Config struct {
-	JWTSecret string   `yaml:"jwt_secret"`
-	Oauth     oauth    `yaml:"oauth"`
-	Database  database `yaml:"database"`
+type application struct {
+	Secret   string   `yaml:"secret"`
+	Oauth    oauth    `yaml:"oauth"`
+	Database database `yaml:"database"`
+}
+
+type central struct{}
+
+// ConfigFile for `config.yml`
+type ConfigFile struct {
+	Application application `yaml:"application"`
+	Central     central     `yaml:"central"`
 }
 
 // Parse takes the path of config file and uses a *Config to store data
-func (c *Config) Parse(path string) error {
+func (c *ConfigFile) Parse(path string) error {
 	data, err := ioutil.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return err
@@ -49,11 +56,11 @@ func (c *Config) Parse(path string) error {
 }
 
 // GetConfig is shorthand for getting config from `config.yml`
-func GetConfig() (Config, error) {
-	c := &Config{}
+func GetConfig() (ConfigFile, error) {
+	c := &ConfigFile{}
 	err := c.Parse(configPath)
 	if err != nil {
-		return Config{}, err
+		return ConfigFile{}, err
 	}
 	return *c, nil
 }

@@ -1,4 +1,5 @@
-// Tool sp can be used to run the API server inside an agent.
+// Tool status can be used to execute various api servers (application and central)
+// and expose the agent API inside an agent.
 package main
 
 import (
@@ -21,5 +22,6 @@ func init() {
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(agentCmd)
-	rootCmd.AddCommand(serverCmd)
+	rootCmd.AddCommand(centralAPICmd)
+	rootCmd.AddCommand(applicationAPICmd)
 }

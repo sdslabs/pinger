@@ -1,5 +1,5 @@
-// Package router contains the router for status web app.
-package router
+// Package application contains the router for status web app.
+package application
 
 import (
 	"fmt"
@@ -7,11 +7,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/sdslabs/status/pkg/api/router/oauth"
-	"github.com/sdslabs/status/pkg/api/router/providers"
+	"github.com/sdslabs/status/pkg/api/application/oauth"
+	"github.com/sdslabs/status/pkg/api/application/providers"
 	"github.com/sdslabs/status/pkg/database"
 	"github.com/sdslabs/status/pkg/utils"
 )
+
+// ErrInvalidConfigDeploy is returned from `Serve` when application.deploy is set to false in `config.yml`.
+var ErrInvalidConfigDeploy = fmt.Errorf("application.deploy is set false in config, cannot start server without postgres")
 
 func getProvider(providerType string) (oauth.Provider, error) {
 	switch oauth.ProviderType(providerType) {
@@ -25,7 +28,7 @@ func getProvider(providerType string) (oauth.Provider, error) {
 }
 
 func getProvidersFromConf() ([]oauth.Provider, error) {
-	oauthConf := utils.StatusConf.Oauth
+	oauthConf := utils.Config.Application.Oauth
 	p := []oauth.Provider{}
 	for key := range oauthConf {
 		provider, err := getProvider(key)
@@ -69,9 +72,9 @@ func getRouter() (*gin.Engine, error) {
 }
 
 // Serve starts the HTTP server on default port "8080".
-func Serve() error {
+func Serve(port int) error {
 	if err := database.SetupDB(); err != nil {
-		return err
+		return fmt.Errorf("error setting up postgresql: %s", err.Error())
 	}
 
 	r, err := getRouter()
@@ -79,5 +82,6 @@ func Serve() error {
 		return err
 	}
 
-	return r.Run()
+	addr := fmt.Sprintf("0.0.0.0:%d", port)
+	return r.Run(addr)
 }
