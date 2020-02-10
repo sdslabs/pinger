@@ -66,7 +66,10 @@ var (
 	// as a failed controller execution
 	InvalidDuration = time.Second * 360
 
-	// StatusConfigPath is the default path of the config file for the status page
-	// agent. This is mostly used in case when we run the agent in a standalone mode.
+	// StatusConfigPath is the default path of the config file for the status page.
 	StatusConfigPath = filepath.Join(os.Getenv("HOME"), "/.status.yml")
+
+	// AgentConfigPath is the default path of the config file for the status page
+	// agent. This is mostly used in case when we run the agent in a standalone mode.
+	AgentConfigPath = filepath.Join(os.Getenv("HOME"), "/.status-agent.yml")
 )

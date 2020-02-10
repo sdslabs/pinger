@@ -1,4 +1,4 @@
-package utils
+package config
 
 import (
 	"io/ioutil"
@@ -6,11 +6,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 )
-
-const configPath = "config.yml"
-
-// Config is the data from `config.yml`
-var Config ConfigFile
 
 // OauthProviderConfig provides configuration settings for an OAuth Provider.
 type OauthProviderConfig struct {
@@ -32,21 +27,26 @@ type database struct {
 }
 
 type application struct {
-	Secret   string   `yaml:"secret"`
+	secret   string   `yaml:"secret"`
 	Oauth    oauth    `yaml:"oauth"`
 	Database database `yaml:"database"`
 }
 
 type central struct{}
 
-// ConfigFile for `config.yml`
-type ConfigFile struct {
+// StatusConfig for `config.yml`
+type StatusConfig struct {
 	Application application `yaml:"application"`
 	Central     central     `yaml:"central"`
 }
 
+// Secret returns the secret key to encrypt tokens.
+func (c *StatusConfig) Secret() []byte {
+	return []byte(c.Application.secret)
+}
+
 // Parse takes the path of config file and uses a *Config to store data
-func (c *ConfigFile) Parse(path string) error {
+func (c *StatusConfig) Parse(path string) error {
 	data, err := ioutil.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return err
@@ -55,12 +55,12 @@ func (c *ConfigFile) Parse(path string) error {
 	return yaml.Unmarshal(data, c)
 }
 
-// GetConfig is shorthand for getting config from `config.yml`
-func GetConfig() (ConfigFile, error) {
-	c := &ConfigFile{}
+// GetStatusConfig is shorthand for getting config from `config.yml`
+func GetStatusConfig(configPath string) (StatusConfig, error) {
+	c := &StatusConfig{}
 	err := c.Parse(configPath)
 	if err != nil {
-		return ConfigFile{}, err
+		return StatusConfig{}, err
 	}
 	return *c, nil
 }

@@ -5,17 +5,16 @@ import (
 	"path/filepath"
 
 	"gopkg.in/yaml.v2"
+
+	"github.com/sdslabs/status/pkg/metrics"
 )
 
 // AgentConfig is the configuration structure for agent, mostly used in the case of
 // standalone status page agent.
 type AgentConfig struct {
-	Port int `yaml:"port"`
-
-	PrometheusMetrics     bool `yaml:"prometheus_metrics"`
-	PrometheusMetricsPort int  `yaml:"prometheus_metrics_port"`
-
-	Checks []*Config `yaml:"checks"`
+	Deploy  bool                   `yaml:"deploy"`
+	Metrics metrics.ProviderConfig `yaml:"metrics"`
+	Checks  []*CheckConf           `yaml:"checks"`
 }
 
 // Parse takes the path of agent config file and structurizes data into `AgentConfig`.

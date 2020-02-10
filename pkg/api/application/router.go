@@ -9,8 +9,8 @@ import (
 
 	"github.com/sdslabs/status/pkg/api/application/oauth"
 	"github.com/sdslabs/status/pkg/api/application/providers"
+	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/database"
-	"github.com/sdslabs/status/pkg/utils"
 )
 
 // ErrInvalidConfigDeploy is returned from `Serve` when application.deploy is set to false in `config.yml`.
@@ -27,8 +27,8 @@ func getProvider(providerType string) (oauth.Provider, error) {
 	}
 }
 
-func getProvidersFromConf() ([]oauth.Provider, error) {
-	oauthConf := utils.Config.Application.Oauth
+func getProvidersFromConf(conf *config.StatusConfig) ([]oauth.Provider, error) {
+	oauthConf := conf.Application.Oauth
 	p := []oauth.Provider{}
 	for key := range oauthConf {
 		provider, err := getProvider(key)
@@ -40,20 +40,20 @@ func getProvidersFromConf() ([]oauth.Provider, error) {
 	return p, nil
 }
 
-func getRouter() (*gin.Engine, error) {
+func getRouter(conf *config.StatusConfig) (*gin.Engine, error) {
 	router := gin.Default()
 
-	oauthProviders, err := getProvidersFromConf()
+	oauthProviders, err := getProvidersFromConf(conf)
 	if err != nil {
 		return nil, err
 	}
 	oauthRouter := router.Group("/oauth")
-	if err := oauth.Initialize(oauthRouter, oauthProviders...); err != nil {
+	if err := oauth.Initialize(oauthRouter, conf, oauthProviders...); err != nil {
 		return nil, err
 	}
 
 	apiRouter := router.Group("/api")
-	apiRouter.Use(oauth.JWTVerficationMiddleware)
+	apiRouter.Use(oauth.GetJWTVerficationMiddleware(conf.Secret()))
 	apiRouter.GET("/test", func(ctx *gin.Context) {
 		currentUser, ok := oauth.CurrentUserFromCtx(ctx)
 
@@ -72,12 +72,12 @@ func getRouter() (*gin.Engine, error) {
 }
 
 // Serve starts the HTTP server on default port "8080".
-func Serve(port int) error {
-	if err := database.SetupDB(); err != nil {
+func Serve(conf *config.StatusConfig, port int) error {
+	if err := database.SetupDB(conf); err != nil {
 		return fmt.Errorf("error setting up postgresql: %s", err.Error())
 	}
 
-	r, err := getRouter()
+	r, err := getRouter(conf)
 	if err != nil {
 		return err
 	}

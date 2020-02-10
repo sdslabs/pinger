@@ -12,7 +12,6 @@ import (
 	"github.com/sdslabs/status/pkg/check"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/controller"
-	"github.com/sdslabs/status/pkg/metrics"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -118,7 +117,7 @@ func (a agentServer) ListChecks(context.Context, *proto.None) (*proto.ChecksList
 // RunGRPCServer starts a GRPC server at the specified port.
 // This also initializes the controller manager instance, which is used further
 // to interact with the controllers.
-func RunGRPCServer(port int, conf *metrics.ProviderConfig) {
+func RunGRPCServer(port int) {
 	listner, err := net.Listen("tcp", fmt.Sprintf("%s:%d", AgentGRPCHost, port))
 	if err != nil {
 		log.Errorf("Error while starting listner : %s", err)
@@ -131,19 +130,6 @@ func RunGRPCServer(port int, conf *metrics.ProviderConfig) {
 	proto.RegisterAgentServiceServer(grpcServer, server)
 
 	ControllerManager = controller.NewManager()
-
-	switch conf.PType {
-	case metrics.PrometheusProviderType:
-		metrics.SetupPrometheusMetrics(conf, ControllerManager)
-	case metrics.TimeScaleProviderType:
-	case metrics.EmptyProviderType:
-	default:
-	}
-
-	if err != nil {
-		log.Error("Error while creating controller manager:", err)
-		return
-	}
 
 	log.Infof("Starting new server at port : %d", port)
 

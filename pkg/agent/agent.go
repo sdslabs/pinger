@@ -17,17 +17,19 @@ var ControllerManager *controller.Manager
 
 // RunStandaloneAgent runs a standalone status page agent with the provided agent config
 // and the metrics config.
-func RunStandaloneAgent(conf *config.AgentConfig, metricsConfig *metrics.ProviderConfig) {
+func RunStandaloneAgent(conf *config.AgentConfig) {
 	log.Infof("Starting to run agent in standalone mode")
 
 	ControllerManager = controller.NewManager()
 
-	switch metricsConfig.PType {
+	switch conf.Metrics.Backend {
 	case metrics.PrometheusProviderType:
-		metrics.SetupPrometheusMetrics(metricsConfig, ControllerManager)
+		metrics.SetupPrometheusMetrics(&conf.Metrics, ControllerManager)
 	case metrics.TimeScaleProviderType:
 	case metrics.EmptyProviderType:
 	default:
+		log.Fatalf("Invalid metrics provider '%v'", conf.Metrics.Backend)
+		return
 	}
 
 	log.Info("Creating contorllers for checks to be performed.")

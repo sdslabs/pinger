@@ -24,8 +24,8 @@ type Component interface {
 	GetValue() string
 }
 
-// Config Associated with each check.
-type Config struct {
+// CheckConf Associated with each check.
+type CheckConf struct {
 	Input  *ComponentConfig `yaml:"input"`
 	Output *ComponentConfig `yaml:"output"`
 	Target *ComponentConfig `yaml:"target"`
@@ -38,22 +38,22 @@ type Config struct {
 }
 
 // GetInput returns the input of the check.
-func (m *Config) GetInput() Component {
+func (m *CheckConf) GetInput() Component {
 	return m.Input
 }
 
 // GetTarget returns the target of the check.
-func (m *Config) GetTarget() Component {
+func (m *CheckConf) GetTarget() Component {
 	return m.Target
 }
 
 // GetOutput returns the output of the check.
-func (m *Config) GetOutput() Component {
+func (m *CheckConf) GetOutput() Component {
 	return m.Output
 }
 
 // GetPayloads returns the payloads of the check.
-func (m *Config) GetPayloads() []Component {
+func (m *CheckConf) GetPayloads() []Component {
 	payloads := make([]Component, len(m.Payloads))
 	for i, payload := range m.Payloads {
 		payloads[i] = payload
@@ -63,17 +63,17 @@ func (m *Config) GetPayloads() []Component {
 }
 
 // GetInterval returns the time interval between indivudal checks with this config.
-func (m *Config) GetInterval() int64 {
+func (m *CheckConf) GetInterval() int64 {
 	return m.Interval
 }
 
 // GetTimeout returns the timeout interval of the check.
-func (m *Config) GetTimeout() int64 {
+func (m *CheckConf) GetTimeout() int64 {
 	return m.Timeout
 }
 
 // GetName returns the name of the check.
-func (m *Config) GetName() string {
+func (m *CheckConf) GetName() string {
 	return m.Name
 }
 
@@ -126,7 +126,7 @@ func GetCheckFromCheckProto(agentCheck *proto.Check) Check {
 		}
 	}
 
-	return &Config{
+	return &CheckConf{
 		Input:  input,
 		Output: output,
 		Target: target,

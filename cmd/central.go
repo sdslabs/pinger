@@ -28,6 +28,9 @@ var (
 )
 
 func init() {
+	centralAPICmd.Flags().StringVarP(
+		&statusConfigPath, "config", "c", defaults.StatusConfigPath, "Config file path of status API")
+
 	centralAPICmd.Flags().IntVarP(
 		&centralAPIPort,
 		"port",

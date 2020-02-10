@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/sdslabs/status/pkg/api/response"
+	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/database"
 	"github.com/sdslabs/status/pkg/defaults"
-	"github.com/sdslabs/status/pkg/utils"
 )
 
 var (
@@ -37,7 +37,7 @@ type Provider interface {
 	Type() ProviderType
 
 	// Setup enables us to initialize any variables or setup requirements.
-	Setup(*utils.OauthProviderConfig) error
+	Setup(*config.OauthProviderConfig) error
 
 	// GetLoginURL returns the URL which redirects user to the providers login page.
 	GetLoginURL() string
@@ -49,9 +49,11 @@ type Provider interface {
 
 // Setup all the providers. This adds the refresh token route for JWT as well as
 // login and redirect routes for all the providers.
-func Setup(oauthRouter *gin.RouterGroup) error {
+func Setup(oauthRouter *gin.RouterGroup, conf *config.StatusConfig) error {
+	jwtSecret := conf.Secret()
+
 	// Add refresh route.
-	oauthRouter.GET("/refresh", RefreshTokenHandler)
+	oauthRouter.GET("/refresh", GetRefreshTokenHandler(jwtSecret))
 
 	for typ, provider := range providerRegister {
 		if provider == nil {
@@ -60,11 +62,11 @@ func Setup(oauthRouter *gin.RouterGroup) error {
 
 		typStr := string(typ)
 
-		config, ok := utils.Config.Application.Oauth[typStr]
+		oauthConfig, ok := conf.Application.Oauth[typStr]
 		if !ok {
 			return fmt.Errorf("could not find conf for %s OAuth provider", typStr)
 		}
-		if err := provider.Setup(&config); err != nil {
+		if err := provider.Setup(&oauthConfig); err != nil {
 			return fmt.Errorf(
 				"error while setting up %s OAuth provider: %s",
 				typStr,
@@ -77,7 +79,7 @@ func Setup(oauthRouter *gin.RouterGroup) error {
 		// Add login route.
 		oauthRouter.GET(loginRoute, loginHandler(provider))
 		// Add redirect route.
-		oauthRouter.GET(redirectRoute, redirectHandler(provider))
+		oauthRouter.GET(redirectRoute, redirectHandler(provider, jwtSecret))
 	}
 	return nil
 }
@@ -115,13 +117,13 @@ func UpdateProvider(provider Provider) error {
 }
 
 // Initialize is a shorthand for adding multiple routers to the group and setting them up.
-func Initialize(oauthRouter *gin.RouterGroup, providers ...Provider) error {
+func Initialize(oauthRouter *gin.RouterGroup, conf *config.StatusConfig, providers ...Provider) error {
 	for _, provider := range providers {
 		if err := AddProvider(provider); err != nil {
 			return fmt.Errorf("error while adding %s provider: %s", string(provider.Type()), err.Error())
 		}
 	}
-	if err := Setup(oauthRouter); err != nil {
+	if err := Setup(oauthRouter, conf); err != nil {
 		return err
 	}
 	return nil
@@ -137,7 +139,7 @@ func loginHandler(provider Provider) ginHandler {
 	}
 }
 
-func redirectHandler(provider Provider) ginHandler {
+func redirectHandler(provider Provider, jwtSecret []byte) ginHandler {
 	return func(ctx *gin.Context) {
 		u, code, err := provider.GetUser(ctx)
 		if err != nil {
@@ -158,7 +160,7 @@ func redirectHandler(provider Provider) ginHandler {
 			return
 		}
 
-		jwt, err := newToken(createdUser.ID, createdUser.Email, createdUser.Name)
+		jwt, err := newToken(createdUser.ID, createdUser.Email, createdUser.Name, jwtSecret)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.HTTPError{
 				Error: err.Error(),

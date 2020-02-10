@@ -11,7 +11,7 @@ import (
 	"golang.org/x/oauth2/google"
 
 	"github.com/sdslabs/status/pkg/api/application/oauth"
-	"github.com/sdslabs/status/pkg/utils"
+	"github.com/sdslabs/status/pkg/config"
 )
 
 const (
@@ -31,7 +31,7 @@ func (p *googleProvider) Type() oauth.ProviderType {
 	return oauth.ProviderType(googleProviderType)
 }
 
-func (p *googleProvider) Setup(conf *utils.OauthProviderConfig) error {
+func (p *googleProvider) Setup(conf *config.OauthProviderConfig) error {
 	p.config = &oauth2.Config{
 		ClientID:     conf.ClientID,
 		ClientSecret: conf.ClientSecret,

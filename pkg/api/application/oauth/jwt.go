@@ -12,7 +12,6 @@ import (
 
 	"github.com/sdslabs/status/pkg/api/response"
 	"github.com/sdslabs/status/pkg/defaults"
-	"github.com/sdslabs/status/pkg/utils"
 )
 
 const (
@@ -20,10 +19,6 @@ const (
 	errExpiredToken       = "token expired"
 
 	contextBucketKey = "currentUser"
-)
-
-var (
-	jwtSecret = []byte(utils.Config.Application.Secret)
 )
 
 // Claims represent the claims of an authorization JSON Web Token.
@@ -46,76 +41,80 @@ func CurrentUserFromCtx(ctx *gin.Context) (*Claims, bool) {
 	return claims.(*Claims), true
 }
 
-// RefreshTokenHandler refreshes the token, given it claims it under the
-// max refresh time.
-func RefreshTokenHandler(ctx *gin.Context) {
-	token, err := getTokenFromCtx(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, response.HTTPError{
-			Error: err.Error(),
-		})
-		return
-	}
-	claims, err := getClaimsFromToken(token)
-	// Since we're refreshing token, we don't care if the previous token
-	// claims are valid or invalid
-	if err != nil && err.Error() != errExpiredToken {
-		ctx.JSON(http.StatusBadRequest, response.HTTPError{
-			Error: err.Error(),
-		})
-		return
-	}
-	// we need to check if the time since previous expired token is under
-	// the max refresh time
-	if time.Now().Unix() > claims.ExpiresAt+int64(defaults.JWTRefreshInterval) {
-		ctx.JSON(http.StatusUnauthorized, response.HTTPError{
-			Error: "Time exceeds max refresh time, login again",
-		})
-		return
-	}
-
-	refreshedToken, err := newToken(claims.ID, claims.Email, claims.Name)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, response.HTTPError{
-			Error: err.Error(),
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, response.HTTPRefreshToken{
-		Token:     refreshedToken,
-		ExpiresIn: defaults.JWTExpireInterval / time.Second,
-	})
-}
-
-// JWTVerficationMiddleware is used to authenticate any request for user
-// Sets the ctx 'currentUser' value to the user email
-func JWTVerficationMiddleware(ctx *gin.Context) {
-	token, err := getTokenFromCtx(ctx)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.HTTPError{
-			Error: err.Error(),
-		})
-		return
-	}
-	claims, err := getClaimsFromToken(token)
-	if err != nil {
-		if err.Error() == errExpiredToken {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, response.HTTPError{
+// GetRefreshTokenHandler returns the handler which refreshes the token,
+// given it claims it under the max refresh time.
+func GetRefreshTokenHandler(jwtSecret []byte) ginHandler {
+	return func(ctx *gin.Context) {
+		token, err := getTokenFromCtx(ctx)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, response.HTTPError{
 				Error: err.Error(),
 			})
 			return
 		}
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.HTTPError{
-			Error: err.Error(),
+		claims, err := getClaimsFromToken(token, jwtSecret)
+		// Since we're refreshing token, we don't care if the previous token
+		// claims are valid or invalid
+		if err != nil && err.Error() != errExpiredToken {
+			ctx.JSON(http.StatusBadRequest, response.HTTPError{
+				Error: err.Error(),
+			})
+			return
+		}
+		// we need to check if the time since previous expired token is under
+		// the max refresh time
+		if time.Now().Unix() > claims.ExpiresAt+int64(defaults.JWTRefreshInterval) {
+			ctx.JSON(http.StatusUnauthorized, response.HTTPError{
+				Error: "Time exceeds max refresh time, login again",
+			})
+			return
+		}
+
+		refreshedToken, err := newToken(claims.ID, claims.Email, claims.Name, jwtSecret)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, response.HTTPError{
+				Error: err.Error(),
+			})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, response.HTTPRefreshToken{
+			Token:     refreshedToken,
+			ExpiresIn: defaults.JWTExpireInterval / time.Second,
 		})
-		return
 	}
-	ctx.Set(contextBucketKey, claims)
-	ctx.Next()
 }
 
-func newToken(id uint, email, name string) (string, error) {
+// GetJWTVerficationMiddleware returns a middleware that is used to authenticate
+// any request for user. Sets the ctx 'currentUser' value to the user email.
+func GetJWTVerficationMiddleware(jwtSecret []byte) ginHandler {
+	return func(ctx *gin.Context) {
+		token, err := getTokenFromCtx(ctx)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, response.HTTPError{
+				Error: err.Error(),
+			})
+			return
+		}
+		claims, err := getClaimsFromToken(token, jwtSecret)
+		if err != nil {
+			if err.Error() == errExpiredToken {
+				ctx.AbortWithStatusJSON(http.StatusUnauthorized, response.HTTPError{
+					Error: err.Error(),
+				})
+				return
+			}
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, response.HTTPError{
+				Error: err.Error(),
+			})
+			return
+		}
+		ctx.Set(contextBucketKey, claims)
+		ctx.Next()
+	}
+}
+
+func newToken(id uint, email, name string, jwtSecret []byte) (string, error) {
 	expirationTime := time.Now().Add(defaults.JWTExpireInterval)
 	c := &Claims{
 		ID:    id,
@@ -129,7 +128,7 @@ func newToken(id uint, email, name string) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
-func getClaimsFromToken(token string) (*Claims, error) {
+func getClaimsFromToken(token string, jwtSecret []byte) (*Claims, error) {
 	// when returning ErrInvalidToken, it means the status
 	// of error is unauthorized rather than bad request
 	c := &Claims{}

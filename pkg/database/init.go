@@ -9,17 +9,16 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // PostgreSQL
 
-	"github.com/sdslabs/status/pkg/utils"
+	"github.com/sdslabs/status/pkg/config"
 )
 
-var (
-	dbConf = utils.Config.Application.Database
-	db     *gorm.DB
-)
+var db *gorm.DB
 
 // SetupDB sets up the PostgreSQL API.
-func SetupDB() error {
+func SetupDB(conf *config.StatusConfig) error {
 	var err error
+
+	dbConf := conf.Application.Database
 
 	connectStr := fmt.Sprintf(
 		"host=%s port=%d user=%s dbname=%s password=%s",

@@ -1,6 +1,22 @@
-port: 8081
-prometheus_metrics: true
+# Standalone agent configuration file.
 
+# Standalone mode is used when checks are scheduled without running the
+# complete application (with the application API).
+
+# Metrics backend configuration.
+metrics:
+  # Which metrics backend to be used.
+  # Can be one of:
+  # - prometheus
+  # - timescale
+  # - none
+  backend: "prometheus"
+  host: "127.0.0.1"
+  port: 9009
+  username: ""
+  password: ""
+
+# Checks to be deployed on the agent.
 checks:
   - input:
       type: "HTTP"
