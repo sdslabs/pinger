@@ -91,6 +91,13 @@ func (pr *HTTPProber) Probe(
 
 	var err error
 
+	if headers == nil {
+		headers = map[string]string{}
+	}
+	if payload == nil {
+		payload = map[string]string{}
+	}
+
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("error while marshaling JSON payload")

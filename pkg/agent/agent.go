@@ -28,7 +28,7 @@ func RunStandaloneAgent(conf *config.AgentConfig) {
 	case metrics.PrometheusProviderType:
 		metrics.SetupPrometheusMetrics(&conf.Metrics, ControllerManager)
 	case metrics.TimeScaleProviderType:
-		database.SetupMetrics(&database.SetupConf{
+		database.SetupMetrics(&database.SetupMetricsConf{
 			ProviderConfig: &conf.Metrics,
 			Manager:        ControllerManager,
 			Standalone:     true,
@@ -42,7 +42,6 @@ func RunStandaloneAgent(conf *config.AgentConfig) {
 
 	log.Info("Creating contorllers for checks to be performed.")
 	for _, checkConfig := range conf.Checks {
-		log.Debugf("Creating controller for check: %s", checkConfig.GetName())
 		checker, err := check.NewChecker(checkConfig)
 		if err != nil {
 			log.Errorf("Error while creating new checker: %s", err)
@@ -71,8 +70,6 @@ func RunStandaloneAgent(conf *config.AgentConfig) {
 			log.Errorf("Skipping adding controller for check: %s", checkConfig.GetName())
 			continue
 		}
-
-		log.Debugf("Controller Added for check %s", checkConfig.GetName())
 	}
 
 	ControllerManager.Wait()

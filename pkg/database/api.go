@@ -340,6 +340,9 @@ func CreateMetrics(metrics []Metric) error {
 	// We build a raw query since Gorm doesn't support bulk insert.
 	// Since there is no `string` and there is no user input we can
 	// safely build the raw query without worrying about injection.
+	if len(metrics) == 0 {
+		return nil
+	}
 	q := "INSERT INTO metrics (check_id, start_time, duration, timeout, success) VALUES %s;"
 	timeFormat := "2006-01-02 15:04:05.000000-07:00" // Supported by PostgreSQL
 	vals := []string{}

@@ -3,3 +3,5 @@ test/
 tmp/
 database.sqlite
 config.yml
+agent.yml
+data/

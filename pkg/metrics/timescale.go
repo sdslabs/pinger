@@ -12,7 +12,6 @@ type TimescaleExporter struct {
 	Quit     chan bool
 	UserID   uint
 	Interval time.Duration
-	ErrCount uint
 }
 
 // Rest of the implementation is in @/pkg/database to use the same schema as the web

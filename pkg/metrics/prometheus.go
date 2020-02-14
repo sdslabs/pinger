@@ -1,8 +1,10 @@
 package metrics
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -11,9 +13,14 @@ import (
 	"github.com/sdslabs/status/pkg/controller"
 )
 
+const (
+	probeLatencyLabel = "probe_latency"
+	probeStatusLabel  = "probe_status"
+)
+
 // SetupPrometheusMetrics sets up the prometheus metric server for the status page.
 func SetupPrometheusMetrics(config *ProviderConfig, manager *controller.Manager) {
-	go runPrometheusMetricsServer(config.Port, manager)
+	go runPrometheusMetricsServer(config.Port, config.Interval, manager)
 }
 
 // PrometheusExporter for exporting metrics to prometheus db.
@@ -27,15 +34,23 @@ func NewPrometheusExporter(manager *controller.Manager) *PrometheusExporter {
 	metrics := make(map[string]*prometheus.Desc)
 
 	// Probe latency metrics descriptor.
-	metrics["probe_latency"] = prometheus.NewDesc(
+	metrics[probeLatencyLabel] = prometheus.NewDesc(
 		// Name of the metrics defined by the descriptor
-		"probe_latency",
+		"status_probe_latency",
 		// Help message for the metrics
 		"Time in micro seconds which measures the latency of the probe defined by the controller",
 		// Metrics variable level dimensions
 		[]string{"probe_type", "check_name"},
-
 		// Metrics constant label dimensions.
+		nil,
+	)
+
+	// Status metrics descriptor. Value is 0.0 if the probe failed,
+	// -1.0 if it failed due to timeout and +1.0 if it succeeded.
+	metrics[probeStatusLabel] = prometheus.NewDesc(
+		"status_probe_status",
+		"Status of the probe, value is 0.0 if the probe failed, -1.0 if it failed due to timeout and +1.0 if it succeeded",
+		[]string{"probe_type", "check_name"},
 		nil,
 	)
 
@@ -56,12 +71,12 @@ func (e *PrometheusExporter) Describe(ch chan<- *prometheus.Desc) {
 func (e *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
 	log.Info("Starting to collect prometheus metrics.")
 	// Take the current status gained by controller from manager.
-	stats := e.Manager.PullLatestControllerStatistics()
+	stats := e.Manager.PullOnlyLatestControllerStatistics()
 
 	// Iterate over statistics of each controller and send them to prometheus.
 	for _, cStats := range stats {
-		m := prometheus.MustNewConstMetric(
-			e.Metrics["probe_latency"],
+		latencyMetric := prometheus.MustNewConstMetric(
+			e.Metrics[probeLatencyLabel],
 			prometheus.GaugeValue,
 			float64(cStats.Duration/1e3),
 
@@ -69,20 +84,96 @@ func (e *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
 			cStats.Type,
 			cStats.Name,
 		)
+		ch <- prometheus.NewMetricWithTimestamp(cStats.StartTime, latencyMetric)
 
-		ch <- prometheus.NewMetricWithTimestamp(cStats.StartTime, m)
+		var statusVal float64 = 1.0
+		if cStats.Timeout {
+			statusVal = -1.0
+		} else if !cStats.Success {
+			statusVal = 0.0
+		}
+		statusMetric := prometheus.MustNewConstMetric(
+			e.Metrics[probeStatusLabel],
+			prometheus.GaugeValue,
+			statusVal,
+
+			cStats.Type,
+			cStats.Name,
+		)
+		ch <- prometheus.NewMetricWithTimestamp(cStats.StartTime, statusMetric)
 	}
 }
 
-func runPrometheusMetricsServer(port int, manager *controller.Manager) {
+type metricsCleanStats struct {
+	duration  time.Duration
+	startTime time.Time
+	success   bool
+	timeout   bool
+}
+
+func (m *metricsCleanStats) GetDuration() time.Duration {
+	return m.duration
+}
+
+func (m *metricsCleanStats) GetStartTime() time.Time {
+	return m.startTime
+}
+
+func (m *metricsCleanStats) IsSuccessful() bool {
+	return m.success
+}
+
+func (m *metricsCleanStats) IsTimeout() bool {
+	return m.timeout
+}
+
+type controllerFunc = func(context.Context) (controller.FunctionResult, error)
+
+func getControllerDoFunc(manager *controller.Manager) controllerFunc {
+	return func(context.Context) (controller.FunctionResult, error) {
+		manager.CleanStats()
+		return &metricsCleanStats{
+			duration:  0,
+			startTime: time.Now(),
+			timeout:   false,
+			success:   true,
+		}, nil
+	}
+}
+
+func runPrometheusMetricsServer(port int, interval time.Duration, manager *controller.Manager) {
 	exporter := NewPrometheusExporter(manager)
 	prometheus.MustRegister(exporter)
+
+	httpServer := http.Server{
+		Addr: fmt.Sprintf(":%d", port),
+	}
+	defer httpServer.Close() //nolint:errcheck
 
 	http.Handle("/metrics", promhttp.Handler())
 	log.Infoln("Beginning to serve prometheus metrics on port:", port)
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
-		log.Fatalf("Error while running prometheus metrics server, exitting: %s", err.Error())
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil {
+			log.Fatalf("Error while running prometheus metrics server, exitting: %s", err.Error())
+			return
+		}
+	}()
+
+	// Clean stats regularly from prometheus to avoid over-flow of memory usage.
+	prometheusManager := controller.NewManager()
+	doFunc, err := controller.NewControllerFunction(getControllerDoFunc(prometheusManager))
+	if err != nil {
+		log.Errorf("Error while starting prometheus exporter: %s", err.Error())
 		return
 	}
+	executor := controller.Internal{
+		DoFunc:      doFunc,
+		RunInterval: interval,
+	}
+	if err := prometheusManager.UpdateController("prometheus-exporter", "exporter", executor); err != nil {
+		log.Errorf("Error while starting prometheus exporter: %s", err.Error())
+		return
+	}
+	prometheusManager.Wait()
 }

@@ -24,7 +24,6 @@ const (
 type agentServer struct{}
 
 func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*proto.PushStatus, error) {
-	log.Debug("Received the push for a new check.")
 	cfg := config.GetCheckFromCheckProto(agentCheck)
 	checker, err := check.NewChecker(cfg)
 	if err != nil {
@@ -61,8 +60,6 @@ func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*p
 }
 
 func (a agentServer) GetManagerStats(context.Context, *proto.None) (*proto.ManagerStats, error) {
-	log.Debug("Inside get controller manager stats function")
-
 	stats := ControllerManager.GetStats()
 
 	mStats := []*proto.ManagerStats_ControllerStatus{}
@@ -88,8 +85,6 @@ func (a agentServer) GetManagerStats(context.Context, *proto.None) (*proto.Manag
 }
 
 func (a agentServer) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMeta) (*proto.RemoveStatus, error) {
-	log.Debugf("Removing check from check controller manager: %s", agentCheck.Name)
-
 	err := ControllerManager.RemoveControllerAndWait(agentCheck.Name)
 	if err != nil {
 		return &proto.RemoveStatus{
@@ -102,8 +97,6 @@ func (a agentServer) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMet
 }
 
 func (a agentServer) ListChecks(context.Context, *proto.None) (*proto.ChecksList, error) {
-	log.Debugf("Listing checks managed by agent's default registered manager")
-
 	ctrls := ControllerManager.GetAllControllers()
 	checksList := []*proto.CheckMeta{}
 

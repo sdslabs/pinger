@@ -202,9 +202,10 @@ type Internal struct {
 
 // ExecStat represents the statistics for each function result corresponding to a start-time.
 type ExecStat struct {
-	duration time.Duration
-	timeout  bool
-	success  bool
+	startTime time.Time
+	duration  time.Duration
+	timeout   bool
+	success   bool
 }
 
 // Controller is the actual underlying controller. Each controller is created for a specific task
@@ -235,6 +236,7 @@ type Controller struct {
 	ctxDoFunc    context.Context
 	cancelDoFunc context.CancelFunc
 
+	latestStat          *ExecStat
 	executionStatistics map[time.Time]*ExecStat
 
 	// terminated is closed after the controller has been terminated
@@ -279,6 +281,20 @@ func (c *Controller) ExtractExecutionStatistics() map[time.Time]*ExecStat {
 	return stats
 }
 
+func (c *Controller) cleanStats() {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if len(c.executionStatistics) < 2 {
+		// If the executionStatistics has only one element (or zero),
+		// we don't have to clean it.
+		return
+	}
+
+	// Clear execution statistics and keep the latest stats only.
+	c.executionStatistics = map[time.Time]*ExecStat{c.latestStat.startTime: c.latestStat}
+}
+
 // RunController starts running the controller.
 // TODO: improve this, currently it waits for the current request to finish and then waits for
 // interval duration to run the function again. This is not a constant interval check we are
@@ -306,15 +322,14 @@ func (c *Controller) RunController() {
 			c.mutex.Lock()
 
 			c.lastDuration = duration
-			c.getLogger().Debug("Controller func execution time: ", c.lastDuration)
 			if res != nil {
-				c.getLogger().Debug("Controller reported runtime: ", res.GetDuration())
-
-				c.executionStatistics[res.GetStartTime()] = &ExecStat{
-					duration: res.GetDuration(),
-					success:  res.IsSuccessful(),
-					timeout:  res.IsTimeout(),
+				c.latestStat = &ExecStat{
+					duration:  res.GetDuration(),
+					success:   res.IsSuccessful(),
+					timeout:   res.IsTimeout(),
+					startTime: res.GetStartTime(),
 				}
+				c.executionStatistics[res.GetStartTime()] = c.latestStat
 			} else {
 				c.getLogger().Warnf("Invalid check execution function for the controller: %s", c.name)
 			}
@@ -345,7 +360,6 @@ func (c *Controller) RunController() {
 					// Don't exit the goroutine, since that only happens when the
 					// controller is explicitly stopped. Instead, just wait for
 					// the next update.
-					c.getLogger().Debug("Controller run succeeded; waiting for next controller update or stop")
 					runFunc = false
 					interval = defaults.ControllerRetryInterval
 				}
@@ -380,8 +394,6 @@ func (c *Controller) RunController() {
 	}
 
 shutdown:
-	c.getLogger().Debug("Shutting down controller")
-
 	if _, err := internal.StopFunc.Run(context.TODO()); err != nil {
 		c.mutex.Lock()
 		c.recordError(err)

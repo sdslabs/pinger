@@ -36,7 +36,6 @@ func NewStatusAgent(host string, port int64) *StatusAgent {
 // PushCheckToAgent takes a proto.Check and pushes it to the agent.
 func (a *StatusAgent) PushCheckToAgent(check *proto.Check) error {
 	agentAddr := fmt.Sprintf("%s:%d", a.Host, a.Port)
-	log.Debugf("Pushing check to the agent: %s", agentAddr)
 
 	conn, err := grpc.Dial(agentAddr, grpcOpts...)
 	if err != nil {

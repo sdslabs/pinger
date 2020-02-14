@@ -19,7 +19,7 @@ metrics:
   ssl_mode: false
   # Interval after which metrics are pushed/pulled by the provider.
   # In N seconds * 1000000000
-  interval: 10000000000 # 30 seconds
+  interval: 30000000000 # 30 seconds
 
 # Checks to be deployed on the agent.
 checks:
