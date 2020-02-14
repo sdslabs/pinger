@@ -12,7 +12,6 @@ import (
 // AgentConfig is the configuration structure for agent, mostly used in the case of
 // standalone status page agent.
 type AgentConfig struct {
-	Deploy  bool                   `yaml:"deploy"`
 	Metrics metrics.ProviderConfig `yaml:"metrics"`
 	Checks  []*CheckConf           `yaml:"checks"`
 }

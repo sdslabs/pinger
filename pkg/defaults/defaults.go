@@ -72,4 +72,12 @@ var (
 	// AgentConfigPath is the default path of the config file for the status page
 	// agent. This is mostly used in case when we run the agent in a standalone mode.
 	AgentConfigPath = filepath.Join(os.Getenv("HOME"), "/.status-agent.yml")
+
+	// StandaloneUserEmail is the email of the user corresponding to which the standalone
+	// agent metrics will be saved in the timescale db.
+	StandaloneUserEmail = "standalone@status.agent"
+
+	// StandaloneUserName is the name of the user corresponding to which the standalone
+	// agent metrics will be saved in the timescale db.
+	StandaloneUserName = "Standalone Status Agent"
 )

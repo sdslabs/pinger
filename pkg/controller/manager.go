@@ -88,7 +88,7 @@ func (m *Manager) updateController(name, cType string, internal Internal) (*Cont
 			update:     make(chan struct{}, 1),
 			terminated: make(chan struct{}),
 
-			executionStatistics: make(map[time.Time]time.Duration),
+			executionStatistics: make(map[time.Time]*ExecStat),
 		}
 		ctrl.updateController(internal, false)
 		ctrl.getLogger().Debug("Starting new controller")
@@ -220,15 +220,17 @@ func (m *Manager) PullLatestControllerStatistics() []ExecutionStat {
 	for _, controller := range m.controllers {
 		statMap := controller.ExtractExecutionStatistics()
 
-		for t, duration := range statMap {
+		for t, s := range statMap {
 			stat = append(stat, ExecutionStat{
 				Name: controller.Name(),
 				Type: controller.Type(),
 
 				StartTime: t,
-				Duration:  duration,
+				Duration:  s.duration,
+
+				Success: s.success,
+				Timeout: s.timeout,
 			})
-			break
 		}
 	}
 

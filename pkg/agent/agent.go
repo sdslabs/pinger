@@ -1,11 +1,13 @@
 package agent
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/sdslabs/status/pkg/check"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/controller"
+	"github.com/sdslabs/status/pkg/database"
 	"github.com/sdslabs/status/pkg/metrics"
 
 	log "github.com/sirupsen/logrus"
@@ -26,6 +28,12 @@ func RunStandaloneAgent(conf *config.AgentConfig) {
 	case metrics.PrometheusProviderType:
 		metrics.SetupPrometheusMetrics(&conf.Metrics, ControllerManager)
 	case metrics.TimeScaleProviderType:
+		database.SetupMetrics(&database.SetupConf{
+			ProviderConfig: &conf.Metrics,
+			Manager:        ControllerManager,
+			Standalone:     true,
+			Checks:         conf.Checks,
+		})
 	case metrics.EmptyProviderType:
 	default:
 		log.Fatalf("Invalid metrics provider '%v'", conf.Metrics.Backend)
@@ -53,7 +61,11 @@ func RunStandaloneAgent(conf *config.AgentConfig) {
 			DoFunc:      cFunc,
 			RunInterval: time.Second * time.Duration(checkConfig.GetInterval()),
 		}
-		err = ControllerManager.UpdateController(checkConfig.GetName(), checker.Type(), executor)
+		controllerName := fmt.Sprint(checkConfig.GetId())
+		if conf.Metrics.Backend != metrics.TimeScaleProviderType {
+			controllerName = checkConfig.GetLabel()
+		}
+		err = ControllerManager.UpdateController(controllerName, checker.Type(), executor)
 		if err != nil {
 			log.Errorf("Error while creating controller: %s", err)
 			log.Errorf("Skipping adding controller for check: %s", checkConfig.GetName())

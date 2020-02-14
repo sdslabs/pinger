@@ -42,6 +42,7 @@ type FunctionResult interface {
 	GetStartTime() time.Time
 
 	IsSuccessful() bool
+	IsTimeout() bool
 }
 
 // Validate validates the controller function parameters.
@@ -199,6 +200,13 @@ type Internal struct {
 	NoErrorRetry bool
 }
 
+// ExecStat represents the statistics for each function result corresponding to a start-time.
+type ExecStat struct {
+	duration time.Duration
+	timeout  bool
+	success  bool
+}
+
 // Controller is the actual underlying controller. Each controller is created for a specific task
 // which is specified in `controller.internal`
 type Controller struct {
@@ -227,7 +235,7 @@ type Controller struct {
 	ctxDoFunc    context.Context
 	cancelDoFunc context.CancelFunc
 
-	executionStatistics map[time.Time]time.Duration
+	executionStatistics map[time.Time]*ExecStat
 
 	// terminated is closed after the controller has been terminated
 	terminated chan struct{}
@@ -254,10 +262,12 @@ type ExecutionStat struct {
 
 	StartTime time.Time
 	Duration  time.Duration
+	Timeout   bool
+	Success   bool
 }
 
 // ExtractExecutionStatistics returns the statistics from a controller.
-func (c *Controller) ExtractExecutionStatistics() map[time.Time]time.Duration {
+func (c *Controller) ExtractExecutionStatistics() map[time.Time]*ExecStat {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -265,7 +275,7 @@ func (c *Controller) ExtractExecutionStatistics() map[time.Time]time.Duration {
 	stats := c.executionStatistics
 
 	// clear out the controller statistics
-	c.executionStatistics = make(map[time.Time]time.Duration)
+	c.executionStatistics = make(map[time.Time]*ExecStat)
 	return stats
 }
 
@@ -299,12 +309,12 @@ func (c *Controller) RunController() {
 			c.getLogger().Debug("Controller func execution time: ", c.lastDuration)
 			if res != nil {
 				c.getLogger().Debug("Controller reported runtime: ", res.GetDuration())
-				duration := defaults.InvalidDuration
-				if res.IsSuccessful() {
-					duration = res.GetDuration()
-				}
 
-				c.executionStatistics[res.GetStartTime()] = duration
+				c.executionStatistics[res.GetStartTime()] = &ExecStat{
+					duration: res.GetDuration(),
+					success:  res.IsSuccessful(),
+					timeout:  res.IsTimeout(),
+				}
 			} else {
 				c.getLogger().Warnf("Invalid check execution function for the controller: %s", c.name)
 			}

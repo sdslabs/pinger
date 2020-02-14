@@ -6,6 +6,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// TODO: Change time intervals to time.Duration
+
 // User model.
 type User struct {
 	gorm.Model

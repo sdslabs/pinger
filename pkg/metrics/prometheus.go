@@ -3,7 +3,6 @@ package metrics
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -20,13 +19,11 @@ func SetupPrometheusMetrics(config *ProviderConfig, manager *controller.Manager)
 // PrometheusExporter for exporting metrics to prometheus db.
 type PrometheusExporter struct {
 	Manager *controller.Manager
-	Port    int
-
 	Metrics map[string]*prometheus.Desc
 }
 
 // NewPrometheusExporter creates an empty but not-nil `*PrometheusExporter`.
-func NewPrometheusExporter(port int, manager *controller.Manager) *PrometheusExporter {
+func NewPrometheusExporter(manager *controller.Manager) *PrometheusExporter {
 	metrics := make(map[string]*prometheus.Desc)
 
 	// Probe latency metrics descriptor.
@@ -44,8 +41,6 @@ func NewPrometheusExporter(port int, manager *controller.Manager) *PrometheusExp
 
 	return &PrometheusExporter{
 		Manager: manager,
-		Port:    port,
-
 		Metrics: metrics,
 	}
 }
@@ -80,15 +75,14 @@ func (e *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
 }
 
 func runPrometheusMetricsServer(port int, manager *controller.Manager) {
-	exporter := NewPrometheusExporter(port, manager)
+	exporter := NewPrometheusExporter(manager)
 	prometheus.MustRegister(exporter)
 
 	http.Handle("/metrics", promhttp.Handler())
-	log.Info("Beginning to serve prometheus metrics on port :", port)
+	log.Infoln("Beginning to serve prometheus metrics on port:", port)
 
-	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
-	if err != nil {
-		log.Error("Error while running prometheus metrics server, exitting: ", err)
-		os.Exit(1)
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
+		log.Fatalf("Error while running prometheus metrics server, exitting: %s", err.Error())
+		return
 	}
 }

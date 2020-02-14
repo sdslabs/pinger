@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/sdslabs/status/pkg/agent/proto"
 )
 
@@ -16,6 +18,7 @@ type Check interface {
 	GetTimeout() int64
 
 	GetName() string
+	GetId() uint32 //nolint:golint
 }
 
 // Component is the Type Value component for check components like Input, Output, Target etc.
@@ -32,9 +35,16 @@ type CheckConf struct {
 
 	Payloads []*ComponentConfig `yaml:"payloads"`
 
+	ID       uint   `yaml:"id"`
 	Name     string `yaml:"name"`
 	Timeout  int64  `yaml:"timeout"`
 	Interval int64  `yaml:"interval"`
+}
+
+// GetLabel returns a slug that is unique for checks deployed with the manager on the agent.
+func (m *CheckConf) GetLabel() string {
+	name := strings.ToLower(m.Name)
+	return strings.ReplaceAll(name, " ", "-")
 }
 
 // GetInput returns the input of the check.
@@ -75,6 +85,11 @@ func (m *CheckConf) GetTimeout() int64 {
 // GetName returns the name of the check.
 func (m *CheckConf) GetName() string {
 	return m.Name
+}
+
+// GetId returns the ID of the check.
+func (m *CheckConf) GetId() uint32 { //nolint:golint
+	return uint32(m.ID)
 }
 
 // ComponentConfig is the config of the TypeValue component of the check

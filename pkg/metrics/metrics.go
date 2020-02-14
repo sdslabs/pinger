@@ -6,15 +6,14 @@ import (
 
 // ProviderConfig is the config for metrics database provider.
 type ProviderConfig struct {
-	Backend ProviderType `yaml:"backend"`
-
-	Host string `yaml:"host"`
-	Port int    `yaml:"port"`
-
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-
-	Interval time.Duration // after which the agent pushes / provider pulls checks
+	Backend  ProviderType  `yaml:"backend"`
+	Host     string        `yaml:"host"`
+	Port     int           `yaml:"port"`
+	DBName   string        `yaml:"db_name"`
+	Username string        `yaml:"username"`
+	Password string        `yaml:"password"`
+	SSLMode  bool          `yaml:"ssl_mode"`
+	Interval time.Duration `yaml:"interval"` // after which the agent pushes / provider pulls checks
 }
 
 // ProviderType is the type of database.

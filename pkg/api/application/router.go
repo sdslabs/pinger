@@ -13,9 +13,6 @@ import (
 	"github.com/sdslabs/status/pkg/database"
 )
 
-// ErrInvalidConfigDeploy is returned from `Serve` when application.deploy is set to false in `config.yml`.
-var ErrInvalidConfigDeploy = fmt.Errorf("application.deploy is set false in config, cannot start server without postgres")
-
 func getProvider(providerType string) (oauth.Provider, error) {
 	switch oauth.ProviderType(providerType) {
 	case providers.Google.Type():
@@ -61,6 +58,7 @@ func getRouter(conf *config.StatusConfig) (*gin.Engine, error) {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error": "Cannot find user from token",
 			})
+			return
 		}
 		ctx.JSON(http.StatusOK, gin.H{
 			"name":  currentUser.Name,

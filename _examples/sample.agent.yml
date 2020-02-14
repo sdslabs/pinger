@@ -1,4 +1,4 @@
-# Standalone agent configuration file.
+# Agent configuration file.
 
 # Standalone mode is used when checks are scheduled without running the
 # complete application (with the application API).
@@ -10,11 +10,16 @@ metrics:
   # - prometheus
   # - timescale
   # - none
-  backend: "prometheus"
+  backend: "timescale"
   host: "127.0.0.1"
-  port: 9009
-  username: ""
-  password: ""
+  port: 5432
+  db_name: "status-dev"
+  username: "vrongmeal"
+  password: "password"
+  ssl_mode: false
+  # Interval after which metrics are pushed/pulled by the provider.
+  # In N seconds * 1000000000
+  interval: 10000000000 # 30 seconds
 
 # Checks to be deployed on the agent.
 checks:
@@ -27,19 +32,19 @@ checks:
     target:
       type: "url"
       value: "https://google.com"
-    name: "test-http-check-google"
-    interval: 10
+    name: "Google test"
+    interval: 5
     timeout: 10
 
   - input:
-      type: "HTTP"
-      value: "GET"
+      type: "ICMP"
+      value: ""
     output:
-      type: "status_code"
-      value: "200"
+      type: "timeout"
+      value: "false"
     target:
-      type: "url"
-      value: "https://sdslabs.co"
-    name: "test-http-check-sdslabs"
-    interval: 5
+      type: "address"
+      value: "sdslabs.co"
+    name: "SDSLabs portfolio"
+    interval: 2
     timeout: 10
