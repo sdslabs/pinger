@@ -58,7 +58,7 @@ func RunStandaloneAgent(conf *config.AgentConfig) {
 
 		executor := controller.Internal{
 			DoFunc:      cFunc,
-			RunInterval: time.Second * time.Duration(checkConfig.GetInterval()),
+			RunInterval: time.Duration(checkConfig.GetInterval()),
 		}
 		controllerName := fmt.Sprint(checkConfig.GetId())
 		if conf.Metrics.Backend != metrics.TimeScaleProviderType {

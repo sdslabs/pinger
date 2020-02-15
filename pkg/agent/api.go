@@ -46,7 +46,7 @@ func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*p
 
 	executor := controller.Internal{
 		DoFunc:      cFunc,
-		RunInterval: time.Second * time.Duration(agentCheck.Interval),
+		RunInterval: time.Duration(agentCheck.Interval),
 	}
 	err = ControllerManager.UpdateController(agentCheck.Name, checker.Type(), executor)
 	if err != nil {

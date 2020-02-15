@@ -46,7 +46,7 @@ func NewHTTPChecker(agentCheck config.Check) (*HTTPChecker, error) {
 		}
 	}
 
-	timeout := time.Duration(agentCheck.GetTimeout()) * time.Second
+	timeout := time.Duration(agentCheck.GetTimeout())
 	if timeout <= 0 {
 		timeout = defaults.HTTPProbeTimeout
 	}

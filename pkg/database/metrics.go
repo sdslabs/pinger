@@ -135,8 +135,8 @@ func SetupMetrics(conf *SetupMetricsConf) {
 			}
 			check := &Check{
 				OwnerID:     ex.UserID,
-				Interval:    int(checkConfig.GetInterval()),
-				Timeout:     int(checkConfig.GetTimeout()),
+				Interval:    time.Duration(checkConfig.GetInterval()),
+				Timeout:     time.Duration(checkConfig.GetTimeout()),
 				InputType:   checkConfig.GetInput().GetType(),
 				InputValue:  checkConfig.GetInput().GetValue(),
 				OutputType:  checkConfig.GetOutput().GetType(),
