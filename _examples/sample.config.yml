@@ -9,7 +9,7 @@ central:
 application:
 
   # Application secret. Used to encrypt tokens.
-  secret: ""
+  secret: "<a super secret code here>"
 
   # Oauth providers. Comment out the ones not to be deployed.
   # To add new providers add the providers implementing the
@@ -42,4 +42,4 @@ application:
     username: ""
     password: ""
     name: ""
-    ssl_mode: false
+    ssl_mode: true

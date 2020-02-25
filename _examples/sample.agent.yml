@@ -16,12 +16,11 @@ metrics:
   db_name: "status-dev"
   username: "vrongmeal"
   password: "password"
-  ssl_mode: false
+  ssl_mode: true
   # Interval after which metrics are pushed/pulled by the provider.
-  # In N seconds * 1000000000
   # In case of prometheus, this is the interval after which the stats
   # are cleared from memory.
-  interval: 30000000000 # 30 seconds
+  interval: '2m' # 2 minutes
 
 # Checks to be deployed on the agent.
 checks:
@@ -35,8 +34,8 @@ checks:
       type: "url"
       value: "https://google.com"
     name: "Google test"
-    interval: 5000000000 # 5 seconds
-    timeout: 10000000000 # 10 seconds
+    interval: '5s' # 5 seconds
+    timeout: '10s' # 10 seconds
 
   - input:
       type: "ICMP"
@@ -48,5 +47,5 @@ checks:
       type: "address"
       value: "sdslabs.co"
     name: "SDSLabs portfolio"
-    interval: 2000000000 # 2 seconds
-    timeout: 10000000000 # 10 seconds
+    interval: '2s' # 2 seconds
+    timeout: '10s' # 10 seconds

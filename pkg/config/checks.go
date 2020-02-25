@@ -2,6 +2,7 @@ package config
 
 import (
 	"strings"
+	"time"
 
 	"github.com/sdslabs/status/pkg/agent/proto"
 )
@@ -35,10 +36,10 @@ type CheckConf struct {
 
 	Payloads []*ComponentConfig `yaml:"payloads"`
 
-	ID       uint   `yaml:"id"`
-	Name     string `yaml:"name"`
-	Timeout  int64  `yaml:"timeout"`
-	Interval int64  `yaml:"interval"`
+	ID       uint          `yaml:"id"`
+	Name     string        `yaml:"name"`
+	Timeout  time.Duration `yaml:"timeout"`
+	Interval time.Duration `yaml:"interval"`
 }
 
 // GetLabel returns a slug that is unique for checks deployed with the manager on the agent.
@@ -74,12 +75,12 @@ func (m *CheckConf) GetPayloads() []Component {
 
 // GetInterval returns the time interval between indivudal checks with this config.
 func (m *CheckConf) GetInterval() int64 {
-	return m.Interval
+	return int64(m.Interval)
 }
 
 // GetTimeout returns the timeout interval of the check.
 func (m *CheckConf) GetTimeout() int64 {
-	return m.Timeout
+	return int64(m.Timeout)
 }
 
 // GetName returns the name of the check.
@@ -148,7 +149,7 @@ func GetCheckFromCheckProto(agentCheck *proto.Check) Check {
 
 		Payloads: payloads,
 		Name:     agentCheck.GetName(),
-		Interval: agentCheck.GetInterval(),
-		Timeout:  agentCheck.GetTimeout(),
+		Interval: time.Duration(agentCheck.GetInterval()),
+		Timeout:  time.Duration(agentCheck.GetTimeout()),
 	}
 }
