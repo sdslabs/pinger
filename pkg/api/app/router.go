@@ -1,5 +1,5 @@
-// Package application contains the router for status web app.
-package application
+// Package app contains the router for status web app.
+package app
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/sdslabs/status/pkg/api/application/oauth"
-	"github.com/sdslabs/status/pkg/api/application/providers"
+	"github.com/sdslabs/status/pkg/api/app/oauth"
+	"github.com/sdslabs/status/pkg/api/app/providers"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/database"
 )

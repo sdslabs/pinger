@@ -55,8 +55,8 @@ var (
 	// CentralAPIPort is default the central api server port.
 	CentralAPIPort = 9010
 
-	// ApplicationAPIPort is the default application api server port.
-	ApplicationAPIPort = 8080
+	// AppAPIPort is the default application api server port.
+	AppAPIPort = 8080
 
 	// ControllerType is the default type of the controller, other types can be
 	// specified based on the type of checks/probes that the controller executes

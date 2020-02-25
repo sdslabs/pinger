@@ -23,5 +23,5 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(agentCmd)
 	rootCmd.AddCommand(centralAPICmd)
-	rootCmd.AddCommand(applicationAPICmd)
+	rootCmd.AddCommand(appAPICmd)
 }
