@@ -49,7 +49,7 @@ type Provider interface {
 
 // Setup all the providers. This adds the refresh token route for JWT as well as
 // login and redirect routes for all the providers.
-func Setup(oauthRouter gin.IRoutes, conf *config.StatusConfig) error {
+func Setup(oauthRouter gin.IRoutes, conf *config.AppConfig) error {
 	jwtSecret := conf.Secret()
 
 	// Add refresh route.
@@ -62,7 +62,7 @@ func Setup(oauthRouter gin.IRoutes, conf *config.StatusConfig) error {
 
 		typStr := string(typ)
 
-		oauthConfig, ok := conf.Application.Oauth[typStr]
+		oauthConfig, ok := conf.Oauth[typStr]
 		if !ok {
 			return fmt.Errorf("could not find conf for %s OAuth provider", typStr)
 		}
@@ -118,7 +118,7 @@ func UpdateProvider(provider Provider) error {
 }
 
 // Initialize is a shorthand for adding multiple routers to the group and setting them up.
-func Initialize(oauthRouter gin.IRoutes, conf *config.StatusConfig, providers ...Provider) error {
+func Initialize(oauthRouter gin.IRoutes, conf *config.AppConfig, providers ...Provider) error {
 	for _, provider := range providers {
 		if err := AddProvider(provider); err != nil {
 			return fmt.Errorf("error while adding %s provider: %s", string(provider.Type()), err.Error())

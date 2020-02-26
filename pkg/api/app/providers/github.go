@@ -12,6 +12,7 @@ import (
 
 	"github.com/sdslabs/status/pkg/api/app/oauth"
 	"github.com/sdslabs/status/pkg/config"
+	"github.com/sdslabs/status/pkg/utils"
 )
 
 const (
@@ -43,7 +44,7 @@ func (p *githubProvider) Setup(conf *config.OauthProviderConfig) error {
 }
 
 func (p *githubProvider) GetLoginURL() string {
-	p.state = randToken()
+	p.state = utils.RandomToken()
 	return p.config.AuthCodeURL(p.state)
 }
 

@@ -2,6 +2,11 @@
 
 # Standalone mode is used when checks are scheduled without running the
 # complete application (with the application API).
+standalone: true
+
+# Port to run agent on. This port is used when agent is run along-with
+# the API server.
+port: 9019
 
 # Metrics backend configuration.
 metrics:

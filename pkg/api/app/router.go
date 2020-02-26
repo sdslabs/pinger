@@ -24,8 +24,8 @@ func getProvider(providerType string) (oauth.Provider, error) {
 	}
 }
 
-func getProvidersFromConf(conf *config.StatusConfig) ([]oauth.Provider, error) {
-	oauthConf := conf.Application.Oauth
+func getProvidersFromConf(conf *config.AppConfig) ([]oauth.Provider, error) {
+	oauthConf := conf.Oauth
 	p := []oauth.Provider{}
 	for key := range oauthConf {
 		provider, err := getProvider(key)
@@ -37,7 +37,7 @@ func getProvidersFromConf(conf *config.StatusConfig) ([]oauth.Provider, error) {
 	return p, nil
 }
 
-func getRouter(conf *config.StatusConfig) (*gin.Engine, error) {
+func getRouter(conf *config.AppConfig) (*gin.Engine, error) {
 	router := gin.Default()
 
 	oauthProviders, err := getProvidersFromConf(conf)
@@ -70,7 +70,7 @@ func getRouter(conf *config.StatusConfig) (*gin.Engine, error) {
 }
 
 // Serve starts the HTTP server on default port "8080".
-func Serve(conf *config.StatusConfig, port int) error {
+func Serve(conf *config.AppConfig) error {
 	if err := database.SetupDB(conf); err != nil {
 		return fmt.Errorf("error setting up postgresql: %s", err.Error())
 	}
@@ -80,6 +80,6 @@ func Serve(conf *config.StatusConfig, port int) error {
 		return err
 	}
 
-	addr := fmt.Sprintf("0.0.0.0:%d", port)
+	addr := fmt.Sprintf("0.0.0.0:%d", conf.Port)
 	return r.Run(addr)
 }

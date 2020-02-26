@@ -86,15 +86,15 @@ func createStandaloneUser() (uint, error) {
 }
 
 // SetupDB sets up the PostgreSQL API.
-func SetupDB(conf *config.StatusConfig) error {
+func SetupDB(conf *config.AppConfig) error {
 	dbConf := &metrics.ProviderConfig{
 		Backend:  metrics.TimeScaleProviderType,
-		Host:     conf.Application.Database.Host,
-		Port:     conf.Application.Database.Port,
-		Username: conf.Application.Database.Username,
-		Password: conf.Application.Database.Password,
-		DBName:   conf.Application.Database.Name,
-		SSLMode:  conf.Application.Database.SSLMode,
+		Host:     conf.Database.Host,
+		Port:     conf.Database.Port,
+		Username: conf.Database.Username,
+		Password: conf.Database.Password,
+		DBName:   conf.Database.Name,
+		SSLMode:  conf.Database.SSLMode,
 	}
 	if err := initFromProvider(dbConf); err != nil {
 		return err

@@ -30,16 +30,16 @@ type Component interface {
 
 // CheckConf Associated with each check.
 type CheckConf struct {
-	Input  *ComponentConfig `yaml:"input"`
-	Output *ComponentConfig `yaml:"output"`
-	Target *ComponentConfig `yaml:"target"`
+	Input  *ComponentConfig `mapstructure:"input" json:"input" yaml:"input" toml:"input"`
+	Output *ComponentConfig `mapstructure:"output" json:"output" yaml:"output" toml:"output"`
+	Target *ComponentConfig `mapstructure:"target" json:"target" yaml:"target" toml:"target"`
 
-	Payloads []*ComponentConfig `yaml:"payloads"`
+	Payloads []*ComponentConfig `mapstructure:"payloads" json:"payloads" yaml:"payloads" toml:"payloads"`
 
-	ID       uint          `yaml:"id"`
-	Name     string        `yaml:"name"`
-	Timeout  time.Duration `yaml:"timeout"`
-	Interval time.Duration `yaml:"interval"`
+	ID       uint          `mapstructure:"id" json:"id" yaml:"id" toml:"id"`
+	Name     string        `mapstructure:"name" json:"name" yaml:"name" toml:"name"`
+	Timeout  time.Duration `mapstructure:"timeout" json:"timeout" yaml:"timeout" toml:"timeout"`
+	Interval time.Duration `mapstructure:"interval" json:"interval" yaml:"interval" toml:"interval"`
 }
 
 // GetLabel returns a slug that is unique for checks deployed with the manager on the agent.
@@ -96,8 +96,8 @@ func (m *CheckConf) GetId() uint32 { //nolint:golint
 // ComponentConfig is the config of the TypeValue component of the check
 // config. It stores a Type Value pair used within CheckConfig
 type ComponentConfig struct {
-	Type  string `yaml:"type"`
-	Value string `yaml:"value"`
+	Type  string `mapstructure:"type" json:"type" yaml:"type" toml:"type"`
+	Value string `mapstructure:"value" json:"value" yaml:"value" toml:"value"`
 }
 
 // GetType returns the type of check component.

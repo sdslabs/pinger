@@ -45,9 +45,19 @@ var (
 	// JWTAuthType is the token type of the authorization header
 	JWTAuthType = "Bearer"
 
-	// AgentPrometheusMetricsPort is the default port for the agent to host
-	// prometheus metrics enpoint on.
-	AgentPrometheusMetricsPort = 9008
+	// AgentMetricsBackend is the default metrics to be used with the agent.
+	AgentMetricsBackend = "timescale"
+
+	// AgentMetricsHost is the default host to run agent metrics on.
+	AgentMetricsHost = "127.0.0.1"
+
+	// AgentMetricsPort is the default port for the agent to host prometheus metrics enpoint on.
+	// This corresponds to the default metrics, i.e., timescale db (postgres).
+	AgentMetricsPort = 5432
+
+	// AgentMetricsInterval is the default interval after which metrics will be pushed into the db.
+	// In case of prometheus this is the interval after which memory is cleaned up.
+	AgentMetricsInterval = 2 * time.Minute
 
 	// AgentPort is the default value of port to run the status agent on
 	AgentPort = 9009
@@ -58,6 +68,12 @@ var (
 	// AppAPIPort is the default application api server port.
 	AppAPIPort = 8080
 
+	// AppAPIDBHost is the default host for app db.
+	AppAPIDBHost = "127.0.0.1"
+
+	// AppAPIDBPort is the default port for app db.
+	AppAPIDBPort = 5432
+
 	// ControllerType is the default type of the controller, other types can be
 	// specified based on the type of checks/probes that the controller executes
 	ControllerType = "default"
@@ -66,8 +82,8 @@ var (
 	// as a failed controller execution
 	InvalidDuration = time.Second * 360
 
-	// StatusConfigPath is the default path of the config file for the status page.
-	StatusConfigPath = filepath.Join(os.Getenv("HOME"), "/.status.yml")
+	// AppConfigPath is the default path of the config file for the app api server.
+	AppConfigPath = filepath.Join(os.Getenv("HOME"), "/.status-app.yml")
 
 	// AgentConfigPath is the default path of the config file for the status page
 	// agent. This is mostly used in case when we run the agent in a standalone mode.
