@@ -34,7 +34,8 @@ func RunStandaloneAgent(conf *config.AgentConfig) {
 			Standalone:     true,
 			Checks:         conf.Checks,
 		})
-	case metrics.EmptyProviderType:
+	case metrics.LogProviderType:
+		metrics.SetupLogMetrics(&conf.Metrics, ControllerManager)
 	default:
 		log.Fatalf("Invalid metrics provider '%v'", conf.Metrics.Backend)
 		return

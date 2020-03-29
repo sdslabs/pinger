@@ -104,39 +104,14 @@ func (e *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-type metricsCleanStats struct {
-	duration  time.Duration
-	startTime time.Time
-	success   bool
-	timeout   bool
-}
-
-func (m *metricsCleanStats) GetDuration() time.Duration {
-	return m.duration
-}
-
-func (m *metricsCleanStats) GetStartTime() time.Time {
-	return m.startTime
-}
-
-func (m *metricsCleanStats) IsSuccessful() bool {
-	return m.success
-}
-
-func (m *metricsCleanStats) IsTimeout() bool {
-	return m.timeout
-}
-
-type controllerFunc = func(context.Context) (controller.FunctionResult, error)
-
-func getControllerDoFunc(manager *controller.Manager) controllerFunc {
+func getPrometheusControllerDoFunc(manager *controller.Manager) controllerFunc {
 	return func(context.Context) (controller.FunctionResult, error) {
 		manager.CleanStats()
-		return &metricsCleanStats{
-			duration:  0,
-			startTime: time.Now(),
-			timeout:   false,
-			success:   true,
+		return &MetricsFunctionResult{
+			Duration:  0,
+			StartTime: time.Now(),
+			Timeout:   false,
+			Success:   true,
 		}, nil
 	}
 }
@@ -162,7 +137,7 @@ func runPrometheusMetricsServer(port int, interval time.Duration, manager *contr
 
 	// Clean stats regularly from prometheus to avoid over-flow of memory usage.
 	prometheusManager := controller.NewManager()
-	doFunc, err := controller.NewControllerFunction(getControllerDoFunc(prometheusManager))
+	doFunc, err := controller.NewControllerFunction(getPrometheusControllerDoFunc(prometheusManager))
 	if err != nil {
 		log.Errorf("Error while starting prometheus exporter: %s", err.Error())
 		return

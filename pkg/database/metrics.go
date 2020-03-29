@@ -12,29 +12,6 @@ import (
 	"github.com/sdslabs/status/pkg/metrics"
 )
 
-type metricsPushResult struct {
-	duration  time.Duration
-	startTime time.Time
-	success   bool
-	timeout   bool
-}
-
-func (m *metricsPushResult) GetDuration() time.Duration {
-	return m.duration
-}
-
-func (m *metricsPushResult) GetStartTime() time.Time {
-	return m.startTime
-}
-
-func (m *metricsPushResult) IsSuccessful() bool {
-	return m.success
-}
-
-func (m *metricsPushResult) IsTimeout() bool {
-	return m.timeout
-}
-
 type controllerFunc = func(context.Context) (controller.FunctionResult, error)
 
 func getControllerDoFunc(ex *metrics.TimescaleExporter) controllerFunc {
@@ -63,11 +40,11 @@ func getControllerDoFunc(ex *metrics.TimescaleExporter) controllerFunc {
 		if err := CreateMetrics(metricsToInsert); err != nil {
 			return nil, err
 		}
-		return &metricsPushResult{
-			duration:  time.Since(start),
-			startTime: start,
-			success:   true,
-			timeout:   false,
+		return &metrics.MetricsFunctionResult{
+			Duration:  time.Since(start),
+			StartTime: start,
+			Success:   true,
+			Timeout:   false,
 		}, nil
 	}
 }

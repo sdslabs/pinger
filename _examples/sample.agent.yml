@@ -14,10 +14,12 @@ metrics:
   # Can be one of:
   # - prometheus
   # - timescale
-  # - none
+  # - log
   backend: "timescale"
   host: "127.0.0.1"
   port: 5432
+  # If backend is "log" set the db_name equal to "text" or "json".
+  # By default all logs are in text format.
   db_name: "status-dev"
   username: "vrongmeal"
   password: "password"
