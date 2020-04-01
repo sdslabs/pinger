@@ -115,9 +115,9 @@ func NewWSChecker(agentCheck config.Check) (*WSChecker, error) {
 		}
 	}
 
-	timeout := time.Duration(agentCheck.GetTimeout()) * time.Second
+	timeout := time.Duration(agentCheck.GetTimeout())
 	if timeout <= 0 {
-		timeout = defaults.DefaultWSProbeTimeout
+		timeout = defaults.WSProbeTimeout
 	}
 
 	return &WSChecker{

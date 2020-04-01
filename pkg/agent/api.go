@@ -12,7 +12,6 @@ import (
 	"github.com/sdslabs/status/pkg/check"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/controller"
-	"github.com/sdslabs/status/pkg/metrics"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -25,7 +24,6 @@ const (
 type agentServer struct{}
 
 func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*proto.PushStatus, error) {
-	log.Debug("Received the push for a new check.")
 	cfg := config.GetCheckFromCheckProto(agentCheck)
 	checker, err := check.NewChecker(cfg)
 	if err != nil {
@@ -48,7 +46,7 @@ func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*p
 
 	executor := controller.Internal{
 		DoFunc:      cFunc,
-		RunInterval: time.Second * time.Duration(agentCheck.Interval),
+		RunInterval: time.Duration(agentCheck.Interval),
 	}
 	err = ControllerManager.UpdateController(agentCheck.Name, checker.Type(), executor)
 	if err != nil {
@@ -62,8 +60,6 @@ func (a agentServer) PushCheck(ctx context.Context, agentCheck *proto.Check) (*p
 }
 
 func (a agentServer) GetManagerStats(context.Context, *proto.None) (*proto.ManagerStats, error) {
-	log.Debug("Inside get controller manager stats function")
-
 	stats := ControllerManager.GetStats()
 
 	mStats := []*proto.ManagerStats_ControllerStatus{}
@@ -89,8 +85,6 @@ func (a agentServer) GetManagerStats(context.Context, *proto.None) (*proto.Manag
 }
 
 func (a agentServer) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMeta) (*proto.RemoveStatus, error) {
-	log.Debugf("Removing check from check controller manager: %s", agentCheck.Name)
-
 	err := ControllerManager.RemoveControllerAndWait(agentCheck.Name)
 	if err != nil {
 		return &proto.RemoveStatus{
@@ -103,8 +97,6 @@ func (a agentServer) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMet
 }
 
 func (a agentServer) ListChecks(context.Context, *proto.None) (*proto.ChecksList, error) {
-	log.Debugf("Listing checks managed by agent's default registered manager")
-
 	ctrls := ControllerManager.GetAllControllers()
 	checksList := []*proto.CheckMeta{}
 
@@ -118,7 +110,7 @@ func (a agentServer) ListChecks(context.Context, *proto.None) (*proto.ChecksList
 // RunGRPCServer starts a GRPC server at the specified port.
 // This also initializes the controller manager instance, which is used further
 // to interact with the controllers.
-func RunGRPCServer(port int, conf *metrics.ProviderConfig) {
+func RunGRPCServer(port int) {
 	listner, err := net.Listen("tcp", fmt.Sprintf("%s:%d", AgentGRPCHost, port))
 	if err != nil {
 		log.Errorf("Error while starting listner : %s", err)
@@ -131,19 +123,6 @@ func RunGRPCServer(port int, conf *metrics.ProviderConfig) {
 	proto.RegisterAgentServiceServer(grpcServer, server)
 
 	ControllerManager = controller.NewManager()
-
-	switch conf.PType {
-	case metrics.PrometheusProviderType:
-		metrics.SetupPrometheusMetrics(conf, ControllerManager)
-	case metrics.TimeScaleProviderType:
-	case metrics.EmptyProviderType:
-	default:
-	}
-
-	if err != nil {
-		log.Error("Error while creating controller manager:", err)
-		return
-	}
 
 	log.Infof("Starting new server at port : %d", port)
 

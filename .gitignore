@@ -2,4 +2,7 @@ test/
 *.test
 tmp/
 database.sqlite
-config.yml
+app.yml
+central.yml
+agent.yml
+data/

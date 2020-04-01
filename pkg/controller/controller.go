@@ -42,6 +42,7 @@ type FunctionResult interface {
 	GetStartTime() time.Time
 
 	IsSuccessful() bool
+	IsTimeout() bool
 }
 
 // Validate validates the controller function parameters.
@@ -199,6 +200,14 @@ type Internal struct {
 	NoErrorRetry bool
 }
 
+// ExecStat represents the statistics for each function result corresponding to a start-time.
+type ExecStat struct {
+	startTime time.Time
+	duration  time.Duration
+	timeout   bool
+	success   bool
+}
+
 // Controller is the actual underlying controller. Each controller is created for a specific task
 // which is specified in `controller.internal`
 type Controller struct {
@@ -227,7 +236,8 @@ type Controller struct {
 	ctxDoFunc    context.Context
 	cancelDoFunc context.CancelFunc
 
-	executionStatistics map[time.Time]time.Duration
+	latestStat          *ExecStat
+	executionStatistics map[time.Time]*ExecStat
 
 	// terminated is closed after the controller has been terminated
 	terminated chan struct{}
@@ -241,7 +251,7 @@ func (c *Controller) Name() string {
 // Type returns the controller type.
 func (c *Controller) Type() string {
 	if c.cType == "" {
-		return defaults.DefaultControllerType
+		return defaults.ControllerType
 	}
 
 	return c.cType
@@ -254,10 +264,12 @@ type ExecutionStat struct {
 
 	StartTime time.Time
 	Duration  time.Duration
+	Timeout   bool
+	Success   bool
 }
 
 // ExtractExecutionStatistics returns the statistics from a controller.
-func (c *Controller) ExtractExecutionStatistics() map[time.Time]time.Duration {
+func (c *Controller) ExtractExecutionStatistics() map[time.Time]*ExecStat {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -265,8 +277,22 @@ func (c *Controller) ExtractExecutionStatistics() map[time.Time]time.Duration {
 	stats := c.executionStatistics
 
 	// clear out the controller statistics
-	c.executionStatistics = make(map[time.Time]time.Duration)
+	c.executionStatistics = make(map[time.Time]*ExecStat)
 	return stats
+}
+
+func (c *Controller) cleanStats() {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if len(c.executionStatistics) < 2 {
+		// If the executionStatistics has only one element (or zero),
+		// we don't have to clean it.
+		return
+	}
+
+	// Clear execution statistics and keep the latest stats only.
+	c.executionStatistics = map[time.Time]*ExecStat{c.latestStat.startTime: c.latestStat}
 }
 
 // RunController starts running the controller.
@@ -296,15 +322,14 @@ func (c *Controller) RunController() {
 			c.mutex.Lock()
 
 			c.lastDuration = duration
-			c.getLogger().Debug("Controller func execution time: ", c.lastDuration)
 			if res != nil {
-				c.getLogger().Debug("Controller reported runtime: ", res.GetDuration())
-				duration := defaults.DefaultInvalidDuration
-				if res.IsSuccessful() {
-					duration = res.GetDuration()
+				c.latestStat = &ExecStat{
+					duration:  res.GetDuration(),
+					success:   res.IsSuccessful(),
+					timeout:   res.IsTimeout(),
+					startTime: res.GetStartTime(),
 				}
-
-				c.executionStatistics[res.GetStartTime()] = duration
+				c.executionStatistics[res.GetStartTime()] = c.latestStat
 			} else {
 				c.getLogger().Warnf("Invalid check execution function for the controller: %s", c.name)
 			}
@@ -335,7 +360,6 @@ func (c *Controller) RunController() {
 					// Don't exit the goroutine, since that only happens when the
 					// controller is explicitly stopped. Instead, just wait for
 					// the next update.
-					c.getLogger().Debug("Controller run succeeded; waiting for next controller update or stop")
 					runFunc = false
 					interval = defaults.ControllerRetryInterval
 				}
@@ -370,8 +394,6 @@ func (c *Controller) RunController() {
 	}
 
 shutdown:
-	c.getLogger().Debug("Shutting down controller")
-
 	if _, err := internal.StopFunc.Run(context.TODO()); err != nil {
 		c.mutex.Lock()
 		c.recordError(err)

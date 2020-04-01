@@ -1,25 +1,50 @@
 package main
 
 import (
-	"os"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/sdslabs/status/pkg/agent"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/defaults"
-	"github.com/sdslabs/status/pkg/metrics"
+)
 
-	log "github.com/sirupsen/logrus"
+const (
+	keyAgentConfigPort  = "port"
+	flagAgentConfigPort = "port"
 
-	"github.com/spf13/cobra"
+	keyAgentConfigStandalone  = "standalone"
+	flagAgentConfigStandalone = "standalone"
+
+	keyAgentConfigMetricsBackend  = "metrics.backend"
+	flagAgentConfigMetricsBackend = "metrics-backend"
+
+	keyAgentConfigMetricsHost  = "metrics.host"
+	flagAgentConfigMetricsHost = "metrics-host"
+
+	keyAgentConfigMetricsPort  = "metrics.port"
+	flagAgentConfigMetricsPort = "metrics-port"
+
+	keyAgentConfigMetricsUsername  = "metrics.username"
+	flagAgentConfigMetricsUsername = "metrics-username"
+
+	keyAgentConfigMetricsPassword  = "metrics.password"
+	flagAgentConfigMetricsPassword = "metrics-password"
+
+	keyAgentConfigMetricsDBName  = "metrics.db_name"
+	flagAgentConfigMetricsDBName = "metrics-db-name"
+
+	keyAgentConfigMetricsSSLMode  = "metrics.ssl_mode"
+	flagAgentConfigMetricsSSLMode = "metrics-ssl-mode"
+
+	keyAgentConfigMetricsInterval  = "metrics.interval"
+	flagAgentConfigMetricsInterval = "metrics-interval"
 )
 
 var (
-	prometheusMetricsPort int
-	shouldRunPrometheus   bool
-	agentRunPort          int
-	timescaleMetricsHost  string
-	standaloneMode        bool
-	agentConfigPath       string
+	agentConfigPath string
+	agentConf       config.AgentConfig
 )
 
 var agentCmd = &cobra.Command{
@@ -29,108 +54,75 @@ var agentCmd = &cobra.Command{
 		"this agent will expose a GRPC api to accept checks to perform and execute that. " +
 		"The agent also has the ability to run in a standalone mode where it does not run any GRPC server.",
 
-	Run: func(cmd *cobra.Command, args []string) {
-		log.Info("Trying to run agent for the status page.")
-		var cfg *config.AgentConfig
-		var err error
-		if standaloneMode {
-			log.Info("Running status page agent in standalone mode.")
-			if agentConfigPath == "" {
-				agentConfigPath = defaults.DefaultStatusPageConfigPath
-			}
-			cfg, err = config.NewAgentConfig(agentConfigPath)
-			if err != nil {
-				log.Errorf("Error while parsing status page config file: %s", err)
-				os.Exit(1)
-			}
+	PreRun: func(*cobra.Command, []string) {
+		initConfig(agentConfigPath, defaults.AgentConfigPath, &agentConf)
+	},
 
-			if agentRunPort == defaults.DefaultAgentPort {
-				agentRunPort = cfg.Port
-			}
-
-			if !shouldRunPrometheus && cfg.PrometheusMetrics {
-				shouldRunPrometheus = true
-			}
-
-			if cfg.PrometheusMetricsPort != 0 {
-				prometheusMetricsPort = cfg.PrometheusMetricsPort
-			}
-
-		}
-
-		if shouldRunPrometheus && prometheusMetricsPort == 0 {
-			prometheusMetricsPort = defaults.DefaultAgentPrometheusMetricsPort
-		}
-
-		if standaloneMode {
-			agent.RunStandaloneAgent(cfg, getMetricsProviderConfig())
+	Run: func(*cobra.Command, []string) {
+		if agentConf.Standalone {
+			runStandalone()
 		} else {
-			if prometheusMetricsPort == agentRunPort {
-				log.Error("Cannot run prometheus metrics and status agent on the same port.")
-				os.Exit(1)
-			}
-
-			agent.RunGRPCServer(agentRunPort, getMetricsProviderConfig())
+			runDefault()
 		}
 	},
 }
 
-func getMetricsProviderConfig() *metrics.ProviderConfig {
-	if prometheusMetricsPort > 0 && timescaleMetricsHost != "" {
-		log.Error("Status page agent does not yet support both prometheus and timescale metrics simultaneously, specify only one")
-		os.Exit(1)
-	}
+func runDefault() {
+	log.Infof("Trying to run agent on :%d", agentConf.Port)
 
-	var metricsConfig *metrics.ProviderConfig
+	agent.RunGRPCServer(agentConf.Port)
+}
 
-	if prometheusMetricsPort > 0 {
-		metricsConfig = &metrics.ProviderConfig{
-			PType: metrics.PrometheusProviderType,
+func runStandalone() {
+	log.Infof("Trying to run agent in standalone mode with %s metrics", agentConf.Metrics.Backend)
 
-			Host: "0.0.0.0",
-			Port: prometheusMetricsPort,
-		}
-	} else if timescaleMetricsHost != "" {
-		metricsConfig = &metrics.ProviderConfig{
-			PType: metrics.TimeScaleProviderType,
-
-			Host: timescaleMetricsHost,
-		}
-	} else {
-		metricsConfig = &metrics.ProviderConfig{
-			PType: metrics.EmptyProviderType,
-		}
-	}
-
-	return metricsConfig
+	agent.RunStandaloneAgent(&agentConf)
 }
 
 func init() {
-	agentCmd.PersistentFlags().IntVarP(&prometheusMetricsPort, "metrics-port", "m", 0, "Port to host prometheus metrics on.")
-	agentCmd.PersistentFlags().BoolVarP(&shouldRunPrometheus, "prometheus", "v", false, "Should we expose metrics using prometheus.")
-	agentCmd.PersistentFlags().IntVarP(&agentRunPort, "port", "p", defaults.DefaultAgentPort, "Port to run the agent on grpc server on.")
+	agentCmd.Flags().StringVarP(&agentConfigPath, "config", "c", defaults.AgentConfigPath, "Config file path for agent")
 
-	agentCmd.PersistentFlags().StringVarP(
-		&timescaleMetricsHost,
-		"ts-metrics",
-		"t",
-		"",
-		"Run the agent with push timescale metrics, provide timescale host information int this string.")
+	agentCmd.Flags().IntP(flagAgentConfigPort, "p", defaults.AgentPort, "Port to expose agent API on")
+	agentCmd.Flags().BoolP(flagAgentConfigStandalone, "s", false, "Should agent run in standalone mode")
 
-	agentCmd.PersistentFlags().BoolVarP(
-		&standaloneMode,
-		"standalone",
-		"s",
-		false,
-		"Run agent in the standalone mode, "+
-			"this does not expose any grpc server to collect the work, "+
-			"it takes that data from a config file mentioned in another argument.")
+	agentCmd.Flags().String(flagAgentConfigMetricsBackend, defaults.AgentMetricsBackend, "Backend service to store metrics")
+	agentCmd.Flags().String(flagAgentConfigMetricsHost, defaults.AgentMetricsHost, "Host to run metrics server")
+	agentCmd.Flags().Int(flagAgentConfigMetricsPort, defaults.AgentMetricsPort, "Port to run metrics server on")
+	agentCmd.Flags().String(flagAgentConfigMetricsUsername, "", "Username credential for metrics")
+	agentCmd.Flags().String(flagAgentConfigMetricsPassword, "", "Password credential for metrics")
+	agentCmd.Flags().String(flagAgentConfigMetricsDBName, "", "Database name for metrics")
+	agentCmd.Flags().Bool(flagAgentConfigMetricsSSLMode, true, "Whether to run metrics with SSL")
+	agentCmd.Flags().Duration(flagAgentConfigMetricsInterval, defaults.AgentMetricsInterval, "Interval after which metrics are pushed/pulled")
 
-	agentCmd.PersistentFlags().StringVarP(
-		&agentConfigPath,
-		"config",
-		"c",
-		defaults.DefaultStatusPageConfigPath,
-		"Path to where find the config for the agent in standalone mode, "+
-			"this file contains all information including the hosts to ping using which checks")
+	if err := viper.BindPFlag(keyAgentConfigPort, agentCmd.Flags().Lookup(flagAgentConfigPort)); err != nil {
+		viperErr(err)
+	}
+	if err := viper.BindPFlag(keyAgentConfigStandalone, agentCmd.Flags().Lookup(flagAgentConfigStandalone)); err != nil {
+		viperErr(err)
+	}
+
+	if err := viper.BindPFlag(keyAgentConfigMetricsBackend, agentCmd.Flags().Lookup(flagAgentConfigMetricsBackend)); err != nil {
+		viperErr(err)
+	}
+	if err := viper.BindPFlag(keyAgentConfigMetricsHost, agentCmd.Flags().Lookup(flagAgentConfigMetricsHost)); err != nil {
+		viperErr(err)
+	}
+	if err := viper.BindPFlag(keyAgentConfigMetricsPort, agentCmd.Flags().Lookup(flagAgentConfigMetricsPort)); err != nil {
+		viperErr(err)
+	}
+	if err := viper.BindPFlag(keyAgentConfigMetricsDBName, agentCmd.Flags().Lookup(flagAgentConfigMetricsDBName)); err != nil {
+		viperErr(err)
+	}
+	if err := viper.BindPFlag(keyAgentConfigMetricsUsername, agentCmd.Flags().Lookup(flagAgentConfigMetricsPassword)); err != nil {
+		viperErr(err)
+	}
+	if err := viper.BindPFlag(keyAgentConfigMetricsPassword, agentCmd.Flags().Lookup(flagAgentConfigMetricsPassword)); err != nil {
+		viperErr(err)
+	}
+	if err := viper.BindPFlag(keyAgentConfigMetricsSSLMode, agentCmd.Flags().Lookup(flagAgentConfigMetricsSSLMode)); err != nil {
+		viperErr(err)
+	}
+	if err := viper.BindPFlag(keyAgentConfigMetricsInterval, agentCmd.Flags().Lookup(flagAgentConfigMetricsInterval)); err != nil {
+		viperErr(err)
+	}
 }

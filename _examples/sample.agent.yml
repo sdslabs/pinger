@@ -1,0 +1,58 @@
+# Agent configuration file.
+
+# Standalone mode is used when checks are scheduled without running the
+# complete application (with the application API).
+standalone: true
+
+# Port to run agent on. This port is used when agent is run along-with
+# the API server.
+port: 9019
+
+# Metrics backend configuration.
+metrics:
+  # Which metrics backend to be used.
+  # Can be one of:
+  # - prometheus
+  # - timescale
+  # - log
+  backend: "timescale"
+  host: "127.0.0.1"
+  port: 5432
+  # If backend is "log" set the db_name equal to "text" or "json".
+  # By default all logs are in text format.
+  db_name: "status-dev"
+  username: "vrongmeal"
+  password: "password"
+  ssl_mode: true
+  # Interval after which metrics are pushed/pulled by the provider.
+  # In case of prometheus, this is the interval after which the stats
+  # are cleared from memory.
+  interval: '2m' # 2 minutes
+
+# Checks to be deployed on the agent.
+checks:
+  - input:
+      type: "HTTP"
+      value: "GET"
+    output:
+      type: "status_code"
+      value: "200"
+    target:
+      type: "url"
+      value: "https://google.com"
+    name: "Google test"
+    interval: '5s' # 5 seconds
+    timeout: '10s' # 10 seconds
+
+  - input:
+      type: "ICMP"
+      value: ""
+    output:
+      type: "timeout"
+      value: "false"
+    target:
+      type: "address"
+      value: "sdslabs.co"
+    name: "SDSLabs portfolio"
+    interval: '2s' # 2 seconds
+    timeout: '10s' # 10 seconds

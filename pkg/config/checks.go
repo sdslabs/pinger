@@ -1,6 +1,9 @@
 package config
 
 import (
+	"strings"
+	"time"
+
 	"github.com/sdslabs/status/pkg/agent/proto"
 )
 
@@ -16,6 +19,7 @@ type Check interface {
 	GetTimeout() int64
 
 	GetName() string
+	GetId() uint32 //nolint:golint
 }
 
 // Component is the Type Value component for check components like Input, Output, Target etc.
@@ -24,36 +28,43 @@ type Component interface {
 	GetValue() string
 }
 
-// Config Associated with each check.
-type Config struct {
-	Input  *ComponentConfig `yaml:"input"`
-	Output *ComponentConfig `yaml:"output"`
-	Target *ComponentConfig `yaml:"target"`
+// CheckConf Associated with each check.
+type CheckConf struct {
+	Input  *ComponentConfig `mapstructure:"input" json:"input" yaml:"input" toml:"input"`
+	Output *ComponentConfig `mapstructure:"output" json:"output" yaml:"output" toml:"output"`
+	Target *ComponentConfig `mapstructure:"target" json:"target" yaml:"target" toml:"target"`
 
-	Payloads []*ComponentConfig `yaml:"payloads"`
+	Payloads []*ComponentConfig `mapstructure:"payloads" json:"payloads" yaml:"payloads" toml:"payloads"`
 
-	Name     string `yaml:"name"`
-	Timeout  int64  `yaml:"timeout"`
-	Interval int64  `yaml:"interval"`
+	ID       uint          `mapstructure:"id" json:"id" yaml:"id" toml:"id"`
+	Name     string        `mapstructure:"name" json:"name" yaml:"name" toml:"name"`
+	Timeout  time.Duration `mapstructure:"timeout" json:"timeout" yaml:"timeout" toml:"timeout"`
+	Interval time.Duration `mapstructure:"interval" json:"interval" yaml:"interval" toml:"interval"`
+}
+
+// GetLabel returns a slug that is unique for checks deployed with the manager on the agent.
+func (m *CheckConf) GetLabel() string {
+	name := strings.ToLower(m.Name)
+	return strings.ReplaceAll(name, " ", "-")
 }
 
 // GetInput returns the input of the check.
-func (m *Config) GetInput() Component {
+func (m *CheckConf) GetInput() Component {
 	return m.Input
 }
 
 // GetTarget returns the target of the check.
-func (m *Config) GetTarget() Component {
+func (m *CheckConf) GetTarget() Component {
 	return m.Target
 }
 
 // GetOutput returns the output of the check.
-func (m *Config) GetOutput() Component {
+func (m *CheckConf) GetOutput() Component {
 	return m.Output
 }
 
 // GetPayloads returns the payloads of the check.
-func (m *Config) GetPayloads() []Component {
+func (m *CheckConf) GetPayloads() []Component {
 	payloads := make([]Component, len(m.Payloads))
 	for i, payload := range m.Payloads {
 		payloads[i] = payload
@@ -63,25 +74,30 @@ func (m *Config) GetPayloads() []Component {
 }
 
 // GetInterval returns the time interval between indivudal checks with this config.
-func (m *Config) GetInterval() int64 {
-	return m.Interval
+func (m *CheckConf) GetInterval() int64 {
+	return int64(m.Interval)
 }
 
 // GetTimeout returns the timeout interval of the check.
-func (m *Config) GetTimeout() int64 {
-	return m.Timeout
+func (m *CheckConf) GetTimeout() int64 {
+	return int64(m.Timeout)
 }
 
 // GetName returns the name of the check.
-func (m *Config) GetName() string {
+func (m *CheckConf) GetName() string {
 	return m.Name
+}
+
+// GetId returns the ID of the check.
+func (m *CheckConf) GetId() uint32 { //nolint:golint
+	return uint32(m.ID)
 }
 
 // ComponentConfig is the config of the TypeValue component of the check
 // config. It stores a Type Value pair used within CheckConfig
 type ComponentConfig struct {
-	Type  string `yaml:"type"`
-	Value string `yaml:"value"`
+	Type  string `mapstructure:"type" json:"type" yaml:"type" toml:"type"`
+	Value string `mapstructure:"value" json:"value" yaml:"value" toml:"value"`
 }
 
 // GetType returns the type of check component.
@@ -126,14 +142,14 @@ func GetCheckFromCheckProto(agentCheck *proto.Check) Check {
 		}
 	}
 
-	return &Config{
+	return &CheckConf{
 		Input:  input,
 		Output: output,
 		Target: target,
 
 		Payloads: payloads,
 		Name:     agentCheck.GetName(),
-		Interval: agentCheck.GetInterval(),
-		Timeout:  agentCheck.GetTimeout(),
+		Interval: time.Duration(agentCheck.GetInterval()),
+		Timeout:  time.Duration(agentCheck.GetTimeout()),
 	}
 }

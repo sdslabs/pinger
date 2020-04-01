@@ -63,9 +63,9 @@ type TVComponent struct {
 // Stats is the struct with concerned statistics collected by a check.
 type Stats struct {
 	Successful bool
-
-	StartTime time.Time
-	Duration  time.Duration
+	Timeout    bool
+	StartTime  time.Time
+	Duration   time.Duration
 }
 
 // GetDuration returns the duration taken by check to execute.
@@ -82,4 +82,9 @@ func (cd Stats) GetStartTime() time.Time {
 // or false when the check failed to produce the required output.
 func (cd Stats) IsSuccessful() bool {
 	return cd.Successful
+}
+
+// IsTimeout returns true when the check failed due to timeout or not.
+func (cd Stats) IsTimeout() bool {
+	return cd.Timeout
 }

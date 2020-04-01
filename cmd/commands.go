@@ -6,8 +6,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "sp",
-	Short: "Status page is an open source implementation of ping based status page.",
+	Use:   "status",
+	Short: "Status is an open source implementation of ping based status page.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := cmd.Help(); err != nil {
 			log.Fatalf("Error displaying help: %s", err.Error())

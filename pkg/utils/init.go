@@ -1,10 +1,2 @@
-// Package utils contains various utilities that are required across the code.
+// Package utils contains various utility functions that can be used across the codebase.
 package utils
-
-func init() {
-	var err error
-	StatusConf, err = GetConfig()
-	if err != nil {
-		panic(err)
-	}
-}

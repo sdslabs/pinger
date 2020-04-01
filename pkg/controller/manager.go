@@ -57,8 +57,6 @@ func (m *Manager) UpdateController(name, cType string, internal Internal) error 
 }
 
 func (m *Manager) updateController(name, cType string, internal Internal) (*Controller, error) {
-	start := time.Now()
-
 	if internal.StopFunc == nil {
 		internal.StopFunc, _ = NewControllerFunction(NoopFunc) //nolint:errcheck
 	}
@@ -73,12 +71,9 @@ func (m *Manager) updateController(name, cType string, internal Internal) (*Cont
 	if exists {
 		m.mutex.Unlock()
 
-		ctrl.getLogger().Debug("Updating existing controller")
 		ctrl.mutex.Lock()
 		ctrl.updateController(internal, true)
 		ctrl.mutex.Unlock()
-
-		ctrl.getLogger().Debug("Controller update time: ", time.Since(start))
 	} else {
 		ctrl = &Controller{
 			name:  name,
@@ -88,10 +83,9 @@ func (m *Manager) updateController(name, cType string, internal Internal) (*Cont
 			update:     make(chan struct{}, 1),
 			terminated: make(chan struct{}),
 
-			executionStatistics: make(map[time.Time]time.Duration),
+			executionStatistics: make(map[time.Time]*ExecStat),
 		}
 		ctrl.updateController(internal, false)
-		ctrl.getLogger().Debug("Starting new controller")
 
 		ctrl.ctxDoFunc, ctrl.cancelDoFunc = context.WithCancel(context.Background())
 		m.controllers[ctrl.name] = ctrl
@@ -106,8 +100,6 @@ func (m *Manager) updateController(name, cType string, internal Internal) (*Cont
 func (m *Manager) removeController(ctrl *Controller) {
 	ctrl.stopController()
 	delete(m.controllers, ctrl.name)
-
-	ctrl.getLogger().Debug("Removed controller")
 }
 
 func (m *Manager) lookup(name string) *Controller {
@@ -220,17 +212,44 @@ func (m *Manager) PullLatestControllerStatistics() []ExecutionStat {
 	for _, controller := range m.controllers {
 		statMap := controller.ExtractExecutionStatistics()
 
-		for t, duration := range statMap {
+		for t, s := range statMap {
 			stat = append(stat, ExecutionStat{
 				Name: controller.Name(),
 				Type: controller.Type(),
 
 				StartTime: t,
-				Duration:  duration,
+				Duration:  s.duration,
+
+				Success: s.success,
+				Timeout: s.timeout,
 			})
-			break
 		}
 	}
 
+	return stat
+}
+
+// CleanStats clears up the statistics from memory and keeps just the latest statistic.
+func (m *Manager) CleanStats() {
+	for _, controller := range m.controllers {
+		controller.cleanStats()
+	}
+}
+
+// PullOnlyLatestControllerStatistics gets only the latest stats of each controller.
+func (m *Manager) PullOnlyLatestControllerStatistics() []ExecutionStat {
+	stat := []ExecutionStat{}
+	for _, controller := range m.controllers {
+		stat = append(stat, ExecutionStat{
+			Name: controller.Name(),
+			Type: controller.Type(),
+
+			StartTime: controller.latestStat.startTime,
+			Duration:  controller.latestStat.duration,
+
+			Success: controller.latestStat.success,
+			Timeout: controller.latestStat.timeout,
+		})
+	}
 	return stat
 }

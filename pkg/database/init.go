@@ -9,49 +9,98 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // PostgreSQL
 
-	"github.com/sdslabs/status/pkg/utils"
+	"github.com/sdslabs/status/pkg/config"
+	"github.com/sdslabs/status/pkg/defaults"
+	"github.com/sdslabs/status/pkg/metrics"
 )
 
-var (
-	dbConf = utils.StatusConf.Database
-	// DBConn for sending API Queries
-	DBConn SQLDB
-)
+var db *gorm.DB
 
-// GetSQLDB returns a connection to the sqlite database
-func GetSQLDB() (SQLDB, error) {
+func initFromProvider(conf *metrics.ProviderConfig) error {
+	var err error
+
 	connectStr := fmt.Sprintf(
 		"host=%s port=%d user=%s dbname=%s password=%s",
-		dbConf.Host,
-		dbConf.Port,
-		dbConf.Username,
-		dbConf.Name,
-		dbConf.Password)
-	if !dbConf.SSLMode {
+		conf.Host,
+		conf.Port,
+		conf.Username,
+		conf.DBName,
+		conf.Password)
+	if !conf.SSLMode {
 		connectStr = fmt.Sprintf("%s sslmode=disable", connectStr)
 	}
-	db, err := gorm.Open("postgres", connectStr)
+
+	db, err = gorm.Open("postgres", connectStr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	db.AutoMigrate(
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;").Error; err != nil {
+		return err
+	}
+
+	if err := db.AutoMigrate(
 		&User{},
 		&Check{},
 		&Payload{},
 		&Page{},
-		&Incident{})
+		&Incident{},
+		&Metric{}).Error; err != nil {
+		return err
+	}
 
-	db.Model(&Payload{}).AddForeignKey("check_id", "checks(id)", "CASCADE", "CASCADE")
-	db.Model(&Incident{}).AddForeignKey("page_id", "pages(id)", "CASCADE", "CASCADE")
+	if err := db.Model(&Payload{}).AddForeignKey(
+		"check_id", "checks(id)", "CASCADE", "CASCADE").Error; err != nil {
+		return err
+	}
 
-	return &sqldb{DB: db}, nil
+	if err := db.Model(&Incident{}).AddForeignKey(
+		"page_id", "pages(id)", "CASCADE", "CASCADE").Error; err != nil {
+		return err
+	}
+
+	if err := db.Exec("CREATE INDEX ON metrics (check_id, start_time DESC);").Error; err != nil {
+		return err
+	}
+
+	if err := db.Exec(
+		"SELECT create_hypertable('metrics', 'start_time', if_not_exists => TRUE, create_default_indexes => FALSE);").Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func init() {
-	var err error
-	DBConn, err = GetSQLDB()
+func createStandaloneUser() (uint, error) {
+	// This creates a user corresponding to which all the standalone metrics will be saved.
+	// This user need not be a valid email address. Later on the metrics can be exported
+	// corresponding to the checks this user creates.
+	u, err := CreateUser(&User{
+		Email: defaults.StandaloneUserEmail,
+		Name:  defaults.StandaloneUserName,
+	})
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
+	return u.ID, nil
+}
+
+// SetupDB sets up the PostgreSQL API.
+func SetupDB(conf *config.AppConfig) error {
+	dbConf := &metrics.ProviderConfig{
+		Backend:  metrics.TimeScaleProviderType,
+		Host:     conf.Database.Host,
+		Port:     conf.Database.Port,
+		Username: conf.Database.Username,
+		Password: conf.Database.Password,
+		DBName:   conf.Database.Name,
+		SSLMode:  conf.Database.SSLMode,
+	}
+	if err := initFromProvider(dbConf); err != nil {
+		return err
+	}
+	if _, err := createStandaloneUser(); err != nil {
+		return err
+	}
+	return nil
 }

@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package proto;
 
+// Generate file by the following command
+//     protoc --proto_path=pkg --go_out=plugins=grpc:pkg pkg/agent/proto/agent.proto
+
 // Metadata for a Check.
 message Check {
     // Each component of a check has two things associated with it.
@@ -17,16 +20,15 @@ message Check {
 
     repeated Component payloads = 4;
 
-    // Both the interval and the timeout values are in 
-    // seconds.
+    // Both the interval and the timeout values are in seconds.
     int64 interval = 5;
     int64 timeout = 6;
 
     string name = 7;
+    uint32 id = 8;
 }
 
-// This is the data structure storing the stats returned by
-// Manager.
+// This is the data structure storing the stats returned by Manager.
 message ManagerStats {
     message ControllerConfigurationStatus {
         bool error_retry = 1;
@@ -54,8 +56,7 @@ message ManagerStats {
     repeated ControllerStatus controller_status = 1;
 }
 
-// This is to check if the pushed check is consumed by the agent 
-// or not.
+// This is to check if the pushed check is consumed by the agent or not.
 message PushStatus {
     bool Pushed = 1;
     string Reason = 2;
@@ -80,8 +81,7 @@ service AgentService {
     // Pushes a check to the agent service to be processed and managed
     rpc PushCheck(Check) returns (PushStatus) {}
 
-    // Returns the status of manager managing the controllers corresponding to
-    // the checks.
+    // Returns the status of manager managing the controllers corresponding to the checks.
     rpc GetManagerStats(None) returns (ManagerStats) {}
 
     // Removes a check from the manager managing the controller for the checks.
@@ -90,5 +90,5 @@ service AgentService {
 
     // Lists all the checks currently being managed by the controller manager.
     // The only reuired field in the CheckList is `Name` rest everything can be blank.
-    rpc ListChecks(None) returns (ChecksList) {} 
+    rpc ListChecks(None) returns (ChecksList) {}
 }
