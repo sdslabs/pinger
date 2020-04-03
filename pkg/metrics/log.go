@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/sdslabs/status/pkg/controller"
 	"github.com/sirupsen/logrus"
+
+	"github.com/sdslabs/status/pkg/controller"
 )
 
 // SetupLogMetrics sets up logging of metrics to STDOUT.
@@ -16,6 +17,7 @@ func SetupLogMetrics(config *ProviderConfig, manager *controller.Manager) {
 // LogsType can either be "json" or "text".
 type LogsType string
 
+// Types of logs.
 const (
 	JSONLogs LogsType = "json"
 	TextLogs LogsType = "text"
@@ -56,11 +58,11 @@ func getLogDoFunc(ex *LogsExporter) controllerFunc {
 	return func(context.Context) (controller.FunctionResult, error) {
 		stats := ex.PullLatestControllerStatistics()
 
-		for _, stat := range stats {
-			ex.Log(&stat)
+		for i := 0; i < len(stats); i++ {
+			ex.Log(&stats[i])
 		}
 
-		return &MetricsFunctionResult{
+		return &FunctionResult{
 			Duration:  0,
 			StartTime: time.Now(),
 			Timeout:   false,

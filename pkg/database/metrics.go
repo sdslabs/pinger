@@ -40,7 +40,7 @@ func getControllerDoFunc(ex *metrics.TimescaleExporter) controllerFunc {
 		if err := CreateMetrics(metricsToInsert); err != nil {
 			return nil, err
 		}
-		return &metrics.MetricsFunctionResult{
+		return &metrics.FunctionResult{
 			Duration:  time.Since(start),
 			StartTime: start,
 			Success:   true,

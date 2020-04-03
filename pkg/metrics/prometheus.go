@@ -107,7 +107,7 @@ func (e *PrometheusExporter) Collect(ch chan<- prometheus.Metric) {
 func getPrometheusControllerDoFunc(manager *controller.Manager) controllerFunc {
 	return func(context.Context) (controller.FunctionResult, error) {
 		manager.CleanStats()
-		return &MetricsFunctionResult{
+		return &FunctionResult{
 			Duration:  0,
 			StartTime: time.Now(),
 			Timeout:   false,
