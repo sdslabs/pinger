@@ -32,27 +32,31 @@ var (
 
 type controllerFunc = func(context.Context) (controller.FunctionResult, error)
 
-// MetricsFunctionResult implements controller.FunctionResult to create controllers
+// FunctionResult implements controller.FunctionResult to create controllers
 // for fetching metrics.
-type MetricsFunctionResult struct {
+type FunctionResult struct {
 	Duration  time.Duration
 	StartTime time.Time
 	Success   bool
 	Timeout   bool
 }
 
-func (m MetricsFunctionResult) GetDuration() time.Duration {
+// GetDuration returns the duration for function runtime.
+func (m FunctionResult) GetDuration() time.Duration {
 	return m.Duration
 }
 
-func (m MetricsFunctionResult) GetStartTime() time.Time {
+// GetStartTime returns the start time for function.
+func (m FunctionResult) GetStartTime() time.Time {
 	return m.StartTime
 }
 
-func (m MetricsFunctionResult) IsSuccessful() bool {
+// IsSuccessful returns true if the function is successful.
+func (m FunctionResult) IsSuccessful() bool {
 	return m.Success
 }
 
-func (m MetricsFunctionResult) IsTimeout() bool {
+// IsTimeout returns true if the function times out.
+func (m FunctionResult) IsTimeout() bool {
 	return m.Timeout
 }
