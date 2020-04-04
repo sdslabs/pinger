@@ -24,6 +24,7 @@ func NewChecker(agentCheck config.Check) (Checker, error) {
 	case HTTPInputType:
 		return NewHTTPChecker(agentCheck)
 	case TCPInputType:
+		return NewTCPChecker(agentCheck)
 	case WebsocketInputType:
 		return NewWSChecker(agentCheck)
 	case ICMPInputType:
@@ -38,7 +39,7 @@ func NewChecker(agentCheck config.Check) (Checker, error) {
 type InputType string
 
 // Checker is the main Check interface we are going to use for the status page.
-// Each check must implment this interface.
+// Each check must impelment this interface.
 type Checker interface {
 	// ExecuteCheck executes the check for the provided checker.
 	ExecuteCheck(context.Context) (controller.FunctionResult, error)
