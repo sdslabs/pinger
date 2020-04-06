@@ -4,6 +4,9 @@ package probes
 
 import "net"
 
+// maxBufferCapacity is the maximum capacity of the buffer data that can be read.
+const maxBufferCapacity = 2048
+
 // errIsTimeout returns true for a timeout error.
 func errIsTimeout(err error) bool {
 	netErr, ok := err.(net.Error)
