@@ -28,3 +28,10 @@ type HTTPRefreshToken struct {
 	Token     string        `json:"token" example:"abcdefghijklmnopqrstuvwxyz1234567890"`
 	ExpiresIn time.Duration `json:"expires_in" example:"3600"` // in seconds
 }
+
+// HTTPUserInfo is the response when client fetches or updates user.
+type HTTPUserInfo struct {
+	ID    uint   `json:"id" example:"123"`
+	Email string `json:"Email" example:"abc@xyz.com"`
+	Name  string `json:"Name" example:"Abc Xyz"`
+}

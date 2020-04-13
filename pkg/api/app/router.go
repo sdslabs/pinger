@@ -3,12 +3,12 @@ package app
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/sdslabs/status/pkg/api/app/oauth"
 	"github.com/sdslabs/status/pkg/api/app/providers"
+	"github.com/sdslabs/status/pkg/api/handlers"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/database"
 )
@@ -51,20 +51,10 @@ func getRouter(conf *config.AppConfig) (*gin.Engine, error) {
 
 	apiRouter := router.Group("/api")
 	apiRouter.Use(oauth.GetJWTVerficationMiddleware(conf.Secret()))
-	apiRouter.GET("/test", func(ctx *gin.Context) {
-		currentUser, ok := oauth.CurrentUserFromCtx(ctx)
 
-		if !ok {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": "Cannot find user from token",
-			})
-			return
-		}
-		ctx.JSON(http.StatusOK, gin.H{
-			"name":  currentUser.Name,
-			"email": currentUser.Email,
-		})
-	})
+	apiRouter.GET("/user/:id", handlers.GetUser)
+	apiRouter.PATCH("/user/:id", handlers.UpdateUser)
+	apiRouter.DELETE("/user", handlers.DeleteUser)
 
 	return router, nil
 }
