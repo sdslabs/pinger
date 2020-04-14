@@ -35,3 +35,7 @@ type HTTPUserInfo struct {
 	Email string `json:"Email" example:"abc@xyz.com"`
 	Name  string `json:"Name" example:"Abc Xyz"`
 }
+
+// HTTPEmptyResponse returns an empty response.
+type HTTPEmptyResponse struct {
+}

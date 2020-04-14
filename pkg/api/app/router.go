@@ -52,9 +52,11 @@ func getRouter(conf *config.AppConfig) (*gin.Engine, error) {
 	apiRouter := router.Group("/api")
 	apiRouter.Use(oauth.GetJWTVerficationMiddleware(conf.Secret()))
 
-	apiRouter.GET("/user/:id", handlers.GetUser)
-	apiRouter.PATCH("/user/:id", handlers.UpdateUser)
-	apiRouter.DELETE("/user", handlers.DeleteUser)
+	userRouter := apiRouter.Group("/user")
+	userRouter.GET("/:id", handlers.GetUser)
+	userRouter.GET("/", handlers.GetCurrentUser)
+	userRouter.PATCH("/", handlers.UpdateCurrentUser)
+	userRouter.DELETE("/", handlers.DeleteCurrentUser)
 
 	return router, nil
 }
