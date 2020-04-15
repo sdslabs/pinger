@@ -36,6 +36,6 @@ type HTTPUserInfo struct {
 	Name  string `json:"Name" example:"Abc Xyz"`
 }
 
-// HTTPEmptyResponse returns an empty response.
-type HTTPEmptyResponse struct {
+// HTTPEmpty returns an empty response.
+type HTTPEmpty struct {
 }
