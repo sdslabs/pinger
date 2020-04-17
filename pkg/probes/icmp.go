@@ -5,7 +5,6 @@ import (
 	"math"
 	"math/rand"
 	"net"
-	"sync"
 	"syscall"
 	"time"
 
@@ -17,15 +16,17 @@ import (
 // NewICMPProbe returns a `*ICMPProber` for given address and timeout.
 // This prober can be used to check for ICMP requests.
 func NewICMPProbe(address string, timeout time.Duration) (*ICMPProber, error) {
-	pr := &ICMPProber{
-		quit: make(chan bool),
-	}
+	pr := &ICMPProber{}
+
 	if err := pr.SetAddress(address); err != nil {
 		return nil, err
 	}
+
 	pr.SetTimeout(timeout)
+
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	pr.id = r.Intn(math.MaxInt16)
+
 	return pr, nil
 }
 
@@ -52,7 +53,6 @@ type ICMPProber struct {
 	address string
 	ipv4    bool
 	ipAddr  *net.IPAddr
-	quit    chan bool
 	id      int
 }
 
@@ -95,69 +95,58 @@ func (pr *ICMPProber) Probe() (*ICMPProbeResult, error) {
 	if pr.ipv4 {
 		conn, err = icmp.ListenPacket("udp4", "0.0.0.0")
 		if err != nil {
-			close(pr.quit)
 			return nil, err
 		}
 		if err = conn.IPv4PacketConn().SetControlMessage(ipv4.FlagTTL, true); err != nil {
-			close(pr.quit)
 			return nil, err
 		}
 	} else {
 		conn, err = icmp.ListenPacket("udp6", "::")
 		if err != nil {
-			close(pr.quit)
 			return nil, err
 		}
 		if err = conn.IPv6PacketConn().SetControlMessage(ipv6.FlagHopLimit, true); err != nil {
-			close(pr.quit)
 			return nil, err
 		}
 	}
 	defer conn.Close() //nolint:errcheck
 
-	var wg sync.WaitGroup
-
-	recv := make(chan *packet, 1)
-	defer close(recv)
-
-	wg.Add(1) // receive go routine
-	go pr.receive(conn, recv, &wg)
-
 	startTime := time.Now()
 
-	// send request
-	if err := pr.send(conn); err != nil {
+	timeoutResult := &ICMPProbeResult{
+		Timeout: true,
+		StartTime: startTime,
+		Duration: pr.timeout,
+	}
+
+	if err := conn.SetDeadline(startTime.Add(pr.timeout)); err != nil {
 		return nil, err
 	}
 
-	timer := time.NewTimer(pr.timeout)
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-pr.quit:
-			pr.waitAndClose(&wg)
-			return nil, errors.New("error while receiving")
-		case <-timer.C:
-			pr.quit <- true
-			pr.waitAndClose(&wg)
-			return &ICMPProbeResult{
-				Timeout:   true,
-				StartTime: startTime,
-				Duration:  pr.timeout,
-			}, nil
-		case r := <-recv:
-			pr.quit <- true
-			pr.waitAndClose(&wg)
-			return &ICMPProbeResult{
-				Timeout:   false,
-				StartTime: startTime,
-				Duration:  time.Since(startTime),
-				NumBytes:  r.numBytes,
-				TTL:       r.ttl,
-			}, nil
+	if err := pr.send(conn); err != nil {
+		if errIsTimeout(err) {
+			return timeoutResult, nil
 		}
+
+		return nil, err
 	}
+
+ 	nb, ttl, err := pr.receive(conn);
+	if err != nil {
+		if errIsTimeout(err) {
+			return timeoutResult, nil
+		}
+
+		return nil, err
+	}
+
+	return &ICMPProbeResult{
+		Timeout: false,
+		StartTime: startTime,
+		Duration: time.Since(startTime),
+		NumBytes: nb,
+		TTL: ttl,
+	}, nil
 }
 
 func (pr *ICMPProber) send(conn *icmp.PacketConn) error {
@@ -206,51 +195,25 @@ func (pr *ICMPProber) send(conn *icmp.PacketConn) error {
 	return nil
 }
 
-func (pr *ICMPProber) receive(conn *icmp.PacketConn, recv chan<- *packet, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for {
-		select {
-		case <-pr.quit:
-			return
-		default:
-			bytes := make([]byte, 512)
-			if err := conn.SetReadDeadline(time.Now().Add(time.Millisecond * 100)); err != nil {
-				pr.quit <- true
-				return
-			}
-			var numBytes, ttl int
-			var err error
-			if pr.ipv4 {
-				var cm *ipv4.ControlMessage
-				numBytes, cm, _, err = conn.IPv4PacketConn().ReadFrom(bytes)
-				if cm != nil {
-					ttl = cm.TTL
-				}
-			} else {
-				var cm *ipv6.ControlMessage
-				numBytes, cm, _, err = conn.IPv6PacketConn().ReadFrom(bytes)
-				if cm != nil {
-					ttl = cm.HopLimit
-				}
-			}
-			if err != nil {
-				if neterr, ok := err.(*net.OpError); ok {
-					if neterr.Timeout() {
-						continue
-					} else {
-						pr.quit <- true
-						return
-					}
-				}
-			}
-			recv <- &packet{bytes: bytes, numBytes: numBytes, ttl: ttl}
+// Returns num bytes and time to live.
+func (pr *ICMPProber) receive(conn *icmp.PacketConn) (n, t int, e error) {
+	bytes := make([]byte, 512)
+	var numBytes, ttl int
+	var err error
+	if pr.ipv4 {
+		var cm *ipv4.ControlMessage
+		numBytes, cm, _, err = conn.IPv4PacketConn().ReadFrom(bytes)
+		if cm != nil {
+			ttl = cm.TTL
+		}
+	} else {
+		var cm *ipv6.ControlMessage
+		numBytes, cm, _, err = conn.IPv6PacketConn().ReadFrom(bytes)
+		if cm != nil {
+			ttl = cm.HopLimit
 		}
 	}
-}
-
-func (pr *ICMPProber) waitAndClose(wg *sync.WaitGroup) {
-	wg.Wait()
-	close(pr.quit)
+	return numBytes, ttl, err
 }
 
 // ICMPProbeResult is the result of ICMP check probe.
@@ -260,10 +223,4 @@ type ICMPProbeResult struct {
 	Duration  time.Duration
 	NumBytes  int
 	TTL       int
-}
-
-type packet struct {
-	bytes    []byte
-	numBytes int
-	ttl      int
 }
