@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"strconv"
 	"time"
 
 	"github.com/sdslabs/status/pkg/config"
@@ -66,12 +65,8 @@ func validateICMPOutput(output config.Component) error {
 	if typ != "timeout" {
 		return fmt.Errorf("provided output type (%s) is not supported", typ)
 	}
-	// for ICMP Echo request, for "timeout" output, value can either be true or false
-	// if the value cannot be parsed we can take it to be `false` the value
-	// will be `true` only when explicitly specified, so we don't need to validate
-	//
-	// even in implementation of `strconv.ParseBool`, the value returned is true
-	// only when it matches the certain expressions, else false (maybe with error)
+	// for ICMP Echo request, we can only check if output is timeout or not, so we don't
+	// have to validate the value of output.
 	return nil
 }
 
@@ -120,15 +115,9 @@ func (c *ICMPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResu
 		return nil, fmt.Errorf("ICMP probe error: %s", err.Error())
 	}
 
-	shouldTimeout, err := strconv.ParseBool(c.ICMPOutput.Value) // even for errors, we set it to false
-	if err != nil {
-		shouldTimeout = false
-	}
-
-	checkSuccessful := res.Timeout == shouldTimeout
-
 	return Stats{
-		Successful: checkSuccessful,
+		Successful: !res.Timeout,
+		Timeout:    res.Timeout,
 		StartTime:  res.StartTime,
 		Duration:   res.Duration,
 	}, nil

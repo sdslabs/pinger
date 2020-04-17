@@ -19,6 +19,7 @@ var validHTTPOutputTypes map[string]validationFunction = map[string]validationFu
 	"status_code": validateStatusCode,
 	"body":        validateBody,
 	"header":      validateKVPair,
+	"timeout":     func(string) error { return nil },
 }
 
 // NewHTTPChecker creates a new Checker for HTTP requests.
@@ -166,38 +167,40 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResu
 
 	checkSuccessful := false
 
-	switch c.HTTPOutput.Type {
-	case "status_code":
-		var reqStatusCode int
-		reqStatusCode, err = strconv.Atoi(c.HTTPOutput.Value)
-		if err != nil {
-			return Stats{}, err
-		}
-		if result.StatusCode == reqStatusCode {
-			checkSuccessful = true
-		}
+	if !result.Timeout {
+		switch c.HTTPOutput.Type {
+		case "status_code":
+			var reqStatusCode int
+			reqStatusCode, err = strconv.Atoi(c.HTTPOutput.Value)
+			if err != nil {
+				return Stats{}, err
+			}
+			if result.StatusCode == reqStatusCode {
+				checkSuccessful = true
+			}
 
-	case "body":
-		buf := new(bytes.Buffer)
-		if _, err = buf.ReadFrom(result.Body); err != nil {
-			return Stats{}, err
-		}
-		if c.HTTPOutput.Value == buf.String() {
-			checkSuccessful = true
-		}
+		case "body":
+			buf := new(bytes.Buffer)
+			if _, err = buf.ReadFrom(result.Body); err != nil {
+				return Stats{}, err
+			}
+			if c.HTTPOutput.Value == buf.String() {
+				checkSuccessful = true
+			}
 
-	case "header":
-		kv := strings.SplitN(c.HTTPOutput.Value, splitDelimeter, 2)
+		case "header":
+			kv := strings.SplitN(c.HTTPOutput.Value, splitDelimeter, 2)
 
-		if kv[1] == result.Headers.Get(kv[0]) {
-			checkSuccessful = true
+			if kv[1] == result.Headers.Get(kv[0]) {
+				checkSuccessful = true
+			}
 		}
 	}
 
 	return Stats{
 		Successful: checkSuccessful,
-
-		StartTime: result.StartTime,
-		Duration:  result.Duration,
+		Timeout:    result.Timeout,
+		StartTime:  result.StartTime,
+		Duration:   result.Duration,
 	}, nil
 }

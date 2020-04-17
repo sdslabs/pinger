@@ -18,6 +18,7 @@ var validWSOutputTypes map[string]validationFunction = map[string]validationFunc
 	"status_code": validateStatusCode,
 	"messages":    validateMessages,
 	"header":      validateKVPair,
+	"timeout":     func(string) error { return nil },
 }
 
 // WSChecker represents a Websocket check we can deploy for a given target.
@@ -50,49 +51,51 @@ func (c *WSChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult
 
 	checkSuccessful := false
 
-	switch c.Output.Type {
-	case "status_code":
-		var reqStatusCode int
-		reqStatusCode, err = strconv.Atoi(c.Output.Value)
-		if err != nil {
-			return nil, err
-		}
-		if result.StatusCode == reqStatusCode {
-			checkSuccessful = true
-		}
-
-	case "messages":
-		// Messages in output are separated by `"\n---\n"`, i.e., if the output is expected to
-		// have the messages 'hello world' and 'bye world', the output value is supposed to be
-		// of the form:
-		//     hello world
-		//     ---
-		//     bye world
-		messages := strings.Split(c.Output.Value, "\n---\n")
-		if len(messages) == len(result.Messages) {
-			messagesSame := true
-			for i := 0; i < len(messages); i++ {
-				if messages[i] != result.Messages[i] {
-					messagesSame = false
-					break
-				}
+	if !result.Timeout {
+		switch c.Output.Type {
+		case "status_code":
+			var reqStatusCode int
+			reqStatusCode, err = strconv.Atoi(c.Output.Value)
+			if err != nil {
+				return nil, err
 			}
-			checkSuccessful = messagesSame
-		}
+			if result.StatusCode == reqStatusCode {
+				checkSuccessful = true
+			}
 
-	case "header":
-		kv := strings.SplitN(c.Output.Value, splitDelimeter, 2)
+		case "messages":
+			// Messages in output are separated by `"\n---\n"`, i.e., if the output is expected to
+			// have the messages 'hello world' and 'bye world', the output value is supposed to be
+			// of the form:
+			//     hello world
+			//     ---
+			//     bye world
+			messages := strings.Split(c.Output.Value, "\n---\n")
+			if len(messages) == len(result.Messages) {
+				messagesSame := true
+				for i := 0; i < len(messages); i++ {
+					if messages[i] != result.Messages[i] {
+						messagesSame = false
+						break
+					}
+				}
+				checkSuccessful = messagesSame
+			}
 
-		if kv[1] == result.Headers.Get(kv[0]) {
-			checkSuccessful = true
+		case "header":
+			kv := strings.SplitN(c.Output.Value, splitDelimeter, 2)
+
+			if kv[1] == result.Headers.Get(kv[0]) {
+				checkSuccessful = true
+			}
 		}
 	}
 
 	return Stats{
 		Successful: checkSuccessful,
-
-		StartTime: result.StartTime,
-		Duration:  result.Duration,
+		Timeout:    result.Timeout,
+		StartTime:  result.StartTime,
+		Duration:   result.Duration,
 	}, nil
 }
 
