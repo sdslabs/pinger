@@ -14,6 +14,11 @@ const (
 	keyHeader      = "header"
 	keyParameter   = "parameter"
 	keyMessage     = "message"
+	keyBody        = "body"
+	keyStatusCode  = "status_code"
+	keyTimeout     = "timeout"
+	keyURL         = "url"
+	keyAddress     = "address"
 )
 
 type validationFunction func(string) error

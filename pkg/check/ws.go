@@ -15,10 +15,10 @@ import (
 )
 
 var validWSOutputTypes map[string]validationFunction = map[string]validationFunction{
-	"status_code": validateStatusCode,
-	"messages":    validateMessages,
-	"header":      validateKVPair,
-	"timeout":     func(string) error { return nil },
+	keyStatusCode: validateStatusCode,
+	keyMessage:    validateMessages,
+	keyHeader:     validateKVPair,
+	keyTimeout:    func(string) error { return nil },
 }
 
 // WSChecker represents a Websocket check we can deploy for a given target.
@@ -53,7 +53,7 @@ func (c *WSChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult
 
 	if !result.Timeout {
 		switch c.Output.Type {
-		case "status_code":
+		case keyStatusCode:
 			var reqStatusCode int
 			reqStatusCode, err = strconv.Atoi(c.Output.Value)
 			if err != nil {
@@ -63,7 +63,7 @@ func (c *WSChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult
 				checkSuccessful = true
 			}
 
-		case "messages":
+		case keyMessage:
 			// Messages in output are separated by `"\n---\n"`, i.e., if the output is expected to
 			// have the messages 'hello world' and 'bye world', the output value is supposed to be
 			// of the form:
@@ -82,12 +82,14 @@ func (c *WSChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult
 				checkSuccessful = messagesSame
 			}
 
-		case "header":
+		case keyHeader:
 			kv := strings.SplitN(c.Output.Value, splitDelimeter, 2)
 
 			if kv[1] == result.Headers.Get(kv[0]) {
 				checkSuccessful = true
 			}
+		case keyTimeout:
+			checkSuccessful = true
 		}
 	}
 
@@ -175,7 +177,7 @@ func validateWSTarget(target config.Component) error {
 	// as for WS Check the target is always a URL and we can check it that way only.
 	// Just for consistency of types not being nil, we check if it's equal to "url"
 	typ := target.GetType()
-	if typ != "url" {
+	if typ != keyURL {
 		return fmt.Errorf("target type %s is not supported", typ)
 	}
 	u, err := url.Parse(target.GetValue())

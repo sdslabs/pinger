@@ -62,7 +62,7 @@ func validateICMPInput(input config.Component) error {
 
 func validateICMPOutput(output config.Component) error {
 	typ := output.GetType()
-	if typ != "timeout" {
+	if typ != keyTimeout {
 		return fmt.Errorf("provided output type (%s) is not supported", typ)
 	}
 	// for ICMP Echo request, we can only check if output is timeout or not, so we don't
@@ -75,7 +75,7 @@ func validateICMPTarget(target config.Component) error {
 	// as for ICMP Check the target is always a address and we can check it that way only.
 	// Just for consistency of types not being nil, we check if it's equal to "address"
 	typ := target.GetType()
-	if typ != "address" {
+	if typ != keyAddress {
 		return fmt.Errorf("target type %s is not supported", typ)
 	}
 

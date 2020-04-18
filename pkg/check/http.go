@@ -16,10 +16,10 @@ import (
 )
 
 var validHTTPOutputTypes map[string]validationFunction = map[string]validationFunction{
-	"status_code": validateStatusCode,
-	"body":        validateBody,
-	"header":      validateKVPair,
-	"timeout":     func(string) error { return nil },
+	keyStatusCode: validateStatusCode,
+	keyBody:       validateBody,
+	keyHeader:     validateKVPair,
+	keyTimeout:    func(string) error { return nil },
 }
 
 // NewHTTPChecker creates a new Checker for HTTP requests.
@@ -107,7 +107,7 @@ func validateHTTPTarget(target config.Component) error {
 	// as for HTTP Check the target is always a URL and we can check it that way only.
 	// Just for consistency of types not being nil, we check if it's equal to "url"
 	typ := target.GetType()
-	if typ != "url" {
+	if typ != keyURL {
 		return fmt.Errorf("target type %s is not supported", typ)
 	}
 	u, err := url.Parse(target.GetValue())
@@ -169,7 +169,7 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResu
 
 	if !result.Timeout {
 		switch c.HTTPOutput.Type {
-		case "status_code":
+		case keyStatusCode:
 			var reqStatusCode int
 			reqStatusCode, err = strconv.Atoi(c.HTTPOutput.Value)
 			if err != nil {
@@ -179,7 +179,7 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResu
 				checkSuccessful = true
 			}
 
-		case "body":
+		case keyBody:
 			buf := new(bytes.Buffer)
 			if _, err = buf.ReadFrom(result.Body); err != nil {
 				return Stats{}, err
@@ -188,12 +188,14 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResu
 				checkSuccessful = true
 			}
 
-		case "header":
+		case keyHeader:
 			kv := strings.SplitN(c.HTTPOutput.Value, splitDelimeter, 2)
 
 			if kv[1] == result.Headers.Get(kv[0]) {
 				checkSuccessful = true
 			}
+		case keyTimeout:
+			checkSuccessful = true
 		}
 	}
 
