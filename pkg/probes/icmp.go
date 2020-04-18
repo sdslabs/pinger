@@ -97,7 +97,8 @@ func (pr *ICMPProber) Probe() (*ICMPProbeResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err = conn.IPv4PacketConn().SetControlMessage(ipv4.FlagTTL, true); err != nil {
+		err = conn.IPv4PacketConn().SetControlMessage(ipv4.FlagTTL, true)
+		if err != nil {
 			return nil, err
 		}
 	} else {
@@ -105,7 +106,8 @@ func (pr *ICMPProber) Probe() (*ICMPProbeResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err = conn.IPv6PacketConn().SetControlMessage(ipv6.FlagHopLimit, true); err != nil {
+		err = conn.IPv6PacketConn().SetControlMessage(ipv6.FlagHopLimit, true)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -114,16 +116,18 @@ func (pr *ICMPProber) Probe() (*ICMPProbeResult, error) {
 	startTime := time.Now()
 
 	timeoutResult := &ICMPProbeResult{
-		Timeout: true,
+		Timeout:   true,
 		StartTime: startTime,
-		Duration: pr.timeout,
+		Duration:  pr.timeout,
 	}
 
-	if err := conn.SetDeadline(startTime.Add(pr.timeout)); err != nil {
+	err = conn.SetDeadline(startTime.Add(pr.timeout))
+	if err != nil {
 		return nil, err
 	}
 
-	if err := pr.send(conn); err != nil {
+	err = pr.send(conn)
+	if err != nil {
 		if errIsTimeout(err) {
 			return timeoutResult, nil
 		}
@@ -131,7 +135,7 @@ func (pr *ICMPProber) Probe() (*ICMPProbeResult, error) {
 		return nil, err
 	}
 
- 	nb, ttl, err := pr.receive(conn);
+	nb, ttl, err := pr.receive(conn)
 	if err != nil {
 		if errIsTimeout(err) {
 			return timeoutResult, nil
@@ -141,11 +145,11 @@ func (pr *ICMPProber) Probe() (*ICMPProbeResult, error) {
 	}
 
 	return &ICMPProbeResult{
-		Timeout: false,
+		Timeout:   false,
 		StartTime: startTime,
-		Duration: time.Since(startTime),
-		NumBytes: nb,
-		TTL: ttl,
+		Duration:  time.Since(startTime),
+		NumBytes:  nb,
+		TTL:       ttl,
 	}, nil
 }
 
