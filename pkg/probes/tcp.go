@@ -69,11 +69,17 @@ func (pr *TCPProber) Probe() (*TCPProbeResult, error) {
 		return nil, err
 	}
 	defer conn.Close() //nolint:errcheck
-
+	if pr.message == "" {
+		return &TCPProbeResult{
+			Timeout:   false,
+			StartTime: startTime,
+			Duration:  time.Since(startTime),
+			Response:  "",
+		}, nil
+	}
 	if err := conn.SetDeadline(startTime.Add(pr.timeout)); err != nil {
 		return nil, err
 	}
-
 	if _, err := conn.Write([]byte(pr.message)); err != nil {
 		if errIsTimeout(err) {
 			return timeoutResult, nil
