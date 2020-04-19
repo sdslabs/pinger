@@ -39,7 +39,7 @@ func NewChecker(agentCheck config.Check) (Checker, error) {
 type InputType string
 
 // Checker is the main Check interface we are going to use for the status page.
-// Each check must impelment this interface.
+// Each check must implement this interface.
 type Checker interface {
 	// ExecuteCheck executes the check for the provided checker.
 	ExecuteCheck(context.Context) (controller.FunctionResult, error)
