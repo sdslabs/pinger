@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"time"
 )
@@ -126,17 +125,19 @@ func (pr *HTTPProber) Probe(
 	req.Header.Set("Content-Type", "application/json")
 	startTime := time.Now()
 	resp, err := client.Do(req)
-	if err, ok := err.(net.Error); ok && err.Timeout() {
-		// Request errored due to a timeout.
-		// Send a curated response in this case.
+	if err != nil {
+		if errIsTimeout(err) {
+			return &HTTPProbeResult{
+				Timeout:   true,
+				StartTime: startTime,
+				Duration:  client.Timeout,
+			}, nil
+		}
 
-		return &HTTPProbeResult{Timeout: true}, nil
-	} else if err != nil {
-		return nil, fmt.Errorf("error while making request: %s", err)
+		return nil, err
 	}
 
 	duration := time.Since(startTime)
-
 	return parseResponse(resp, duration, startTime), nil
 }
 
