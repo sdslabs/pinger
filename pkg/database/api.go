@@ -48,6 +48,9 @@ func UpdateUserByID(id uint, user *User) (*User, error) {
 	u := User{}
 	u.ID = id
 	tx := db.Model(&u).Updates(*user)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &u, tx.Error
 }
 
@@ -56,6 +59,9 @@ func UpdateUserNameByEmail(email string, user *User) (*User, error) {
 	u := User{}
 	u.Email = email
 	tx := db.Model(&u).Updates(*user)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &u, tx.Error
 }
 
@@ -100,6 +106,9 @@ func UpdateCheckByID(id uint, check *Check) (*Check, error) {
 	c := Check{}
 	c.ID = id
 	tx := db.Model(&c).Updates(*check)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &c, tx.Error
 }
 
@@ -139,6 +148,9 @@ func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
 	p := Payload{}
 	p.ID = id
 	tx := db.Model(&p).Updates(*payload)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &p, tx.Error
 }
 
@@ -204,6 +216,9 @@ func UpdatePageByID(id uint, page *Page) (*Page, error) {
 	p := Page{}
 	p.ID = id
 	tx := db.Model(&p).Updates(*page)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &p, tx.Error
 }
 
@@ -243,6 +258,9 @@ func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
 	i := Incident{}
 	i.ID = id
 	tx := db.Model(&i).Updates(*incident)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &i, tx.Error
 }
 
