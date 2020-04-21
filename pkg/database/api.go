@@ -1,17 +1,21 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
+
+// ErrRecordNotFound is the error returned when the database has no matching record.
+var ErrRecordNotFound = errors.New("record not found")
 
 // GetUserByID gets user by ID.
 func GetUserByID(id uint) (*User, error) {
 	user := User{}
 	tx := db.Where("id = ?", id).Find(&user)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &user, tx.Error
 }
@@ -21,7 +25,7 @@ func GetUserByEmail(email string) (*User, error) {
 	user := User{}
 	tx := db.Where("email = ?", email).Find(&user)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &user, tx.Error
 }
@@ -70,7 +74,7 @@ func GetAllChecksByOwner(ownerID uint) ([]Check, error) {
 	checks := []Check{}
 	tx := db.Where("owner_id = ?", ownerID).Preload("Payloads").Preload("Owner").Find(&checks)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return checks, tx.Error
 }
@@ -80,7 +84,7 @@ func GetCheckByID(id uint) (*Check, error) {
 	check := Check{}
 	tx := db.Where("id = ?", id).Preload("Payloads").Preload("Owner").Find(&check)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &check, tx.Error
 }
@@ -109,7 +113,7 @@ func GetAllPayloadsByCheck(checkID uint) ([]Payload, error) {
 	payloads := []Payload{}
 	tx := db.Where("check_id = ?", checkID).Preload("Check").Find(&payloads)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return payloads, tx.Error
 }
@@ -119,7 +123,7 @@ func GetPayloadByID(id uint) (*Payload, error) {
 	payload := Payload{}
 	tx := db.Where("id = ?", id).Preload("Check").Find(&payload)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &payload, tx.Error
 }
@@ -169,7 +173,7 @@ func GetAllPagesByOwner(ownerID uint) ([]Page, error) {
 		Preload("Owner").
 		Find(&pages)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return pages, tx.Error
 }
@@ -184,7 +188,7 @@ func GetPageByID(id uint) (*Page, error) {
 		Preload("Owner").
 		Find(&page)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &page, tx.Error
 }
@@ -213,7 +217,7 @@ func GetAllIncidentsByPage(pageID uint) ([]Incident, error) {
 	incidents := []Incident{}
 	tx := db.Where("page_id = ?", pageID).Preload("Page").Find(&incidents)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return incidents, tx.Error
 }
@@ -223,7 +227,7 @@ func GetIncidentByID(id uint) (*Incident, error) {
 	incident := Incident{}
 	tx := db.Where("id = ?", id).Preload("Page").Find(&incident)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &incident, tx.Error
 }
@@ -297,7 +301,7 @@ func GetMetricsByCheckAndStartTime(checkID uint, startTime time.Time) ([]Metric,
 	metrics := []Metric{}
 	tx := db.Where("check_id = ? AND start_time > ?", checkID, startTime).Order("start_time DESC").Find(&metrics)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return metrics, tx.Error
 }
@@ -314,7 +318,7 @@ func GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([]Metric, e
 	checkIDs := []uint{}
 	tx1 := db.Table("page_checks").Where("page_id = ?", pageID).Pluck("check_id", &checkIDs)
 	if tx1.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	if err := tx1.Error; err != nil {
 		return nil, err
@@ -324,7 +328,7 @@ func GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([]Metric, e
 		Order("start_time DESC").
 		Find(&metrics)
 	if tx2.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return metrics, tx2.Error
 }
