@@ -93,7 +93,6 @@ func UpdateCurrentUser(ctx *gin.Context) {
 	}
 
 	v := database.User{}
-	v.Email = u.Email
 	v.Name = updateUser.Name
 
 	user, err := database.UpdateUserByID(u.ID, &v)
