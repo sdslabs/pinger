@@ -67,12 +67,20 @@ func UpdateUserNameByEmail(email string, user *User) (*User, error) {
 
 // DeleteUserByID deletes a user entry.
 func DeleteUserByID(id uint) error {
-	return db.Where("id = ?", id).Delete(&User{}).Error
+	tx := db.Where("id = ?", id).Delete(&User{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // DeleteUserByEmail deletes a user entry.
 func DeleteUserByEmail(email string) error {
-	return db.Where("email = ?", email).Delete(&User{}).Error
+	tx := db.Where("email = ?", email).Delete(&User{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // GetAllChecksByOwner gets all the checks in owned by the user.
@@ -114,7 +122,11 @@ func UpdateCheckByID(id uint, check *Check) (*Check, error) {
 
 // DeleteCheckByID deletes check corresponding to given ID.
 func DeleteCheckByID(id uint) error {
-	return db.Where("id = ?", id).Unscoped().Delete(&Check{}).Error
+	tx := db.Where("id = ?", id).Unscoped().Delete(&Check{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // GetAllPayloadsByCheck gets all the payloads belonging to a check.
@@ -156,7 +168,11 @@ func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
 
 // DeletePayloadByID deletes a payload corresponding to given ID.
 func DeletePayloadByID(id uint) error {
-	return db.Where("id = ?", id).Unscoped().Delete(&Payload{}).Error
+	tx := db.Where("id = ?", id).Unscoped().Delete(&Payload{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // AddPayloadsToCheck adds multiple payloads to page.
@@ -224,7 +240,11 @@ func UpdatePageByID(id uint, page *Page) (*Page, error) {
 
 // DeletePageByID deletes a page corresponding to the given ID.
 func DeletePageByID(id uint) error {
-	return db.Where("id = ?", id).Delete(&Page{}).Error
+	tx := db.Where("id = ?", id).Delete(&Page{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // GetAllIncidentsByPage gets all the incidents for the given page ID.
@@ -266,7 +286,11 @@ func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
 
 // DeleteIncidentByID deletes a Incident corresponding to given ID.
 func DeleteIncidentByID(id uint) error {
-	return db.Where("id = ?", id).Unscoped().Delete(&Incident{}).Error
+	tx := db.Where("id = ?", id).Unscoped().Delete(&Incident{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // AddIncidentsToPage adds multiple incidents to page.
