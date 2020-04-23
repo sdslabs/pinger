@@ -50,33 +50,24 @@ var (
 var agentCmd = &cobra.Command{
 	Use:   "agent",
 	Short: "Run status page agent.",
-	Long: "Run status page agent on the given host, " +
-		"this agent will expose a GRPC api to accept checks to perform and execute that. " +
-		"The agent also has the ability to run in a standalone mode where it does not run any GRPC server.",
+	Long: `Run status page agent on the given host, this agent will expose
+a GRPC api to accept checks to perform and execute that. The
+agent also has the ability to run in a standalone mode where it
+does not run any GRPC server.`,
 
 	PreRun: func(*cobra.Command, []string) {
 		initConfig(agentConfigPath, defaults.AgentConfigPath, &agentConf)
 	},
 
 	Run: func(*cobra.Command, []string) {
-		if agentConf.Standalone {
-			runStandalone()
-		} else {
-			runDefault()
+		a, err := agent.NewAgent(&agentConf)
+		if err != nil {
+			log.WithError(err).Fatalln("cannot create agent")
 		}
+
+		log.WithField("standalone", agentConf.Standalone).Infoln("running agent")
+		a.Run()
 	},
-}
-
-func runDefault() {
-	log.Infof("Trying to run agent on :%d", agentConf.Port)
-
-	agent.RunGRPCServer(agentConf.Port)
-}
-
-func runStandalone() {
-	log.Infof("Trying to run agent in standalone mode with %s metrics", agentConf.Metrics.Backend)
-
-	agent.RunStandaloneAgent(&agentConf)
 }
 
 func init() {

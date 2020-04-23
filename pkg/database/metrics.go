@@ -12,23 +12,30 @@ import (
 	"github.com/sdslabs/status/pkg/metrics"
 )
 
+var standaloneUserID uint
+
 type controllerFunc = func(context.Context) (controller.FunctionResult, error)
 
 func getControllerDoFunc(ex *metrics.TimescaleExporter) controllerFunc {
 	return func(context.Context) (controller.FunctionResult, error) {
 		start := time.Now()
-		log.Infoln("Trying to insert metrics into DB")
+
 		stats := ex.PullLatestControllerStatistics()
 		if len(stats) == 0 {
 			return nil, nil
 		}
+
 		metricsToInsert := []Metric{}
 		for _, st := range stats {
 			checkID, err := strconv.Atoi(st.Name)
 			if err != nil {
-				log.Errorf("Failed to insert metric for check=%s", st.Name)
+				log.WithFields(log.Fields{
+					"check_name": st.Name,
+					"check_type": st.Type,
+				}).WithError(err).Errorln("cannot insert check")
 				continue
 			}
+
 			metricsToInsert = append(metricsToInsert, Metric{
 				CheckID:   uint(checkID),
 				StartTime: &st.StartTime,
@@ -40,6 +47,7 @@ func getControllerDoFunc(ex *metrics.TimescaleExporter) controllerFunc {
 		if err := CreateMetrics(metricsToInsert); err != nil {
 			return nil, err
 		}
+
 		return &metrics.FunctionResult{
 			Duration:  time.Since(start),
 			StartTime: start,
@@ -57,9 +65,14 @@ func setupMetricsExporter(conf *metrics.ProviderConfig, manager *controller.Mana
 	if err != nil {
 		return nil, err
 	}
+
+	// set the standalone user ID that can be used globally since there
+	// can be only one standalone user and this is updated only when
+	// setting up the metrics.
+	standaloneUserID = uid
+
 	return &metrics.TimescaleExporter{
 		Manager:  manager,
-		UserID:   uid,
 		Interval: conf.Interval,
 		Quit:     make(chan bool),
 	}, nil
@@ -69,7 +82,7 @@ func setupMetrics(ex *metrics.TimescaleExporter) {
 	timescaleManager := controller.NewManager()
 	doFunc, err := controller.NewControllerFunction(getControllerDoFunc(ex))
 	if err != nil {
-		log.Fatalf("Error setting up timescale metrics: %s", err.Error())
+		log.WithError(err).Fatalln("cannot setup timescale metrics")
 		return
 	}
 	executor := controller.Internal{
@@ -77,62 +90,52 @@ func setupMetrics(ex *metrics.TimescaleExporter) {
 		RunInterval: ex.Interval,
 	}
 	if err := timescaleManager.UpdateController("timescale-exporter", "exporter", executor); err != nil {
-		log.Fatalf("Error setting up timescale metrics: %s", err.Error())
+		log.WithError(err).Fatalln("cannot setup timescale metrics")
 		return
 	}
 	timescaleManager.Wait()
 }
 
-// SetupMetricsConf defines the setup configuration for timescale metrics.
-type SetupMetricsConf struct {
-	*metrics.ProviderConfig
-	*controller.Manager
-
-	Standalone bool
-	Checks     []*config.CheckConf
-}
-
 // SetupMetrics sets up the timescale metrics for agent.
-func SetupMetrics(conf *SetupMetricsConf) {
-	ex, err := setupMetricsExporter(conf.ProviderConfig, conf.Manager)
+func SetupMetrics(conf *metrics.ProviderConfig, manager *controller.Manager) {
+	ex, err := setupMetricsExporter(conf, manager)
 	if err != nil {
-		log.Fatalf("Cannot setup metrics: %s", err.Error())
+		log.WithError(err).Fatalln("cannot setup timescale metrics")
 		return
 	}
 
-	// Insert checks into DB before starting the metrics collector for standalone mode.
-	if conf.Standalone {
-		for _, checkConfig := range conf.Checks {
-			payloads := []Payload{}
-			for _, payload := range checkConfig.GetPayloads() {
-				payloads = append(payloads, Payload{
-					Type:  payload.GetType(),
-					Value: payload.GetValue(),
-				})
-			}
-			check := &Check{
-				OwnerID:     ex.UserID,
-				Interval:    time.Duration(checkConfig.GetInterval()),
-				Timeout:     time.Duration(checkConfig.GetTimeout()),
-				InputType:   checkConfig.GetInput().GetType(),
-				InputValue:  checkConfig.GetInput().GetValue(),
-				OutputType:  checkConfig.GetOutput().GetType(),
-				OutputValue: checkConfig.GetOutput().GetValue(),
-				TargetType:  checkConfig.GetTarget().GetType(),
-				TargetValue: checkConfig.GetTarget().GetValue(),
-				Title:       checkConfig.GetName(),
-				Payloads:    payloads,
-			}
-			log.Infof("Inserting check '%s' inside DB", check.Title)
-			createdCheck, err := CreateCheck(check)
-			if err != nil {
-				log.Errorf("Failed to insert check '%s'", check.Title)
-				log.Errorln("Skipping and moving ahead...")
-				continue
-			}
-			checkConfig.ID = createdCheck.ID
-		}
+	go setupMetrics(ex)
+}
+
+// AddCheckToDB creates new check in database from config.CheckConf.
+func AddCheckToDB(checkConfig *config.CheckConf) error {
+	payloads := []Payload{}
+	for _, payload := range checkConfig.GetPayloads() {
+		payloads = append(payloads, Payload{
+			Type:  payload.GetType(),
+			Value: payload.GetValue(),
+		})
 	}
 
-	go setupMetrics(ex)
+	check := &Check{
+		OwnerID:     standaloneUserID,
+		Interval:    time.Duration(checkConfig.GetInterval()),
+		Timeout:     time.Duration(checkConfig.GetTimeout()),
+		InputType:   checkConfig.GetInput().GetType(),
+		InputValue:  checkConfig.GetInput().GetValue(),
+		OutputType:  checkConfig.GetOutput().GetType(),
+		OutputValue: checkConfig.GetOutput().GetValue(),
+		TargetType:  checkConfig.GetTarget().GetType(),
+		TargetValue: checkConfig.GetTarget().GetValue(),
+		Title:       checkConfig.GetName(),
+		Payloads:    payloads,
+	}
+
+	createdCheck, err := CreateCheck(check)
+	if err != nil {
+		return err
+	}
+
+	checkConfig.ID = createdCheck.ID
+	return nil
 }

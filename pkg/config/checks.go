@@ -110,8 +110,8 @@ func (c *ComponentConfig) GetValue() string {
 	return c.Value
 }
 
-// GetCheckFromCheckProto returns a `Check` from proto.
-func GetCheckFromCheckProto(agentCheck *proto.Check) Check {
+// GetCheckFromCheckProto returns a CheckConf from proto.
+func GetCheckFromCheckProto(agentCheck *proto.Check) *CheckConf {
 	payloads := []*ComponentConfig{}
 	for _, payload := range agentCheck.GetPayloads() {
 		payloads = append(payloads, &ComponentConfig{
@@ -149,7 +149,11 @@ func GetCheckFromCheckProto(agentCheck *proto.Check) Check {
 
 		Payloads: payloads,
 		Name:     agentCheck.GetName(),
+		ID:       uint(agentCheck.GetId()),
 		Interval: time.Duration(agentCheck.GetInterval()),
 		Timeout:  time.Duration(agentCheck.GetTimeout()),
 	}
 }
+
+// Interface guard
+var _ Check = (*CheckConf)(nil)

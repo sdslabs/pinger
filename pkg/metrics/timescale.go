@@ -10,7 +10,6 @@ import (
 type TimescaleExporter struct {
 	*controller.Manager
 	Quit     chan bool
-	UserID   uint
 	Interval time.Duration
 }
 

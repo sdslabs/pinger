@@ -27,31 +27,27 @@ const (
 type LogsExporter struct {
 	*controller.Manager
 	LogsType
-
-	logger *logrus.Logger
 }
 
 // SetupLogger initializes a logrus logger for the exporter.
 func (le *LogsExporter) SetupLogger() {
-	le.logger = logrus.New()
 	if le.LogsType == JSONLogs {
-		le.logger.Formatter = new(logrus.JSONFormatter)
+		logrus.SetFormatter(new(logrus.JSONFormatter))
 	} else {
-		le.logger.Formatter = new(logrus.TextFormatter)
+		logrus.SetFormatter(new(logrus.TextFormatter))
 	}
-	le.logger.Level = logrus.InfoLevel
 }
 
 // Log outputs the metrics on the console.
 func (le *LogsExporter) Log(stat *controller.ExecutionStat) {
-	le.logger.WithFields(logrus.Fields{
+	logrus.WithFields(logrus.Fields{
 		"name":       stat.Name,
 		"type":       stat.Type,
 		"start_time": stat.StartTime,
 		"duration":   stat.Duration,
 		"timeout":    stat.Timeout,
 		"success":    stat.Success,
-	}).Info()
+	}).Infoln("check results")
 }
 
 func getLogDoFunc(ex *LogsExporter) controllerFunc {
@@ -84,7 +80,7 @@ func startMetricsLogger(config *ProviderConfig, manager *controller.Manager) {
 	logManager := controller.NewManager()
 	doFunc, err := controller.NewControllerFunction(getLogDoFunc(exporter))
 	if err != nil {
-		logrus.Errorf("Error starting the log metrics provider: %s", err.Error())
+		logrus.WithError(err).Errorln("cannot run log metrics provider")
 		return
 	}
 	executor := controller.Internal{
@@ -92,7 +88,7 @@ func startMetricsLogger(config *ProviderConfig, manager *controller.Manager) {
 		RunInterval: config.Interval,
 	}
 	if err := logManager.UpdateController("log-exporter", "exporter", executor); err != nil {
-		logrus.Errorf("Error running the log metrics provider: %s", err.Error())
+		logrus.WithError(err).Errorln("cannot run log metrics provider")
 		return
 	}
 	logManager.Wait()
