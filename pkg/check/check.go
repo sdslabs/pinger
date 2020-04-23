@@ -14,6 +14,7 @@ const (
 	TCPInputType       InputType = "TCP"
 	WebsocketInputType InputType = "Websocket"
 	ICMPInputType      InputType = "ICMP"
+	UDPInputType       InputType = "UDP"
 )
 
 // NewChecker returns a new Checker for the provided agent Check.
