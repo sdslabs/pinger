@@ -30,19 +30,21 @@ func GetUserByEmail(email string) (*User, error) {
 	return &user, tx.Error
 }
 
+// TODO : once deleted, a user couldnot be created with same email.
 // CreateUser adds an entry for new user. If the user already exists, does nothing.
 func CreateUser(user *User) (*User, error) {
 	u, err := GetUserByEmail(user.Email)
-	if err != nil {
+	if err != nil && err != ErrRecordNotFound {
 		return nil, err
 	}
-	if u != nil && u.Email == user.Email {
+	if err == nil && u.Email == user.Email {
 		return u, nil
 	}
 	tx := db.Create(user)
 	return user, tx.Error
 }
 
+// TODO : EmailID is not reflected in the updated user.
 // UpdateUserByID updates the user for given ID.
 func UpdateUserByID(id uint, user *User) (*User, error) {
 	u := User{}

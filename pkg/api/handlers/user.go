@@ -94,14 +94,23 @@ func UpdateCurrentUser(ctx *gin.Context) {
 
 	v := database.User{}
 	v.Name = updateUser.Name
+	v.Email = u.Email
 
 	user, err := database.UpdateUserByID(u.ID, &v)
 	if err != nil {
+		if user == nil {
+			ctx.JSON(http.StatusNotFound, response.HTTPError{
+				Error: err.Error(),
+			})
+			return
+		}
+
 		ctx.JSON(http.StatusInternalServerError, response.HTTPError{
 			Error: err.Error(),
 		})
 		return
 	}
+
 	ctx.JSON(http.StatusOK, response.HTTPUserInfo{
 		ID:    user.ID,
 		Email: user.Email,
@@ -111,20 +120,21 @@ func UpdateCurrentUser(ctx *gin.Context) {
 
 // validateEmail validates given string as an email address.
 func validateEmail(email string) bool {
-	Re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	return Re.MatchString(email)
+	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return re.MatchString(email)
 }
 
 // getUserResponse is a helper function for GetUser.
 func getUserResponse(ctx *gin.Context, user *database.User, err error) {
 	if err != nil {
+		if user == nil {
+			ctx.JSON(http.StatusNotFound, response.HTTPError{
+				Error: err.Error(),
+			})
+			return
+		}
+
 		ctx.JSON(http.StatusInternalServerError, response.HTTPError{
-			Error: err.Error(),
-		})
-		return
-	}
-	if user == nil {
-		ctx.JSON(http.StatusBadRequest, response.HTTPError{
 			Error: err.Error(),
 		})
 		return
