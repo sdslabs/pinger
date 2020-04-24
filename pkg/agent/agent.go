@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -108,7 +109,7 @@ func (a *Agent) GetManagerStats(context.Context, *proto.None) (*proto.ManagerSta
 
 // RemoveCheck removes the check from the agent.
 func (a *Agent) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMeta) (*proto.RemoveStatus, error) {
-	err := a.removeCheck(agentCheck.Name)
+	err := a.removeCheck(agentCheck.ID)
 	if err != nil {
 		return &proto.RemoveStatus{
 			Removed: false,
@@ -124,7 +125,12 @@ func (a *Agent) ListChecks(context.Context, *proto.None) (*proto.ChecksList, err
 	checksList := []*proto.CheckMeta{}
 
 	for _, ctrl := range a.fetchChecks() {
-		checksList = append(checksList, &proto.CheckMeta{Name: ctrl})
+		id, err := strconv.ParseUint(ctrl, 10, 0)
+		if err != nil {
+			id = 0
+		}
+
+		checksList = append(checksList, &proto.CheckMeta{ID: uint32(id)})
 	}
 
 	return &proto.ChecksList{Checks: checksList}, nil
@@ -222,8 +228,8 @@ func (a *Agent) fetchChecks() []string {
 }
 
 // removeCheck removes a check from the agent manager.
-func (a *Agent) removeCheck(id string) error {
-	return a.manager.RemoveControllerAndWait(id)
+func (a *Agent) removeCheck(id uint32) error {
+	return a.manager.RemoveControllerAndWait(fmt.Sprint(id))
 }
 
 // fetchStats fetches stats from the agent manager.

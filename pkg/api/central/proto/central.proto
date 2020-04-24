@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package proto;
+
+// Generate file by the following command:
+//  protoc --proto_path=pkg --go_out=plugins=grpc:pkg pkg/api/central/proto/central.proto
+
+// Metadata for a Check.
+message Check {
+    // Each component of a check has two things associated with it.
+    // First the type of the value and second the value of the component.
+    message Component {
+        string Type = 1;
+        string Value = 2;
+    }
+
+    Component input = 1;
+    Component target = 2;
+    Component output = 3;
+
+    repeated Component payloads = 4;
+
+    int64 interval = 5;
+    int64 timeout = 6;
+
+    string name = 7;
+    uint32 id = 8;
+}
+
+message PushStatus {
+    bool Pushed = 1;
+    string Reason = 2;
+}
+
+message RemoveStatus {
+    bool Removed = 1;
+    string Reason = 2;
+}
+
+message CheckMeta {
+    uint32 ID = 1;
+}
+
+service CentralService {
+    // Pushes a check to the central service to be further assigned to a registered agent.
+    rpc PushCheck(Check) returns (PushStatus) {}
+
+    // Removes a check from the manager managing the controller for the checks.
+    // Only reuired filed for the CheckMeta is `ID` rest everything can be ignored.
+    rpc RemoveCheck(CheckMeta) returns (RemoveStatus) {}
+}

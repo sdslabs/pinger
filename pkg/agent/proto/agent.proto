@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package proto;
 
-// Generate file by the following command
-//     protoc --proto_path=pkg --go_out=plugins=grpc:pkg pkg/agent/proto/agent.proto
+// Generate file by the following command:
+//  protoc --proto_path=pkg --go_out=plugins=grpc:pkg pkg/agent/proto/agent.proto
 
 // Metadata for a Check.
 message Check {
@@ -20,7 +20,6 @@ message Check {
 
     repeated Component payloads = 4;
 
-    // Both the interval and the timeout values are in seconds.
     int64 interval = 5;
     int64 timeout = 6;
 
@@ -68,7 +67,7 @@ message RemoveStatus {
 }
 
 message CheckMeta {
-    string Name = 1;
+    uint32 ID = 1;
 }
 
 message ChecksList {
@@ -85,10 +84,10 @@ service AgentService {
     rpc GetManagerStats(None) returns (ManagerStats) {}
 
     // Removes a check from the manager managing the controller for the checks.
-    // Only reuired filed for the CheckMeta is `Name` rest everything can be ignored.
+    // Only reuired filed for the CheckMeta is `ID` rest everything can be ignored.
     rpc RemoveCheck(CheckMeta) returns (RemoveStatus) {}
 
     // Lists all the checks currently being managed by the controller manager.
-    // The only reuired field in the CheckList is `Name` rest everything can be blank.
+    // The only reuired field in the CheckList is `ID` rest everything can be blank.
     rpc ListChecks(None) returns (ChecksList) {}
 }
