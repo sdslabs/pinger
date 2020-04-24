@@ -9,6 +9,11 @@ type HTTPError struct {
 	Error string `json:"error" example:"JWT is expired"`
 }
 
+// HTTPInternalServerError returns an HTTPError with internal server error message.
+// For internal server errors we don't want to present the errors to the client so
+// the error message is constant. Instead, log the errors in these cases.
+var HTTPInternalServerError = HTTPError{Error: "INTERNAL SERVER ERROR"}
+
 // HTTPLogin is the response for login url request using OAuth service.
 type HTTPLogin struct {
 	LoginURL string `json:"login_url" example:"https://accounts.google.com/auth/..."`
@@ -37,5 +42,4 @@ type HTTPUserInfo struct {
 }
 
 // HTTPEmpty returns an empty response.
-type HTTPEmpty struct {
-}
+type HTTPEmpty struct{}

@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/sdslabs/status/pkg/api/app/handlers"
 	"github.com/sdslabs/status/pkg/api/app/oauth"
 	"github.com/sdslabs/status/pkg/api/app/providers"
-	"github.com/sdslabs/status/pkg/api/handlers"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/database"
 )
