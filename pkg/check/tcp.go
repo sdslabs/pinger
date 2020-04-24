@@ -131,12 +131,12 @@ func (c *TCPChecker) Type() string {
 func (c *TCPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult, error) {
 	prober, err := probes.NewTCPProbe(c.Address, c.Message, c.Timeout)
 	if err != nil {
-		return nil, fmt.Errorf("TCP probe error: %s", err.Error())
+		return Stats{Successful: false}, nil
 	}
 
 	res, err := prober.Probe()
 	if err != nil {
-		return nil, fmt.Errorf("TCP probe error: %s", err.Error())
+		return Stats{Successful: false}, nil
 	}
 
 	checkSuccessful := false

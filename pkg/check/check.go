@@ -11,11 +11,12 @@ import (
 
 // Types of inputs accepted for checks.
 const (
-	HTTPInputType      InputType = "HTTP"
-	TCPInputType       InputType = "TCP"
-	WebsocketInputType InputType = "Websocket"
-	ICMPInputType      InputType = "ICMP"
-	UDPInputType       InputType = "UDP"
+	HTTPInputType InputType = "HTTP"
+	TCPInputType  InputType = "TCP"
+	WSInputType   InputType = "WS"
+	ICMPInputType InputType = "ICMP"
+	UDPInputType  InputType = "UDP"
+	DNSInputType  InputType = "DNS"
 )
 
 // NewChecker returns a new Checker for the provided agent Check.
@@ -27,12 +28,14 @@ func NewChecker(agentCheck config.Check) (Checker, error) {
 		return NewHTTPChecker(agentCheck)
 	case TCPInputType:
 		return NewTCPChecker(agentCheck)
-	case WebsocketInputType:
+	case WSInputType:
 		return NewWSChecker(agentCheck)
 	case ICMPInputType:
 		return NewICMPChecker(agentCheck)
 	case UDPInputType:
 		return NewUDPChecker(agentCheck)
+	case DNSInputType:
+		return NewDNSChecker(agentCheck)
 	default:
 		return nil, fmt.Errorf(
 			"invalid check input type: %s",

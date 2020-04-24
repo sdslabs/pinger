@@ -162,7 +162,7 @@ func (c *HTTPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResu
 
 	result, err := prober.Probe(c.Method, c.URL, c.Headers, c.Payload, c.Timeout)
 	if err != nil {
-		return nil, fmt.Errorf("HTTP Probe error: %s", err)
+		return Stats{Successful: false}, nil
 	}
 
 	checkSuccessful := false

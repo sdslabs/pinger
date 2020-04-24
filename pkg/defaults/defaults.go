@@ -41,6 +41,9 @@ var (
 	// UDPProbeTimeout is the tcp request timeout for TCP prober.
 	UDPProbeTimeout = time.Second * 10
 
+	// DNSProbeTimeout is the dns request timeout for DNS prober.
+	DNSProbeTimeout = time.Second * 10
+
 	// JWTExpireInterval is interval for which JWT is valid
 	JWTExpireInterval = time.Hour // 1 hour
 
