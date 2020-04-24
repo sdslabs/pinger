@@ -3,7 +3,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -20,22 +19,23 @@ func initConfig(confPath, defaultConfPath string, resolveTo interface{}) {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Cannot read config file: %s", err.Error())
+		// Just warn while reading the config file since configuration
+		// can also be mostly passed via flags.
+		log.WithError(err).Warnln("cannot read config file")
 	}
 
 	if err := viper.Unmarshal(resolveTo); err != nil {
-		log.Fatalf("Cannot resolve config file: %s", err.Error())
+		log.WithError(err).Fatalln("cannot resolve config file")
 	}
 }
 
 func viperErr(err error) {
-	log.Errorf("Cannot bind flag with viper: %s", err.Error())
+	log.WithError(err).Fatalln("error binding flags with viper")
 }
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.WithError(err).Fatalln("cannot start cmd")
 	}
 }
 

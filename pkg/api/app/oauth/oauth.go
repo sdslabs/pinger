@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 
 	"github.com/sdslabs/status/pkg/api/response"
 	"github.com/sdslabs/status/pkg/config"
@@ -155,17 +156,15 @@ func redirectHandler(provider Provider, jwtSecret []byte) ginHandler {
 			Name:  u.Name,
 		})
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, response.HTTPError{
-				Error: err.Error(),
-			})
+			logrus.WithError(err).Errorln("cannot create user in database")
+			ctx.JSON(http.StatusInternalServerError, response.HTTPInternalServerError)
 			return
 		}
 
-		jwt, err := newToken(createdUser.ID, createdUser.Email, createdUser.Name, jwtSecret)
+		jwt, err := newToken(createdUser.ID, createdUser.Email, jwtSecret)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, response.HTTPError{
-				Error: err.Error(),
-			})
+			logrus.WithError(err).Errorln("cannot create jwt")
+			ctx.JSON(http.StatusInternalServerError, response.HTTPInternalServerError)
 			return
 		}
 

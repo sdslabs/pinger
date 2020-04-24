@@ -9,6 +9,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 
 	"github.com/sdslabs/status/pkg/api/response"
 	"github.com/sdslabs/status/pkg/defaults"
@@ -26,7 +27,6 @@ const (
 type Claims struct {
 	ID    uint   `json:"id"`
 	Email string `json:"email"`
-	Name  string `json:"name"`
 	jwt.StandardClaims
 }
 
@@ -70,11 +70,10 @@ func GetRefreshTokenHandler(jwtSecret []byte) ginHandler {
 			return
 		}
 
-		refreshedToken, err := newToken(claims.ID, claims.Email, claims.Name, jwtSecret)
+		refreshedToken, err := newToken(claims.ID, claims.Email, jwtSecret)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, response.HTTPError{
-				Error: err.Error(),
-			})
+			logrus.WithError(err).Errorln("cannot create a refresh token")
+			ctx.JSON(http.StatusInternalServerError, response.HTTPInternalServerError)
 			return
 		}
 
@@ -114,12 +113,11 @@ func GetJWTVerficationMiddleware(jwtSecret []byte) ginHandler {
 	}
 }
 
-func newToken(id uint, email, name string, jwtSecret []byte) (string, error) {
+func newToken(id uint, email string, jwtSecret []byte) (string, error) {
 	expirationTime := time.Now().Add(defaults.JWTExpireInterval)
 	c := &Claims{
 		ID:    id,
 		Email: email,
-		Name:  name,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

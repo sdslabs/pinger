@@ -1,17 +1,21 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
+
+// ErrRecordNotFound is the error returned when the database has no matching record.
+var ErrRecordNotFound = errors.New("record not found")
 
 // GetUserByID gets user by ID.
 func GetUserByID(id uint) (*User, error) {
 	user := User{}
 	tx := db.Where("id = ?", id).Find(&user)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &user, tx.Error
 }
@@ -21,18 +25,20 @@ func GetUserByEmail(email string) (*User, error) {
 	user := User{}
 	tx := db.Where("email = ?", email).Find(&user)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &user, tx.Error
 }
 
 // CreateUser adds an entry for new user. If the user already exists, does nothing.
+//
+// BUG(murex971): once deleted, a user could not be created with same email.
 func CreateUser(user *User) (*User, error) {
 	u, err := GetUserByEmail(user.Email)
-	if err != nil {
+	if err != nil && err != ErrRecordNotFound {
 		return nil, err
 	}
-	if u != nil && u.Email == user.Email {
+	if err == nil && u.Email == user.Email {
 		return u, nil
 	}
 	tx := db.Create(user)
@@ -44,6 +50,9 @@ func UpdateUserByID(id uint, user *User) (*User, error) {
 	u := User{}
 	u.ID = id
 	tx := db.Model(&u).Updates(*user)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &u, tx.Error
 }
 
@@ -52,17 +61,28 @@ func UpdateUserNameByEmail(email string, user *User) (*User, error) {
 	u := User{}
 	u.Email = email
 	tx := db.Model(&u).Updates(*user)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &u, tx.Error
 }
 
 // DeleteUserByID deletes a user entry.
 func DeleteUserByID(id uint) error {
-	return db.Where("id = ?", id).Delete(&User{}).Error
+	tx := db.Where("id = ?", id).Delete(&User{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // DeleteUserByEmail deletes a user entry.
 func DeleteUserByEmail(email string) error {
-	return db.Where("email = ?", email).Delete(&User{}).Error
+	tx := db.Where("email = ?", email).Delete(&User{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // GetAllChecksByOwner gets all the checks in owned by the user.
@@ -70,7 +90,7 @@ func GetAllChecksByOwner(ownerID uint) ([]Check, error) {
 	checks := []Check{}
 	tx := db.Where("owner_id = ?", ownerID).Preload("Payloads").Preload("Owner").Find(&checks)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return checks, tx.Error
 }
@@ -80,7 +100,7 @@ func GetCheckByID(id uint) (*Check, error) {
 	check := Check{}
 	tx := db.Where("id = ?", id).Preload("Payloads").Preload("Owner").Find(&check)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &check, tx.Error
 }
@@ -96,12 +116,19 @@ func UpdateCheckByID(id uint, check *Check) (*Check, error) {
 	c := Check{}
 	c.ID = id
 	tx := db.Model(&c).Updates(*check)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &c, tx.Error
 }
 
 // DeleteCheckByID deletes check corresponding to given ID.
 func DeleteCheckByID(id uint) error {
-	return db.Where("id = ?", id).Unscoped().Delete(&Check{}).Error
+	tx := db.Where("id = ?", id).Unscoped().Delete(&Check{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // GetAllPayloadsByCheck gets all the payloads belonging to a check.
@@ -109,7 +136,7 @@ func GetAllPayloadsByCheck(checkID uint) ([]Payload, error) {
 	payloads := []Payload{}
 	tx := db.Where("check_id = ?", checkID).Preload("Check").Find(&payloads)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return payloads, tx.Error
 }
@@ -119,7 +146,7 @@ func GetPayloadByID(id uint) (*Payload, error) {
 	payload := Payload{}
 	tx := db.Where("id = ?", id).Preload("Check").Find(&payload)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &payload, tx.Error
 }
@@ -135,12 +162,19 @@ func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
 	p := Payload{}
 	p.ID = id
 	tx := db.Model(&p).Updates(*payload)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &p, tx.Error
 }
 
 // DeletePayloadByID deletes a payload corresponding to given ID.
 func DeletePayloadByID(id uint) error {
-	return db.Where("id = ?", id).Unscoped().Delete(&Payload{}).Error
+	tx := db.Where("id = ?", id).Unscoped().Delete(&Payload{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // AddPayloadsToCheck adds multiple payloads to page.
@@ -169,7 +203,7 @@ func GetAllPagesByOwner(ownerID uint) ([]Page, error) {
 		Preload("Owner").
 		Find(&pages)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return pages, tx.Error
 }
@@ -184,7 +218,7 @@ func GetPageByID(id uint) (*Page, error) {
 		Preload("Owner").
 		Find(&page)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &page, tx.Error
 }
@@ -200,12 +234,19 @@ func UpdatePageByID(id uint, page *Page) (*Page, error) {
 	p := Page{}
 	p.ID = id
 	tx := db.Model(&p).Updates(*page)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &p, tx.Error
 }
 
 // DeletePageByID deletes a page corresponding to the given ID.
 func DeletePageByID(id uint) error {
-	return db.Where("id = ?", id).Delete(&Page{}).Error
+	tx := db.Where("id = ?", id).Delete(&Page{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // GetAllIncidentsByPage gets all the incidents for the given page ID.
@@ -213,7 +254,7 @@ func GetAllIncidentsByPage(pageID uint) ([]Incident, error) {
 	incidents := []Incident{}
 	tx := db.Where("page_id = ?", pageID).Preload("Page").Find(&incidents)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return incidents, tx.Error
 }
@@ -223,7 +264,7 @@ func GetIncidentByID(id uint) (*Incident, error) {
 	incident := Incident{}
 	tx := db.Where("id = ?", id).Preload("Page").Find(&incident)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return &incident, tx.Error
 }
@@ -239,12 +280,19 @@ func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
 	i := Incident{}
 	i.ID = id
 	tx := db.Model(&i).Updates(*incident)
+	if tx.RecordNotFound() {
+		return nil, ErrRecordNotFound
+	}
 	return &i, tx.Error
 }
 
 // DeleteIncidentByID deletes a Incident corresponding to given ID.
 func DeleteIncidentByID(id uint) error {
-	return db.Where("id = ?", id).Unscoped().Delete(&Incident{}).Error
+	tx := db.Where("id = ?", id).Unscoped().Delete(&Incident{})
+	if tx.RecordNotFound() {
+		return ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 // AddIncidentsToPage adds multiple incidents to page.
@@ -297,7 +345,7 @@ func GetMetricsByCheckAndStartTime(checkID uint, startTime time.Time) ([]Metric,
 	metrics := []Metric{}
 	tx := db.Where("check_id = ? AND start_time > ?", checkID, startTime).Order("start_time DESC").Find(&metrics)
 	if tx.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return metrics, tx.Error
 }
@@ -314,7 +362,7 @@ func GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([]Metric, e
 	checkIDs := []uint{}
 	tx1 := db.Table("page_checks").Where("page_id = ?", pageID).Pluck("check_id", &checkIDs)
 	if tx1.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	if err := tx1.Error; err != nil {
 		return nil, err
@@ -324,7 +372,7 @@ func GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([]Metric, e
 		Order("start_time DESC").
 		Find(&metrics)
 	if tx2.RecordNotFound() {
-		return nil, nil
+		return nil, ErrRecordNotFound
 	}
 	return metrics, tx2.Error
 }

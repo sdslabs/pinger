@@ -52,12 +52,11 @@ var appAPICmd = &cobra.Command{
 	},
 
 	Run: func(*cobra.Command, []string) {
-		log.Infof("Starting app api on :%d", appConf.Port)
-		log.Warnf("API secret (save this secret in case passed via flags):")
-		log.Warnln(appConf.SecretVal)
+		log.WithField("port", appConf.Port).Infoln("starting app api server")
+		log.WithField("app_secret", appConf.SecretVal).Warnf("save this secret in case passed via flags")
 
 		if err := app.Serve(&appConf); err != nil {
-			log.Fatalf("Cannot start app: %s", err.Error())
+			log.WithError(err).Fatalln("cannot start app server")
 		}
 	},
 }
