@@ -38,6 +38,9 @@ var (
 	// TCPProbeTimeout is the tcp request timeout for TCP prober.
 	TCPProbeTimeout = time.Second * 10
 
+	// UDPProbeTimeout is the tcp request timeout for TCP prober.
+	UDPProbeTimeout = time.Second * 10
+
 	// JWTExpireInterval is interval for which JWT is valid
 	JWTExpireInterval = time.Hour // 1 hour
 
