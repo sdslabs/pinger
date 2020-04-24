@@ -2,6 +2,7 @@ package check
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/sdslabs/status/pkg/config"
@@ -30,9 +31,14 @@ func NewChecker(agentCheck config.Check) (Checker, error) {
 		return NewWSChecker(agentCheck)
 	case ICMPInputType:
 		return NewICMPChecker(agentCheck)
+	case UDPInputType:
+		return NewUDPChecker(agentCheck)
+	default:
+		return nil, fmt.Errorf(
+			"invalid check input type: %s",
+			agentCheck.GetInput().GetType(),
+		)
 	}
-
-	return nil, nil
 }
 
 // InputType represents the kind of check.

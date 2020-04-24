@@ -93,7 +93,7 @@ func validateUDPTarget(target config.Component) error {
 		return fmt.Errorf("target type %s is not supported", typ)
 	}
 
-	if _, err := net.ResolveUDPAddr("UDP", target.GetValue()); err != nil {
+	if _, err := net.ResolveUDPAddr("udp", target.GetValue()); err != nil {
 		return err
 	}
 
