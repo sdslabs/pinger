@@ -101,11 +101,14 @@ func (pr *TCPProber) Probe() (*TCPProbeResult, error) {
 		return nil, err
 	}
 
+	// Trim null characters from the buffer
+	response := string(bytes.Trim(buf.Bytes(), "\x00"))
+
 	return &TCPProbeResult{
 		Timeout:   false,
 		StartTime: startTime,
 		Duration:  time.Since(startTime),
-		Response:  buf.String(),
+		Response:  response,
 	}, nil
 }
 
