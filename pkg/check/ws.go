@@ -34,19 +34,19 @@ type WSChecker struct {
 
 // Type returns "Websocket" for a WSChecker.
 func (c *WSChecker) Type() string {
-	return string(WebsocketInputType)
+	return string(WSInputType)
 }
 
 // ExecuteCheck runs the check for given WSChecker.
 func (c *WSChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult, error) {
 	prober, err := probes.NewWSProber(c.URL, c.Messages, c.Headers, c.Timeout)
 	if err != nil {
-		return nil, err
+		return Stats{Successful: false}, nil
 	}
 
 	result, err := prober.Probe()
 	if err != nil {
-		return nil, err
+		return Stats{Successful: false}, nil
 	}
 
 	checkSuccessful := false

@@ -107,12 +107,12 @@ func (c *ICMPChecker) Type() string {
 func (c *ICMPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult, error) {
 	prober, err := probes.NewICMPProbe(c.Address, c.Timeout)
 	if err != nil {
-		return nil, fmt.Errorf("ICMP probe error: %s", err.Error())
+		return Stats{Successful: false}, nil
 	}
 
 	res, err := prober.Probe()
 	if err != nil {
-		return nil, fmt.Errorf("ICMP probe error: %s", err.Error())
+		return Stats{Successful: false}, nil
 	}
 
 	return Stats{

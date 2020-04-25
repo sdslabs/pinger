@@ -131,12 +131,12 @@ func (c *UDPChecker) Type() string {
 func (c *UDPChecker) ExecuteCheck(ctx context.Context) (controller.FunctionResult, error) {
 	prober, err := probes.NewUDPProbe(c.Address, c.Message, c.Timeout)
 	if err != nil {
-		return nil, fmt.Errorf("UDP probe error: %s", err.Error())
+		return Stats{Successful: false}, nil
 	}
 
 	res, err := prober.Probe()
 	if err != nil {
-		return nil, fmt.Errorf("UDP probe error: %s", err.Error())
+		return Stats{Successful: false}, nil
 	}
 
 	checkSuccessful := false
