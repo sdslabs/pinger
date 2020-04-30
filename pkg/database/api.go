@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -126,6 +127,13 @@ func GetPayloadByID(id uint) (*Payload, error) {
 
 // CreatePayload creates a payload with given type and value.
 func CreatePayload(payload *Payload) (*Payload, error) {
+	Check, err := GetCheckByID(payload.CheckID)
+	if err != nil {
+		return nil, err
+	}
+	if Check == nil {
+		return nil, errors.New("Check for given checkID of payload does not exists.")
+	}
 	tx := db.Create(payload)
 	return payload, tx.Error
 }
