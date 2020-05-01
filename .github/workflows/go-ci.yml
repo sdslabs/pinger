@@ -30,11 +30,11 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
 
-    - name: Setup tools (golangci-lint)
-      run: make install
-
     - name: Check out code into the repository root
       uses: actions/checkout@v2
+
+    - name: Setup tools (golangci-lint)
+      run: make install
 
     - name: Lint
       run: make lint
