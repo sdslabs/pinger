@@ -10,7 +10,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
 
     - name: Set up Go 1.x
@@ -24,6 +24,14 @@ jobs:
 
     - name: Build
       run: make build
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-18.04
+    steps:
+
+    - name: Setup tools (golangci-lint)
+      run: make install
 
     - name: Lint
       run: make lint
