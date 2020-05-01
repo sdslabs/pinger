@@ -15,4 +15,4 @@ then
 	exit "$vet_status"
 fi
 
-golangci-lint run
+$(go env GOPATH)/bin/golangci-lint run

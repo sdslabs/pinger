@@ -16,4 +16,4 @@ then
 fi
 
 # Run --fix with exit code 0 and don't display output of command
-golangci-lint run --fix --issues-exit-code 0 > /dev/null 2>&1
+$(go env GOPATH)/bin/golangci-lint run --fix --issues-exit-code 0 > /dev/null 2>&1
