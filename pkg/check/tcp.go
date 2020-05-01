@@ -66,7 +66,7 @@ func validateTCPCheck(agentCheck config.Check) error {
 
 func validateTCPInput(input config.Component) error {
 	val := input.GetValue()
-	if val != "ECHO" && val != "" {
+	if val != keyECHO && val != "" {
 		return fmt.Errorf("for TCP input provided: (%s), is not supported", val)
 	}
 

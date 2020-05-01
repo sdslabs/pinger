@@ -19,6 +19,7 @@ const (
 	keyTimeout     = "timeout"
 	keyURL         = "url"
 	keyAddress     = "address"
+	keyECHO        = "ECHO"
 )
 
 type validationFunction func(string) error

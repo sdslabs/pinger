@@ -54,7 +54,7 @@ func validateICMPCheck(agentCheck config.Check) error {
 
 func validateICMPInput(input config.Component) error {
 	val := input.GetValue()
-	if val != "PING" && val != "ECHO" && val != "" { // all of these mean the same
+	if val != "PING" && val != keyECHO && val != "" { // all of these mean the same
 		return fmt.Errorf("for ICMP input provided method (%s) is not supported", val)
 	}
 	return nil

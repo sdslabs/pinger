@@ -53,7 +53,7 @@ func (dc *DNSChecker) ExecuteCheck(context.Context) (controller.FunctionResult, 
 func validateDNSCheck(agentCheck config.Check) error {
 	// input value can only be empty or "ECHO" (standard)
 	inputValue := agentCheck.GetInput().GetValue()
-	if inputValue != "" && inputValue != "ECHO" {
+	if inputValue != "" && inputValue != keyECHO {
 		return fmt.Errorf("provided input value (%s) is not supported", inputValue)
 	}
 

@@ -66,7 +66,7 @@ func validateUDPCheck(agentCheck config.Check) error {
 
 func validateUDPInput(input config.Component) error {
 	val := input.GetValue()
-	if val != "ECHO" && val != "" {
+	if val != keyECHO && val != "" {
 		return fmt.Errorf("for UDP input provided: (%s), is not supported", val)
 	}
 
