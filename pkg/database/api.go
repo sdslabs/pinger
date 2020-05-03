@@ -56,8 +56,8 @@ func UpdateUserByID(id uint, user *User) (*User, error) {
 	return &u, tx.Error
 }
 
-// UpdateUserNameByEmail updates the Name of the user.
-func UpdateUserNameByEmail(email string, user *User) (*User, error) {
+// UpdateUserByEmail updates the user for given email.
+func UpdateUserByEmail(email string, user *User) (*User, error) {
 	u := User{}
 	u.Email = email
 	tx := db.Model(&u).Updates(*user)
