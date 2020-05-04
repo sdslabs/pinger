@@ -112,10 +112,10 @@ func CreateCheck(check *Check) (*Check, error) {
 }
 
 // UpdateCheckByID updates the check for given ID.
-func UpdateCheckByID(id, currentUserID uint, check *Check) (*Check, error) {
+func UpdateCheckByID(id, ownerID uint, check *Check) (*Check, error) {
 	c := Check{}
 	c.ID = id
-	tx := db.Model(&c).Where("owner_id = ?", currentUserID).Updates(*check)
+	tx := db.Model(&c).Where("owner_id = ?", ownerID).Updates(*check)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -123,8 +123,8 @@ func UpdateCheckByID(id, currentUserID uint, check *Check) (*Check, error) {
 }
 
 // DeleteCheckByID deletes check corresponding to given ID.
-func DeleteCheckByID(id, currentUserID uint) error {
-	tx := db.Where("id = ? AND owner_id = ?", id, currentUserID).Unscoped().Delete(&Check{})
+func DeleteCheckByID(id, ownerID uint) error {
+	tx := db.Where("id = ? AND owner_id = ?", id, ownerID).Unscoped().Delete(&Check{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -158,10 +158,10 @@ func CreatePayload(payload *Payload) (*Payload, error) {
 }
 
 // UpdatePayloadByID updates the payload for given ID.
-func UpdatePayloadByID(id, currentUserID uint, payload *Payload) (*Payload, error) {
+func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
 	p := Payload{}
 	p.ID = id
-	tx := db.Model(&p).Where("owner_id = ?", currentUserID).Updates(*payload)
+	tx := db.Model(&p).Where("check_id = ?", payload.CheckID).Updates(*payload)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -169,8 +169,8 @@ func UpdatePayloadByID(id, currentUserID uint, payload *Payload) (*Payload, erro
 }
 
 // DeletePayloadByID deletes a payload corresponding to given ID.
-func DeletePayloadByID(id, currentUserID uint) error {
-	tx := db.Where("id = ? AND owner_id = ?", id, currentUserID).Unscoped().Delete(&Payload{})
+func DeletePayloadByID(id uint) error {
+	tx := db.Where("id = ?", id).Unscoped().Delete(&Payload{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -230,10 +230,10 @@ func CreatePage(page *Page) (*Page, error) {
 }
 
 // UpdatePageByID updates the page for given ID.
-func UpdatePageByID(id, currentUserID uint, page *Page) (*Page, error) {
+func UpdatePageByID(id, ownerID uint, page *Page) (*Page, error) {
 	p := Page{}
 	p.ID = id
-	tx := db.Model(&p).Where("owner_id = ?", currentUserID).Updates(*page)
+	tx := db.Model(&p).Where("owner_id = ?", ownerID).Updates(*page)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -241,8 +241,8 @@ func UpdatePageByID(id, currentUserID uint, page *Page) (*Page, error) {
 }
 
 // DeletePageByID deletes a page corresponding to the given ID.
-func DeletePageByID(id, currentUserID uint) error {
-	tx := db.Where("id = ? AND user_id = ?", id, currentUserID).Delete(&Page{})
+func DeletePageByID(id, ownerID uint) error {
+	tx := db.Where("id = ? AND owner_id = ?", id, ownerID).Delete(&Page{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -279,7 +279,7 @@ func CreateIncident(incident *Incident) (*Incident, error) {
 func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
 	i := Incident{}
 	i.ID = id
-	tx := db.Model(&i).Updates(*incident)
+	tx := db.Model(&i).Where("page_id = ?", incident.PageID).Updates(*incident)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
