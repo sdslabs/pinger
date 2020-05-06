@@ -312,10 +312,10 @@ func RemoveIncidentsFromPage(pageID uint, incidents []*Incident) error {
 }
 
 // AddChecksToPage adds multiple checks to page.
-func AddChecksToPage(pageID uint, checks []*Check) error {
+func AddChecksToPage(ownerID, pageID uint, checks []*Check) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Checks").Append(checks).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Checks").Append(checks).Error
 }
 
 // RemoveChecksFromPage removes multiple checks from page.
