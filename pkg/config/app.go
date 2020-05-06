@@ -10,7 +10,8 @@ type OauthProviderConfig struct {
 
 type oauth = map[string]OauthProviderConfig
 
-type database struct {
+// Database contains the configuration and information to connect to the database
+type Database struct {
 	Host     string `mapstructure:"host" json:"host" yaml:"host" toml:"host"`
 	Port     int    `mapstructure:"port" json:"port" yaml:"port" toml:"port"`
 	Username string `mapstructure:"username" json:"username" yaml:"username" toml:"username"`
@@ -27,7 +28,7 @@ type AppConfig struct {
 	SecretVal string `mapstructure:"secret" json:"secret" yaml:"secret" toml:"secret"`
 
 	Oauth    oauth    `mapstructure:"oauth" json:"oauth" yaml:"oauth" toml:"oauth"`
-	Database database `mapstructure:"database" json:"database" yaml:"database" toml:"database"`
+	Database Database `mapstructure:"database" json:"database" yaml:"database" toml:"database"`
 }
 
 // Secret returns the secret key to encrypt tokens.

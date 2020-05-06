@@ -56,8 +56,8 @@ func UpdateUserByID(id uint, user *User) (*User, error) {
 	return &u, tx.Error
 }
 
-// UpdateUserNameByEmail updates the Name of the user.
-func UpdateUserNameByEmail(email string, user *User) (*User, error) {
+// UpdateUserByEmail updates the user for given email.
+func UpdateUserByEmail(email string, user *User) (*User, error) {
 	u := User{}
 	u.Email = email
 	tx := db.Model(&u).Updates(*user)
@@ -112,10 +112,10 @@ func CreateCheck(check *Check) (*Check, error) {
 }
 
 // UpdateCheckByID updates the check for given ID.
-func UpdateCheckByID(id uint, check *Check) (*Check, error) {
+func UpdateCheckByID(id, ownerID uint, check *Check) (*Check, error) {
 	c := Check{}
 	c.ID = id
-	tx := db.Model(&c).Updates(*check)
+	tx := db.Model(&c).Where("owner_id = ?", ownerID).Updates(*check)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -123,8 +123,8 @@ func UpdateCheckByID(id uint, check *Check) (*Check, error) {
 }
 
 // DeleteCheckByID deletes check corresponding to given ID.
-func DeleteCheckByID(id uint) error {
-	tx := db.Where("id = ?", id).Unscoped().Delete(&Check{})
+func DeleteCheckByID(id, ownerID uint) error {
+	tx := db.Where("id = ? AND owner_id = ?", id, ownerID).Unscoped().Delete(&Check{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -158,10 +158,10 @@ func CreatePayload(payload *Payload) (*Payload, error) {
 }
 
 // UpdatePayloadByID updates the payload for given ID.
-func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
+func UpdatePayloadByID(id, checkID uint, payload *Payload) (*Payload, error) {
 	p := Payload{}
 	p.ID = id
-	tx := db.Model(&p).Updates(*payload)
+	tx := db.Model(&p).Where("check_id = ?", checkID).Updates(*payload)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -169,8 +169,8 @@ func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
 }
 
 // DeletePayloadByID deletes a payload corresponding to given ID.
-func DeletePayloadByID(id uint) error {
-	tx := db.Where("id = ?", id).Unscoped().Delete(&Payload{})
+func DeletePayloadByID(id, checkID uint) error {
+	tx := db.Where("id = ? AND check_id = ?", id, checkID).Unscoped().Delete(&Payload{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -178,19 +178,19 @@ func DeletePayloadByID(id uint) error {
 }
 
 // AddPayloadsToCheck adds multiple payloads to page.
-func AddPayloadsToCheck(checkID uint, payloads []*Payload) error {
+func AddPayloadsToCheck(ownerID, checkID uint, payloads []*Payload) error {
 	check := Check{}
 	check.ID = checkID
-	return db.Model(&check).Association("Payloads").Append(payloads).Error
+	return db.Model(&check).Where("owner_id = ?", ownerID).Association("Payloads").Append(payloads).Error
 }
 
 // RemovePayloadsFromCheck removes multiple checks from a page.
 //
 // BUG(vrongmeal): This only removes the relationship and not the payloads.
-func RemovePayloadsFromCheck(checkID uint, payloads []*Payload) error {
+func RemovePayloadsFromCheck(ownerID, checkID uint, payloads []*Payload) error {
 	check := Check{}
 	check.ID = checkID
-	return db.Model(&check).Association("Payloads").Delete(payloads).Error
+	return db.Model(&check).Where("owner_id = ?", ownerID).Association("Payloads").Delete(payloads).Error
 }
 
 // GetAllPagesByOwner gets all the pages in owned by the user.
@@ -230,10 +230,10 @@ func CreatePage(page *Page) (*Page, error) {
 }
 
 // UpdatePageByID updates the page for given ID.
-func UpdatePageByID(id uint, page *Page) (*Page, error) {
+func UpdatePageByID(id, ownerID uint, page *Page) (*Page, error) {
 	p := Page{}
 	p.ID = id
-	tx := db.Model(&p).Updates(*page)
+	tx := db.Model(&p).Where("owner_id = ?", ownerID).Updates(*page)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -241,8 +241,8 @@ func UpdatePageByID(id uint, page *Page) (*Page, error) {
 }
 
 // DeletePageByID deletes a page corresponding to the given ID.
-func DeletePageByID(id uint) error {
-	tx := db.Where("id = ?", id).Delete(&Page{})
+func DeletePageByID(id, ownerID uint) error {
+	tx := db.Where("id = ? AND owner_id = ?", id, ownerID).Delete(&Page{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -276,10 +276,10 @@ func CreateIncident(incident *Incident) (*Incident, error) {
 }
 
 // UpdateIncidentByID updates the incident for given ID.
-func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
+func UpdateIncidentByID(id, pageID uint, incident *Incident) (*Incident, error) {
 	i := Incident{}
 	i.ID = id
-	tx := db.Model(&i).Updates(*incident)
+	tx := db.Model(&i).Where("page_id = ?", pageID).Updates(*incident)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -287,8 +287,8 @@ func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
 }
 
 // DeleteIncidentByID deletes a Incident corresponding to given ID.
-func DeleteIncidentByID(id uint) error {
-	tx := db.Where("id = ?", id).Unscoped().Delete(&Incident{})
+func DeleteIncidentByID(id, pageID uint) error {
+	tx := db.Where("id = ? AND page_id = ?", id, pageID).Unscoped().Delete(&Incident{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -296,47 +296,47 @@ func DeleteIncidentByID(id uint) error {
 }
 
 // AddIncidentsToPage adds multiple incidents to page.
-func AddIncidentsToPage(pageID uint, incidents []*Incident) error {
+func AddIncidentsToPage(ownerID, pageID uint, incidents []*Incident) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Incidents").Append(incidents).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Incidents").Append(incidents).Error
 }
 
 // RemoveIncidentsFromPage adds multiple checks to page.
 //
 // BUG(vrongmeal): This only removes the relationship and not the incidents.
-func RemoveIncidentsFromPage(pageID uint, incidents []*Incident) error {
+func RemoveIncidentsFromPage(ownerID, pageID uint, incidents []*Incident) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Incidents").Delete(incidents).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Incidents").Delete(incidents).Error
 }
 
 // AddChecksToPage adds multiple checks to page.
-func AddChecksToPage(pageID uint, checks []*Check) error {
+func AddChecksToPage(ownerID, pageID uint, checks []*Check) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Checks").Append(checks).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Checks").Append(checks).Error
 }
 
-// RemoveChecksFromPage adds multiple checks to page.
-func RemoveChecksFromPage(pageID uint, checks []*Check) error {
+// RemoveChecksFromPage removes multiple checks from page.
+func RemoveChecksFromPage(ownerID, pageID uint, checks []*Check) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Checks").Delete(checks).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Checks").Delete(checks).Error
 }
 
-// AddMembersToPageTeam adds multiple checks to page.
-func AddMembersToPageTeam(pageID uint, users []*User) error {
+// AddMembersToPageTeam adds users as new members to a team.
+func AddMembersToPageTeam(ownerID, pageID uint, users []*User) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Team").Append(users).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Team").Append(users).Error
 }
 
-// RemoveMembersFromPageTeam adds multiple checks to page.
-func RemoveMembersFromPageTeam(pageID uint, users []*User) error {
+// RemoveMembersFromPageTeam removes members from a team.
+func RemoveMembersFromPageTeam(ownerID, pageID uint, users []*User) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Team").Delete(users).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Team").Delete(users).Error
 }
 
 // GetMetricsByCheckAndStartTime fetches metrics from the metrics hypertable for the given check ID.
