@@ -178,19 +178,19 @@ func DeletePayloadByID(id, checkID uint) error {
 }
 
 // AddPayloadsToCheck adds multiple payloads to page.
-func AddPayloadsToCheck(checkID uint, payloads []*Payload) error {
+func AddPayloadsToCheck(ownerID, checkID uint, payloads []*Payload) error {
 	check := Check{}
 	check.ID = checkID
-	return db.Model(&check).Association("Payloads").Append(payloads).Error
+	return db.Model(&check).Where("owner_id = ?", ownerID).Association("Payloads").Append(payloads).Error
 }
 
 // RemovePayloadsFromCheck removes multiple checks from a page.
 //
 // BUG(vrongmeal): This only removes the relationship and not the payloads.
-func RemovePayloadsFromCheck(checkID uint, payloads []*Payload) error {
+func RemovePayloadsFromCheck(ownerID, checkID uint, payloads []*Payload) error {
 	check := Check{}
 	check.ID = checkID
-	return db.Model(&check).Association("Payloads").Delete(payloads).Error
+	return db.Model(&check).Where("owner_id = ?", ownerID).Association("Payloads").Delete(payloads).Error
 }
 
 // GetAllPagesByOwner gets all the pages in owned by the user.
@@ -296,19 +296,19 @@ func DeleteIncidentByID(id, pageID uint) error {
 }
 
 // AddIncidentsToPage adds multiple incidents to page.
-func AddIncidentsToPage(pageID uint, incidents []*Incident) error {
+func AddIncidentsToPage(ownerID, pageID uint, incidents []*Incident) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Incidents").Append(incidents).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Incidents").Append(incidents).Error
 }
 
 // RemoveIncidentsFromPage adds multiple checks to page.
 //
 // BUG(vrongmeal): This only removes the relationship and not the incidents.
-func RemoveIncidentsFromPage(pageID uint, incidents []*Incident) error {
+func RemoveIncidentsFromPage(ownerID, pageID uint, incidents []*Incident) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Incidents").Delete(incidents).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Incidents").Delete(incidents).Error
 }
 
 // AddChecksToPage adds multiple checks to page.
@@ -326,17 +326,17 @@ func RemoveChecksFromPage(ownerID, pageID uint, checks []*Check) error {
 }
 
 // AddMembersToPageTeam adds users as new members to a team.
-func AddMembersToPageTeam(pageID uint, users []*User) error {
+func AddMembersToPageTeam(ownerID, pageID uint, users []*User) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Team").Append(users).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Team").Append(users).Error
 }
 
 // RemoveMembersFromPageTeam removes members from a team.
-func RemoveMembersFromPageTeam(pageID uint, users []*User) error {
+func RemoveMembersFromPageTeam(ownerID, pageID uint, users []*User) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Association("Team").Delete(users).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Team").Delete(users).Error
 }
 
 // GetMetricsByCheckAndStartTime fetches metrics from the metrics hypertable for the given check ID.
