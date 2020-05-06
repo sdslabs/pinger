@@ -158,10 +158,10 @@ func CreatePayload(payload *Payload) (*Payload, error) {
 }
 
 // UpdatePayloadByID updates the payload for given ID.
-func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
+func UpdatePayloadByID(id, checkID uint, payload *Payload) (*Payload, error) {
 	p := Payload{}
 	p.ID = id
-	tx := db.Model(&p).Where("check_id = ?", payload.CheckID).Updates(*payload)
+	tx := db.Model(&p).Where("check_id = ?", checkID).Updates(*payload)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -169,8 +169,8 @@ func UpdatePayloadByID(id uint, payload *Payload) (*Payload, error) {
 }
 
 // DeletePayloadByID deletes a payload corresponding to given ID.
-func DeletePayloadByID(id uint) error {
-	tx := db.Where("id = ?", id).Unscoped().Delete(&Payload{})
+func DeletePayloadByID(id, checkID uint) error {
+	tx := db.Where("id = ? AND check_id = ?", id, checkID).Unscoped().Delete(&Payload{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -276,10 +276,10 @@ func CreateIncident(incident *Incident) (*Incident, error) {
 }
 
 // UpdateIncidentByID updates the incident for given ID.
-func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
+func UpdateIncidentByID(id, pageID uint, incident *Incident) (*Incident, error) {
 	i := Incident{}
 	i.ID = id
-	tx := db.Model(&i).Where("page_id = ?", incident.PageID).Updates(*incident)
+	tx := db.Model(&i).Where("page_id = ?", pageID).Updates(*incident)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -287,8 +287,8 @@ func UpdateIncidentByID(id uint, incident *Incident) (*Incident, error) {
 }
 
 // DeleteIncidentByID deletes a Incident corresponding to given ID.
-func DeleteIncidentByID(id uint) error {
-	tx := db.Where("id = ?", id).Unscoped().Delete(&Incident{})
+func DeleteIncidentByID(id, pageID uint) error {
+	tx := db.Where("id = ? AND page_id = ?", id, pageID).Unscoped().Delete(&Incident{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
