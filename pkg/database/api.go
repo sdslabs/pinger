@@ -319,21 +319,10 @@ func AddChecksToPage(pageID uint, checks []*Check) error {
 }
 
 // RemoveChecksFromPage removes multiple checks from page.
-// (burnerlee: currently, even not having right for a single check stops the entire page
-// operations.. open for changes)
-func RemoveChecksFromPage(pageID uint, checks []*Check) error {
-	currentPage, err := GetPageByID(pageID)
-	if err != nil {
-		return err
-	}
-	for _, check := range checks {
-		if check.OwnerID != currentPage.OwnerID {
-			return errors.New("You don't have permission to remove these checks")
-		}
-	}
-	page := Page{}
-	page.ID = pageID
-	return db.Model(&page).Association("Checks").Delete(checks).Error
+func RemoveChecksFromPage(ownerID, pageID uint, checks []*Check) error {
+    page := Page{}
+    page.ID = pageID
+    return db.Model(&page).Where("owner_id = ?", ownerID).Association("Checks").Delete(checks).Error
 }
 
 // AddMembersToPageTeam adds users as new members to a team.
