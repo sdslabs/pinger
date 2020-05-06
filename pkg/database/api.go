@@ -320,9 +320,9 @@ func AddChecksToPage(pageID uint, checks []*Check) error {
 
 // RemoveChecksFromPage removes multiple checks from page.
 func RemoveChecksFromPage(ownerID, pageID uint, checks []*Check) error {
-    page := Page{}
-    page.ID = pageID
-    return db.Model(&page).Where("owner_id = ?", ownerID).Association("Checks").Delete(checks).Error
+	page := Page{}
+	page.ID = pageID
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Checks").Delete(checks).Error
 }
 
 // AddMembersToPageTeam adds users as new members to a team.
