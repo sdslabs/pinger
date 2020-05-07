@@ -134,7 +134,7 @@ func DeleteCheckByID(id, ownerID uint) error {
 // GetAllPayloadsByCheck gets all the payloads belonging to a check.
 func GetAllPayloadsByCheck(checkID uint) ([]Payload, error) {
 	payloads := []Payload{}
-	tx := db.Where("check_id = ?", checkID).Preload("Check").Find(&payloads)
+	tx := db.Where("check_id = ?", checkID).Preload("Check").Preload("Owner").Find(&payloads)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -144,7 +144,7 @@ func GetAllPayloadsByCheck(checkID uint) ([]Payload, error) {
 // GetPayloadByID gets a payload corresponding to the ID.
 func GetPayloadByID(id uint) (*Payload, error) {
 	payload := Payload{}
-	tx := db.Where("id = ?", id).Preload("Check").Find(&payload)
+	tx := db.Where("id = ?", id).Preload("Check").Preload("Owner").Find(&payload)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -158,10 +158,10 @@ func CreatePayload(payload *Payload) (*Payload, error) {
 }
 
 // UpdatePayloadByID updates the payload for given ID.
-func UpdatePayloadByID(id, checkID uint, payload *Payload) (*Payload, error) {
+func UpdatePayloadByID(id, ownerID, checkID uint, payload *Payload) (*Payload, error) {
 	p := Payload{}
 	p.ID = id
-	tx := db.Model(&p).Where("check_id = ?", checkID).Updates(*payload)
+	tx := db.Model(&p).Where("check_id = ? AND owner_id = ?", checkID, ownerID).Updates(*payload)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -169,8 +169,8 @@ func UpdatePayloadByID(id, checkID uint, payload *Payload) (*Payload, error) {
 }
 
 // DeletePayloadByID deletes a payload corresponding to given ID.
-func DeletePayloadByID(id, checkID uint) error {
-	tx := db.Where("id = ? AND check_id = ?", id, checkID).Unscoped().Delete(&Payload{})
+func DeletePayloadByID(id, ownerID, checkID uint) error {
+	tx := db.Where("id = ? AND check_id = ? AND owner_id = ?", id, checkID, ownerID).Unscoped().Delete(&Payload{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}
@@ -252,7 +252,7 @@ func DeletePageByID(id, ownerID uint) error {
 // GetAllIncidentsByPage gets all the incidents for the given page ID.
 func GetAllIncidentsByPage(pageID uint) ([]Incident, error) {
 	incidents := []Incident{}
-	tx := db.Where("page_id = ?", pageID).Preload("Page").Find(&incidents)
+	tx := db.Where("page_id = ?", pageID).Preload("Page").Preload("Owner").Find(&incidents)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -262,7 +262,7 @@ func GetAllIncidentsByPage(pageID uint) ([]Incident, error) {
 // GetIncidentByID gets incident corresponding to given ID.
 func GetIncidentByID(id uint) (*Incident, error) {
 	incident := Incident{}
-	tx := db.Where("id = ?", id).Preload("Page").Find(&incident)
+	tx := db.Where("id = ?", id).Preload("Page").Preload("Owner").Find(&incident)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -276,10 +276,10 @@ func CreateIncident(incident *Incident) (*Incident, error) {
 }
 
 // UpdateIncidentByID updates the incident for given ID.
-func UpdateIncidentByID(id, pageID uint, incident *Incident) (*Incident, error) {
+func UpdateIncidentByID(id, ownerID, pageID uint, incident *Incident) (*Incident, error) {
 	i := Incident{}
 	i.ID = id
-	tx := db.Model(&i).Where("page_id = ?", pageID).Updates(*incident)
+	tx := db.Model(&i).Where("page_id = ? AND owner_id = ?", pageID, ownerID).Updates(*incident)
 	if tx.RecordNotFound() {
 		return nil, ErrRecordNotFound
 	}
@@ -287,8 +287,8 @@ func UpdateIncidentByID(id, pageID uint, incident *Incident) (*Incident, error) 
 }
 
 // DeleteIncidentByID deletes a Incident corresponding to given ID.
-func DeleteIncidentByID(id, pageID uint) error {
-	tx := db.Where("id = ? AND page_id = ?", id, pageID).Unscoped().Delete(&Incident{})
+func DeleteIncidentByID(id, ownerID, pageID uint) error {
+	tx := db.Where("id = ? AND page_id = ? AND owner_id = ?", id, pageID, ownerID).Unscoped().Delete(&Incident{})
 	if tx.RecordNotFound() {
 		return ErrRecordNotFound
 	}

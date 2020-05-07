@@ -33,6 +33,8 @@ type Check struct {
 // Payload model.
 type Payload struct {
 	gorm.Model
+	Owner   User
+	OwnerID uint
 	CheckID uint
 	Check   Check
 	Type    string `gorm:"NOT NULL"`
@@ -55,6 +57,8 @@ type Page struct {
 // Incident model.
 type Incident struct {
 	gorm.Model
+	Owner       User
+	OwnerID     uint
 	PageID      uint
 	Page        Page
 	TimeStamp   *time.Time    `gorm:"NOT NULL"`
