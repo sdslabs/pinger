@@ -14,4 +14,13 @@ COPY . .
 
 RUN /bin/ash scripts/build.sh
 
-CMD ["status","agent","-s","--metrics-backend=log"]
+CMD status agent \
+    --metrics-db-name=$METRICS_DB_NAME \
+    --metrics-host=$METRICS_HOST \
+    --metrics-interval=$METRICS_INTERVAL \
+    --metrics-password=$METRICS_PASSWORD \
+    --metrics-port=$METRICS_PORT \
+    --metrics-ssl-mode=$METRICS_SSL_MODE \
+    --metrics-username=$METRICS_USERNAME \
+    --port=$PORT
+    
