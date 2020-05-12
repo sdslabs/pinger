@@ -1,0 +1,17 @@
+FROM golang:1.14.2-alpine3.11
+
+ENV METRICS_DB_NAME "status-dev"
+ENV METRICS_HOST "127.0.0.1"
+ENV METRICS_INTERVAL "2m"
+ENV METRICS_PASSWORD "password"
+ENV METRICS_PORT "5432"
+ENV METRICS_SSL_MODE "true"
+ENV METRICS_USERNAME "vrongmeal"
+ENV PORT "9019"
+
+WORKDIR /agent
+COPY . .
+
+RUN /bin/ash scripts/build.sh
+
+CMD ["status","agent","-s","--metrics-backend=log"]
