@@ -6,13 +6,12 @@ import (
 	"net"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	"github.com/sdslabs/status/pkg/api/central/proto"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/defaults"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // Server runs the central-server that listens for requests from the app server
