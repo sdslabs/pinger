@@ -33,10 +33,10 @@ type Check struct {
 // PageTeam model.
 type PageTeam struct {
 	Page   *Page
-	PageID int
+	PageID uint `gorm:"primary_key;auto_increment:false"`
 	User   *User
-	UserID int
-	Role   string
+	UserID uint
+	Role   string `gorm:"primary_key;auto_increment:false"`
 }
 
 // Payload model.
