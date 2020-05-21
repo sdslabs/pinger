@@ -30,6 +30,15 @@ type Check struct {
 	Payloads    []Payload     `gorm:"foreignkey:CheckID"`
 }
 
+// PageTeam model.
+type PageTeam struct {
+	Page   *Page
+	PageID int
+	User   *User
+	UserID int
+	Role   string
+}
+
 // Payload model.
 type Payload struct {
 	gorm.Model
@@ -50,8 +59,8 @@ type Page struct {
 	Title       string     `gorm:"NOT NULL"`
 	Description string     `gorm:"TYPE:text"`
 	Checks      []Check    `gorm:"many2many:page_checks"`
-	Team        []User     `gorm:"many2many:page_team"`
 	Incidents   []Incident `gorm:"foreignkey:PageID"`
+	Team        []PageTeam
 }
 
 // Incident model.
