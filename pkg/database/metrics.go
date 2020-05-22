@@ -22,7 +22,10 @@ func getControllerDoFunc(ex *metrics.TimescaleExporter) controllerFunc {
 
 		stats := ex.PullLatestControllerStatistics()
 		if len(stats) == 0 {
-			return nil, nil
+			return &metrics.FunctionResult{
+				StartTime: start,
+				Success:   true,
+			}, nil
 		}
 
 		metricsToInsert := []Metric{}
@@ -48,6 +51,7 @@ func getControllerDoFunc(ex *metrics.TimescaleExporter) controllerFunc {
 			return nil, err
 		}
 
+		log.Infoln("inserted metrics into the database")
 		return &metrics.FunctionResult{
 			Duration:  time.Since(start),
 			StartTime: start,
