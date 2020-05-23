@@ -35,8 +35,8 @@ type PageTeam struct {
 	Page   *Page
 	PageID uint `gorm:"primary_key;auto_increment:false"`
 	User   *User
-	UserID uint
-	Role   string `gorm:"primary_key;auto_increment:false"`
+	UserID uint `gorm:"primary_key;auto_increment:false"`
+	Role   string
 }
 
 // Payload model.
