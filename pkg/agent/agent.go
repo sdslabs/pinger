@@ -50,7 +50,7 @@ func NewAgent(conf *config.AgentConfig) (*Agent, error) {
 }
 
 // Run updates the checks with the manager and starts the execution of checks.
-func (a *Agent) Run() {
+func (a *Agent) Run() error {
 	// Register the already added checks with the agent.
 	for _, c := range a.confChecks {
 		if err := a.registerCheck(c); err != nil {
@@ -62,10 +62,11 @@ func (a *Agent) Run() {
 	if a.standalone {
 		// Just keep waiting for termination in standalone mode.
 		a.manager.Wait()
-	} else {
-		// Start the GRPC server if running with a central api server.
-		a.runGRPCServer()
+		return nil
 	}
+
+	// Start the GRPC server if running with a central api server.
+	return a.runGRPCServer()
 }
 
 // PushCheck pushes the check in the agent.

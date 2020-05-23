@@ -6,10 +6,11 @@ import (
 	"net"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/sdslabs/status/pkg/api/central/proto"
 	"github.com/sdslabs/status/pkg/config"
 	"github.com/sdslabs/status/pkg/defaults"
-	"google.golang.org/grpc"
 
 	log "github.com/sirupsen/logrus"
 )

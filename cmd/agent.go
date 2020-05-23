@@ -66,7 +66,7 @@ does not run any GRPC server.`,
 		}
 
 		log.WithField("standalone", agentConf.Standalone).Infoln("running agent")
-		a.Run()
+		log.WithError(a.Run()).Fatalln("stopped running agent")
 	},
 }
 
