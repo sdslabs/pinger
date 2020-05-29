@@ -30,15 +30,6 @@ type Check struct {
 	Payloads    []Payload     `gorm:"foreignkey:CheckID"`
 }
 
-// PageTeam model.
-type PageTeam struct {
-	Page   *Page
-	PageID uint `gorm:"primary_key;auto_increment:false"`
-	User   *User
-	UserID uint `gorm:"primary_key;auto_increment:false"`
-	Role   string
-}
-
 // Payload model.
 type Payload struct {
 	gorm.Model
@@ -85,4 +76,13 @@ type Metric struct {
 	Duration  time.Duration `gorm:"NOT NULL"`
 	Timeout   bool          `gorm:"NOT NULL"`
 	Success   bool          `gorm:"NOT NULL"`
+}
+
+// PageTeam model.
+type PageTeam struct {
+	Page   *Page
+	PageID uint `gorm:"primary_key;auto_increment:false"`
+	User   *User
+	UserID uint `gorm:"primary_key;auto_increment:false"`
+	Role   string
 }
