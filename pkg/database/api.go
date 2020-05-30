@@ -198,7 +198,7 @@ func GetAllPagesByOwner(ownerID uint) ([]Page, error) {
 	pages := []Page{}
 	tx := db.Where("owner_id = ?", ownerID).
 		Preload("Checks").
-		Preload("Team").
+		Preload("Team.User").
 		Preload("Incidents").
 		Preload("Owner").
 		Find(&pages)
@@ -213,7 +213,7 @@ func GetPageByID(id uint) (*Page, error) {
 	page := Page{}
 	tx := db.Where("id = ?", id).
 		Preload("Checks").
-		Preload("Team").
+		Preload("Team.User").
 		Preload("Incidents").
 		Preload("Owner").
 		Find(&page)
@@ -326,17 +326,17 @@ func RemoveChecksFromPage(ownerID, pageID uint, checks []*Check) error {
 }
 
 // AddMembersToPageTeam adds users as new members to a team.
-func AddMembersToPageTeam(ownerID, pageID uint, users []*User) error {
+func AddMembersToPageTeam(ownerID, pageID uint, team []*PageTeam) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Team").Append(users).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Team").Append(team).Error
 }
 
 // RemoveMembersFromPageTeam removes members from a team.
-func RemoveMembersFromPageTeam(ownerID, pageID uint, users []*User) error {
+func RemoveMembersFromPageTeam(ownerID, pageID uint, team []*PageTeam) error {
 	page := Page{}
 	page.ID = pageID
-	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Team").Delete(users).Error
+	return db.Model(&page).Where("owner_id = ?", ownerID).Association("Team").Delete(team).Error
 }
 
 // GetMetricsByCheckAndStartTime fetches metrics from the metrics hypertable for the given check ID.

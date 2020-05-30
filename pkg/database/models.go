@@ -50,8 +50,8 @@ type Page struct {
 	Title       string     `gorm:"NOT NULL"`
 	Description string     `gorm:"TYPE:text"`
 	Checks      []Check    `gorm:"many2many:page_checks"`
-	Team        []User     `gorm:"many2many:page_team"`
 	Incidents   []Incident `gorm:"foreignkey:PageID"`
+	Team        []PageTeam
 }
 
 // Incident model.
@@ -76,4 +76,13 @@ type Metric struct {
 	Duration  time.Duration `gorm:"NOT NULL"`
 	Timeout   bool          `gorm:"NOT NULL"`
 	Success   bool          `gorm:"NOT NULL"`
+}
+
+// PageTeam model.
+type PageTeam struct {
+	Page   *Page
+	PageID uint `gorm:"primary_key;auto_increment:false"`
+	User   *User
+	UserID uint `gorm:"primary_key;auto_increment:false"`
+	Role   string
 }

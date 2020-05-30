@@ -45,7 +45,8 @@ func initFromProvider(conf *metrics.ProviderConfig) error {
 		&Payload{},
 		&Page{},
 		&Incident{},
-		&Metric{}).Error; err != nil {
+		&Metric{},
+		&PageTeam{}).Error; err != nil {
 		return err
 	}
 
