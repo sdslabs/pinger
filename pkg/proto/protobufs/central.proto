@@ -1,0 +1,22 @@
+// Copyright (c) 2020 SDSLabs
+// Use of this source code is governed by an MIT license
+// details of which can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package proto;
+
+import "messages.proto";
+
+// Central service can list, push (create and update) and remove checks.
+service Central {
+  // ListChecks fetches a list of checks registered.
+  rpc ListChecks(Nil) returns (CheckList) {}
+
+  // PushCheck creates a new check. If the check already exists it simply
+  // updates the check.
+  rpc PushCheck(Check) returns (BoolResponse) {}
+
+  // RemoveCheck removes the check.
+  rpc RemoveCheck(CheckID) returns (BoolResponse) {}
+}

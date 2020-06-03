@@ -1,0 +1,46 @@
+// Copyright (c) 2020 SDSLabs
+// Use of this source code is governed by an MIT license
+// details of which can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package proto;
+
+// BoolResponse represents a boolean response where the action could either
+// be successful or unsuccessful. If the action is not-successful, error is
+// returned as the reason for the same.
+message BoolResponse {
+  bool Successful = 1;
+  string Error = 2;
+}
+
+// Nil represents an nil message.
+message Nil {}
+
+// Check represents the configuration for a check that can be pushed to or
+// removed from an agent.
+message Check {
+  uint32 ID = 1;
+  string Name = 2;
+
+  int64 Interval = 3;
+  int64 Timeout = 4;
+
+  Component Input = 5;
+  Component Output = 6;
+  Component Target = 7;
+  repeated Component Payloads = 8;
+}
+
+// Component represents a key-value pair. This can be used for representing
+// input, output, target etc. for a check.
+message Component {
+  string Type = 1;
+  string Value = 2;
+}
+
+// CheckID is the ID of the check on which the action will be invoked.
+message CheckID { uint32 ID = 1; }
+
+// CheckList is a list of multiple checks.
+message CheckList { repeated CheckID checks = 1; }
