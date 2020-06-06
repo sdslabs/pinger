@@ -5,8 +5,10 @@
 package agent
 
 import (
+	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -15,7 +17,7 @@ import (
 	"github.com/sdslabs/status/internal/config"
 	"github.com/sdslabs/status/internal/config/configfile"
 	"github.com/sdslabs/status/internal/controller"
-	"github.com/sdslabs/status/internal/metrics"
+	"github.com/sdslabs/status/internal/exporter"
 	"github.com/sdslabs/status/pkg/proto"
 )
 
@@ -25,10 +27,20 @@ import (
 // it's execution to end or it starts the GRPC API server for the central
 // server to interact with.
 func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
+	if conf.Interval <= 0 {
+		return fmt.Errorf("interval should be > 0")
+	}
+
 	manager := controller.NewManager(ctx)
 	checks := config.CheckListToInterface(conf.Checks)
 
-	if err := metrics.Initialize(ctx, manager, &conf.Metrics, checks); err != nil {
+	export, err := exporter.Initialize(ctx, &conf.Metrics, checks)
+	if err != nil {
+		return fmt.Errorf("cannot initialize exporter: %w", err)
+	}
+
+	err = initExportAndAlerts(ctx, conf.Interval, manager, export)
+	if err != nil {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}
 
@@ -48,6 +60,70 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 	}
 
 	return runGRPCServer(manager, conf.Port)
+}
+
+// doFunc is the function that does the exporting and alerting.
+type doFunc = func(context.Context, []checker.Metric) error
+
+// initExportAndAlerts initializes the controller for exporting and alerting
+// the metrics.
+func initExportAndAlerts(
+	ctx *appcontext.Context,
+	interval time.Duration,
+	manager *controller.Manager,
+	export /*, alert*/ doFunc,
+) error {
+	ctrl, err := controller.NewController(ctx, &controller.Opts{
+		Name:     "metrics_export_and_alert",
+		Interval: interval,
+		Func: func(c context.Context) (interface{}, error) {
+			stats := manager.PullAllStats()
+			metrics := []checker.Metric{}
+			for _, stat := range stats {
+				for _, s := range stat {
+					if s == nil {
+						continue
+					}
+
+					res, ok := s.Res.(*checker.Result)
+					if !ok {
+						ctx.Logger().
+							WithField("check_id", s.ID).
+							Warnln("unexpected error: check result not checker.Result")
+						continue
+					}
+
+					metric := &config.Metric{
+						CheckID:    s.ID,
+						CheckName:  s.Name,
+						Successful: res.Successful,
+						Timeout:    res.Timeout,
+						StartTime:  res.StartTime,
+						Duration:   res.Duration,
+					}
+					metrics = append(metrics, metric)
+				}
+			}
+
+			// Export metrics into the database
+			if er := export(ctx, metrics); er != nil {
+				ctx.Logger().
+					WithError(er).
+					Errorln("error exporting metrics")
+				return nil, er
+			}
+
+			// TODO: Alert metrics (in a separate thread than this)
+
+			return nil, nil
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	ctrl.Start()
+	return nil
 }
 
 // runGRPCServer starts the GRPC server that exposes an API for the central

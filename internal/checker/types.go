@@ -37,3 +37,16 @@ type Component interface {
 	GetType() string  // Returns the type.
 	GetValue() string // Returns the value.
 }
+
+// Metric is anything that tells if the check is successful or not. It also
+// tells if the check timed out, the start time and duration of check.
+type Metric interface {
+	GetCheckID() uint
+	GetCheckName() string
+
+	IsSuccessful() bool
+	IsTimeout() bool
+
+	GetStartTime() time.Time
+	GetDuration() time.Duration
+}

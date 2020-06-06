@@ -6,5 +6,5 @@ package agent
 
 import (
 	// Register all the metrics exporters here.
-	_ "github.com/sdslabs/status/internal/metrics/log"
+	_ "github.com/sdslabs/status/internal/exporter/log"
 )
