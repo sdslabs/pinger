@@ -6,13 +6,16 @@ package commands
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/sdslabs/status/internal/appcontext"
 )
 
 // NewRootCmd creates a new root command for pinger.
-func NewRootCmd(ctx *appcontext.Context) *cobra.Command {
-	return &cobra.Command{
+func NewRootCmd(ctx *appcontext.Context) (*cobra.Command, error) {
+	v := viper.New()
+
+	cmd := &cobra.Command{
 		Use:   "pinger",
 		Short: "Entry-point for pinger CLI",
 		Long: `
@@ -27,4 +30,14 @@ of the application.`,
 			}
 		},
 	}
+
+	// add various commands
+	if err := addCommands(ctx, v, cmd,
+		// Add commands here
+		newAgentCmd,
+	); err != nil {
+		return nil, err
+	}
+
+	return cmd, nil
 }

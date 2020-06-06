@@ -18,14 +18,23 @@ func main() {
 	// Parent context for the application.
 	ctx, cancel := appcontext.WithSignals(
 		appcontext.Background(),
-		os.Interrupt, os.Kill,
+		os.Interrupt, os.Kill, // Exit on interrupt or kill
 	)
 	defer cancel()
 
-	cmd := commands.NewRootCmd(ctx)
-	if err := cmd.Execute(); err != nil {
+	cmd, err := commands.NewRootCmd(ctx)
+	if err != nil {
+		ctx.Logger().
+			WithError(err).
+			Fatalln("cannot create pinger command")
+		return
+	}
+
+	err = cmd.Execute()
+	if err != nil {
 		ctx.Logger().
 			WithError(err).
 			Fatalln("cannot execute pinger command")
+		return
 	}
 }
