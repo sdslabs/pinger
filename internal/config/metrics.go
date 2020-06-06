@@ -7,21 +7,63 @@ package config
 import (
 	"time"
 
-	"github.com/sdslabs/status/internal/metrics"
+	"github.com/sdslabs/status/internal/checker"
+	"github.com/sdslabs/status/internal/exporter"
 )
+
+// Metric represents the result of a check.
+//
+// Implements the checker.Metric interface.
+type Metric struct {
+	CheckID    uint
+	CheckName  string
+	Successful bool
+	Timeout    bool
+	StartTime  time.Time
+	Duration   time.Duration
+}
+
+// GetCheckID returns the ID of the check for which the metric is.
+func (m *Metric) GetCheckID() uint {
+	return m.CheckID
+}
+
+// GetCheckName returns the name of the check.
+func (m *Metric) GetCheckName() string {
+	return m.CheckName
+}
+
+// IsSuccessful tells if the check was successful.
+func (m *Metric) IsSuccessful() bool {
+	return m.Successful
+}
+
+// IsTimeout tells if the check timed-out.
+func (m *Metric) IsTimeout() bool {
+	return m.Timeout
+}
+
+// GetStartTime returns the start-time of the check.
+func (m *Metric) GetStartTime() time.Time {
+	return m.StartTime
+}
+
+// GetDuration returns the duration that check took to run.
+func (m *Metric) GetDuration() time.Duration {
+	return m.Duration
+}
 
 // MetricsProvider represents the configuration of a metrics exporter.
 //
 // Implements the metrics.Provider interface.
 type MetricsProvider struct {
-	Backend  string        `mapstructure:"backend" json:"backend"`
-	Host     string        `mapstructure:"host" json:"host"`
-	Port     int           `mapstructure:"port" json:"port"`
-	DBName   string        `mapstructure:"db_name" json:"db_name"`
-	Username string        `mapstructure:"username" json:"username"`
-	Password string        `mapstructure:"password" json:"password"`
-	SSLMode  bool          `mapstructure:"ssl_mode" json:"ssl_mode"`
-	Interval time.Duration `mapstructure:"interval" json:"interval"`
+	Backend  string `mapstructure:"backend" json:"backend"`
+	Host     string `mapstructure:"host" json:"host"`
+	Port     int    `mapstructure:"port" json:"port"`
+	DBName   string `mapstructure:"db_name" json:"db_name"`
+	Username string `mapstructure:"username" json:"username"`
+	Password string `mapstructure:"password" json:"password"`
+	SSLMode  bool   `mapstructure:"ssl_mode" json:"ssl_mode"`
 }
 
 // GetBackend returns the backend of the provider.
@@ -60,10 +102,8 @@ func (m *MetricsProvider) IsSSLMode() bool {
 	return m.SSLMode
 }
 
-// GetInterval returns the interval after which metrics are exported.
-func (m *MetricsProvider) GetInterval() time.Duration {
-	return m.Interval
-}
-
-// Interface guard.
-var _ metrics.Provider = (*MetricsProvider)(nil)
+// Interface guards.
+var (
+	_ checker.Metric    = (*Metric)(nil)
+	_ exporter.Provider = (*MetricsProvider)(nil)
+)

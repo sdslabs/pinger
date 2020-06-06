@@ -2,9 +2,7 @@
 // Use of this source code is governed by an MIT license
 // details of which can be found in the LICENSE file.
 
-package metrics
-
-import "time"
+package exporter
 
 // Provider is anything that can be used to configure and create a metrics
 // exporter.
@@ -17,6 +15,4 @@ type Provider interface {
 	GetUsername() string // Returns the username.
 	GetPassword() string // Returns the password.
 	IsSSLMode() bool     // Tells if connection is through SSL mode.
-
-	GetInterval() time.Duration // Returns the interval after which metrics are exported.
 }

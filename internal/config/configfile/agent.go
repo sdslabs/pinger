@@ -4,12 +4,18 @@
 
 package configfile
 
-import "github.com/sdslabs/status/internal/config"
+import (
+	"time"
+
+	"github.com/sdslabs/status/internal/config"
+)
 
 // Agent represents the configuration for an agent.
 type Agent struct {
 	Standalone bool                   `mapstructure:"standalone" json:"standalone"`
 	Port       uint16                 `mapstructure:"port" json:"port"`
 	Metrics    config.MetricsProvider `mapstructure:"metrics" json:"metrics"`
-	Checks     []config.Check         `mapstructure:"checks" json:"checks"`
+	// TODO: Alerts
+	Interval time.Duration  `mapstructure:"interval" json:"interval"`
+	Checks   []config.Check `mapstructure:"checks" json:"checks"`
 }

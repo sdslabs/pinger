@@ -2,14 +2,14 @@
 // Use of this source code is governed by an MIT license
 // details of which can be found in the LICENSE file.
 
-package metrics
+package exporter
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/sdslabs/status/internal/appcontext"
 	"github.com/sdslabs/status/internal/checker"
-	"github.com/sdslabs/status/internal/controller"
 )
 
 // This map stores all the exporters. The only way to add a new exporter in
@@ -39,55 +39,34 @@ type Exporter interface {
 
 	// Provision provisions the exporter. Creates database connection and
 	// sets other configuration for the exporter.
-	Provision(Provider) error
+	Provision(*appcontext.Context, Provider) error
 
-	// ExporterFunc returns the controller runner function that is run by
-	// the exporter at regular intervals and actually does the exporting of
-	// metrics.
-	ExporterFunc(*appcontext.Context, *controller.Manager) (controller.RunnerFunc, error)
+	// Export is the function that does the actual exporting.
+	Export(context.Context, []checker.Metric) error
 }
 
-// Initialize method initializes the exporter.
-func Initialize(
-	ctx *appcontext.Context,
-	manager *controller.Manager,
-	provider Provider,
-	checks []checker.MutableCheck,
-) error {
+// exportFunc is the function that is used to export the metrics into the
+// provider.
+type exportFunc = func(context.Context, []checker.Metric) error
+
+// Initialize method initializes the exporter and returns a function that
+// exports the metrics.
+func Initialize(ctx *appcontext.Context, provider Provider, checks []checker.MutableCheck) (exportFunc, error) {
 	name := provider.GetBackend()
 	newExporter, ok := exporters[name]
 	if !ok {
-		return fmt.Errorf("exporter with name does not exist: %s", name)
-	}
-
-	if provider.GetInterval() <= 0 {
-		return fmt.Errorf("interval should be > 0")
+		return nil, fmt.Errorf("exporter with name does not exist: %s", name)
 	}
 
 	exporter := newExporter()
 
 	if err := exporter.PrepareChecks(checks); err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := exporter.Provision(provider); err != nil {
-		return err
+	if err := exporter.Provision(ctx, provider); err != nil {
+		return nil, err
 	}
 
-	runnerFunc, err := exporter.ExporterFunc(ctx, manager)
-	if err != nil {
-		return err
-	}
-
-	ctrl, err := controller.NewController(ctx, &controller.Opts{
-		Name:     fmt.Sprintf("exporter_%s", provider.GetBackend()),
-		Interval: provider.GetInterval(),
-		Func:     runnerFunc,
-	})
-	if err != nil {
-		return err
-	}
-
-	ctrl.Start()
-	return nil
+	return exporter.Export, nil
 }
