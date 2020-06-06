@@ -1,8 +1,10 @@
-test/
-*.test
-tmp/
-database.sqlite
+# Default configs
 app.yml
 central.yml
 agent.yml
+
+# Prometheus data
 data/
+
+# Build
+target/
