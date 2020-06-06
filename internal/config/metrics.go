@@ -59,7 +59,7 @@ func (m *Metric) GetDuration() time.Duration {
 type MetricsProvider struct {
 	Backend  string `mapstructure:"backend" json:"backend"`
 	Host     string `mapstructure:"host" json:"host"`
-	Port     int    `mapstructure:"port" json:"port"`
+	Port     uint16 `mapstructure:"port" json:"port"`
 	DBName   string `mapstructure:"db_name" json:"db_name"`
 	Username string `mapstructure:"username" json:"username"`
 	Password string `mapstructure:"password" json:"password"`
@@ -78,7 +78,7 @@ func (m *MetricsProvider) GetHost() string {
 
 // GetPort returns the port of the database provider.
 func (m *MetricsProvider) GetPort() uint16 {
-	return uint16(m.Port)
+	return m.Port
 }
 
 // GetDBName returns the database name of the provider.
