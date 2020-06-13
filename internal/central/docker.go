@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"os"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -28,12 +28,13 @@ type Container struct {
 	Env map[string]interface{}
 }
 
+// DockerClient is a wrapper over the docker cllient struct.
 type DockerClient struct {
 	c *client.Client
 }
 
-// CreateAndStartContainer creates and starts a new container
-func (cli DockerClient) CreateAndStartContainer(ctx context.Context, containerConfig *Container) (string, error) {
+// createAndStartContainer creates and starts a new container
+func (cli *DockerClient) createAndStartContainer(ctx context.Context, containerConfig *Container) (string, error) {
 	// convert map to list of strings
 	envArr := []string{}
 	for key, value := range containerConfig.Env {
@@ -52,7 +53,7 @@ func (cli DockerClient) CreateAndStartContainer(ctx context.Context, containerCo
 
 	hostConf := &container.HostConfig{
 		PortBindings: nat.PortMap{
-			nat.Port(containerPortRule): []nat.PortBinding{{
+			containerPortRule: []nat.PortBinding{{
 				HostIP:   "0.0.0.0",
 				HostPort: fmt.Sprintf("%d", containerConfig.ContainerPort)}},
 		},
@@ -72,30 +73,18 @@ func (cli DockerClient) CreateAndStartContainer(ctx context.Context, containerCo
 	return containerID, nil
 }
 
-// StopAndRemoveContainer stops and removes the container from the docker host
-func (cli DockerClient) StopAndRemoveContainer(ctx context.Context, containerID string) error {
-	inspectVal, _, err := cli.c.ContainerInspectWithRaw(ctx, containerID, false)
+// stopAndRemoveContainer stops and removes the container from the docker host
+func (cli *DockerClient) stopAndRemoveContainer(ctx context.Context, containerID string) error {
+	err := cli.c.ContainerStop(ctx, containerID, nil)
 	if err != nil {
 		return err
 	}
 
-	if inspectVal.ID != "" {
-		err = cli.c.ContainerStop(ctx, containerID, nil)
-		if err != nil {
-			return err
-		}
-
-		err = cli.c.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{Force: true})
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return cli.c.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{Force: true})
 }
 
-// InspectContainer returns container state by using containerID
-func (cli DockerClient) InspectContainer(ctx context.Context, containerID string) (*types.ContainerState, error) {
+// inspectContainer returns container state by using containerID
+func (cli *DockerClient) inspectContainer(ctx context.Context, containerID string) (*types.ContainerState, error) {
 	containerStatus, err := cli.c.ContainerInspect(ctx, containerID)
 	if err != nil {
 		return nil, err
@@ -103,23 +92,18 @@ func (cli DockerClient) InspectContainer(ctx context.Context, containerID string
 	return containerStatus.ContainerJSONBase.State, nil
 }
 
-// ListContainers returns a list of containers ids
-func (cli DockerClient) ListContainers(ctx context.Context) ([]types.Container, error) {
+// listContainers returns a list of containers ids
+func (cli *DockerClient) listContainers(ctx context.Context) ([]types.Container, error) {
 	containers, err := cli.c.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	list := make([]types.Container, 1)
-
-	for _, container := range containers {
-		list = append(list, container)
-	}
-	return list, nil
+	return containers, nil
 }
 
-// ReadLogs returns the logs from a docker container
-func (cli DockerClient) ReadLogs(ctx context.Context, containerID, tail string) ([]string, error) {
+// readLogs returns the logs from a docker container
+func (cli *DockerClient) readLogs(ctx context.Context, containerID, tail string) ([]string, error) {
 	reader, err := cli.c.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{
 		ShowStderr: true,
 		ShowStdout: true,
@@ -131,7 +115,7 @@ func (cli DockerClient) ReadLogs(ctx context.Context, containerID, tail string) 
 		return nil, err
 	}
 
-	defer reader.Close()
+	defer reader.Close() //nolint:errcheck
 
 	logs := []string{}
 	hdr := make([]byte, 8)
@@ -149,55 +133,27 @@ func (cli DockerClient) ReadLogs(ctx context.Context, containerID, tail string) 
 		logs = append(logs, string(dat))
 
 		if err != nil {
+			if err == io.EOF {
+				break
+			}
 			return logs, err
 		}
 	}
+	return logs, nil
 }
 
-// PullImage requests the host to pull an image
-func (cli DockerClient) PullImage(ctx context.Context, image string) error {
+// pullImage requests the host to pull an image
+func (cli *DockerClient) pullImage(ctx context.Context, image string) error {
 	out, err := cli.c.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer out.Close() //nolint:errcheck
 
-	io.Copy(os.Stdout, out)
-	return nil
-}
-
-// BuildImage sends request to build image
-func (cli DockerClient) BuildImage(ctx context.Context, tarCtxPath, dockerCtxFile, tagName string) error {
-	buildContext, err := os.Open(tarCtxPath)
-	if err != nil {
-		fmt.Errorf("Error while opening staged file :: %s", tarCtxPath)
-	}
-	defer buildContext.Close()
-
-	buildOptions := types.ImageBuildOptions{
-		Tags:       []string{tagName},
-		NoCache:    true,
-		Remove:     true,
-		Dockerfile: dockerCtxFile,
-	}
-
-	image, err := cli.c.ImageBuild(ctx, buildContext, buildOptions)
-	if err != nil {
-		log.Println(err, ":unable to build image")
-	}
-	return nil
-}
-
-// RemoveImage removes an image by imageID
-func (cli DockerClient) RemoveImage(ctx context.Context, imageID string) error {
-	inspectVal, _, err := cli.c.ImageInspectWithRaw(ctx, imageID)
+	out2 := strings.NewReader("")
+	_, err = io.Copy(os.Stdout, out2)
 	if err != nil {
 		return err
 	}
-
-	if inspectVal.ID != "" {
-		_, err = cli.c.ImageRemove(context.Background(), imageID, types.ImageRemoveOptions{})
-	}
-
 	return nil
 }
