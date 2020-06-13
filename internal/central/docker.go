@@ -1,12 +1,11 @@
 package central
 
 import (
+	"bytes"
 	"context"
 	"encoding/binary"
 	"fmt"
 	"io"
-	"os"
-	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -14,37 +13,49 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-// Container is the configuration for creating a container
-type Container struct {
+// containerConf is the configuration for creating a container.
+type containerConf struct {
 	// Name of the container
-	Name string
+	name string
 	// Image used for creating the container
-	Image string
+	image string
 	// Port on which container is running
-	ContainerPort int
+	containerPort int
 	// Port of the docker container in the host system
-	HostPort int
+	hostPort int
 	// Environment variables
-	Env map[string]interface{}
+	env map[string]interface{}
 }
 
-// DockerClient is a wrapper over the docker cllient struct.
-type DockerClient struct {
+// dockerClient is a wrapper over the docker cllient struct.
+type dockerClient struct {
 	c *client.Client
 }
 
-// createAndStartContainer creates and starts a new container
-func (cli *DockerClient) createAndStartContainer(ctx context.Context, containerConfig *Container) (string, error) {
-	// convert map to list of strings
-	envArr := []string{}
-	for key, value := range containerConfig.Env {
-		envArr = append(envArr, fmt.Sprintf("%s=%v", key, value))
+// newDockerClient creates a new docker client.
+func newDockerClient() (*dockerClient, error) {
+	cli, err := client.NewClientWithOpts()
+	if err != nil {
+		return nil, err
 	}
 
-	containerPortRule := nat.Port(fmt.Sprintf(`%d/tcp`, containerConfig.ContainerPort))
+	return &dockerClient{cli}, nil
+}
+
+// createAndStartContainer creates and starts a new container.
+func (cli *dockerClient) createAndStartContainer(ctx context.Context, containerConfig *containerConf) (string, error) {
+	// convert map to list of strings
+	envArr := make([]string, len(containerConfig.env))
+	i := 0
+	for key, value := range containerConfig.env {
+		envArr[i] = fmt.Sprintf("%s=%v", key, value)
+		i++
+	}
+
+	containerPortRule := nat.Port(fmt.Sprintf(`%d/tcp`, containerConfig.containerPort))
 
 	containerConf := &container.Config{
-		Image: containerConfig.Image,
+		Image: containerConfig.image,
 		Env:   envArr,
 		ExposedPorts: nat.PortSet{
 			containerPortRule: struct{}{},
@@ -55,11 +66,11 @@ func (cli *DockerClient) createAndStartContainer(ctx context.Context, containerC
 		PortBindings: nat.PortMap{
 			containerPortRule: []nat.PortBinding{{
 				HostIP:   "0.0.0.0",
-				HostPort: fmt.Sprintf("%d", containerConfig.ContainerPort)}},
+				HostPort: fmt.Sprintf("%d", containerConfig.containerPort)}},
 		},
 	}
 
-	createdConfig, err := cli.c.ContainerCreate(ctx, containerConf, hostConf, nil, containerConfig.Name)
+	createdConfig, err := cli.c.ContainerCreate(ctx, containerConf, hostConf, nil, containerConfig.name)
 	if err != nil {
 		return "", err
 	}
@@ -73,8 +84,8 @@ func (cli *DockerClient) createAndStartContainer(ctx context.Context, containerC
 	return containerID, nil
 }
 
-// stopAndRemoveContainer stops and removes the container from the docker host
-func (cli *DockerClient) stopAndRemoveContainer(ctx context.Context, containerID string) error {
+// stopAndRemoveContainer stops and removes the container from the docker host.
+func (cli *dockerClient) stopAndRemoveContainer(ctx context.Context, containerID string) error {
 	err := cli.c.ContainerStop(ctx, containerID, nil)
 	if err != nil {
 		return err
@@ -83,8 +94,8 @@ func (cli *DockerClient) stopAndRemoveContainer(ctx context.Context, containerID
 	return cli.c.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{Force: true})
 }
 
-// inspectContainer returns container state by using containerID
-func (cli *DockerClient) inspectContainer(ctx context.Context, containerID string) (*types.ContainerState, error) {
+// inspectContainer returns container state by using containerID.
+func (cli *dockerClient) inspectContainer(ctx context.Context, containerID string) (*types.ContainerState, error) {
 	containerStatus, err := cli.c.ContainerInspect(ctx, containerID)
 	if err != nil {
 		return nil, err
@@ -92,8 +103,8 @@ func (cli *DockerClient) inspectContainer(ctx context.Context, containerID strin
 	return containerStatus.ContainerJSONBase.State, nil
 }
 
-// listContainers returns a list of containers ids
-func (cli *DockerClient) listContainers(ctx context.Context) ([]types.Container, error) {
+// listContainers returns a list of containers.
+func (cli *dockerClient) listContainers(ctx context.Context) ([]types.Container, error) {
 	containers, err := cli.c.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return nil, err
@@ -102,8 +113,8 @@ func (cli *DockerClient) listContainers(ctx context.Context) ([]types.Container,
 	return containers, nil
 }
 
-// readLogs returns the logs from a docker container
-func (cli *DockerClient) readLogs(ctx context.Context, containerID, tail string) ([]string, error) {
+// readLogs returns the logs from a docker container.
+func (cli *dockerClient) readLogs(ctx context.Context, containerID, tail string) ([]string, error) {
 	reader, err := cli.c.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{
 		ShowStderr: true,
 		ShowStdout: true,
@@ -142,16 +153,16 @@ func (cli *DockerClient) readLogs(ctx context.Context, containerID, tail string)
 	return logs, nil
 }
 
-// pullImage requests the host to pull an image
-func (cli *DockerClient) pullImage(ctx context.Context, image string) error {
+// pullImage requests the host to pull an image.
+func (cli *dockerClient) pullImage(ctx context.Context, image string) error {
 	out, err := cli.c.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
 	defer out.Close() //nolint:errcheck
 
-	out2 := strings.NewReader("")
-	_, err = io.Copy(os.Stdout, out2)
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, out)
 	if err != nil {
 		return err
 	}

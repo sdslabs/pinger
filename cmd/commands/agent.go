@@ -72,12 +72,12 @@ to run in a standalone mode where it does not run any GRPC server.`,
 					ctx.Logger().
 						WithError(err).
 						Warnln("continuing without config file")
+				} else {
+					ctx.Logger().
+						WithError(err).
+						Fatalln("invalid config")
+					return
 				}
-
-				ctx.Logger().
-					WithError(err).
-					Fatalln("invalid config")
-				return
 			}
 
 			if conf.Interval <= 0 {
