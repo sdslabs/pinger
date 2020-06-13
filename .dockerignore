@@ -1,0 +1,16 @@
+# Default configs
+app.yml
+central.yml
+agent.yml
+
+# Example configs
+_examples
+
+# Prometheus data
+data/
+
+# Build
+target/
+
+.git
+.gitignore
