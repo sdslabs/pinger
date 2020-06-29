@@ -115,18 +115,18 @@ func (c *Checker) Execute(ctx context.Context) (*checker.Result, error) {
 	case timeoutType:
 		result.Successful = true
 
-	case messageType:
-		body, ok := c.outputValue.(string)
-		if !ok {
-			return nil, fmt.Errorf("internal error: outputValue of body not a string")
-		}
+		// case messageType:
+		// message, ok = c.outputValue
+		// if !ok {
+		// 	return nil, fmt.Errorf("internal error: outputValue of body not a string")
+		// }
 
-		if probeResult.Body == body {
-			result.Successful = true
-		}
-
-		return result, nil
+		// if probeResult.Body == body {
+		// 	result.Successful = true
+		// }
 	}
+
+	return result, nil
 }
 
 // validationMap is an alias of map used for validating components.
