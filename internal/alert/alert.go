@@ -54,8 +54,8 @@ func (a *Alert) GetDuration() time.Duration {
 //
 // Implements the Alerts.AlertSystem interface.
 type AlertsProvider struct {
-	Service     string `mapstructure:"service" json:"service"`
-	Webhook		string `mapstructure:"webhook" json:"webhook"`
+	Service string `mapstructure:"service" json:"service"`
+	Webhook string `mapstructure:"webhook" json:"webhook"`
 }
 
 // GetService returns the preferred method for alert.
