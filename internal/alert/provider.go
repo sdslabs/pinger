@@ -4,9 +4,9 @@
 
 package alert
 
-// System is anything that can be used to configure and create a alert
+// Provider is anything that can be used to configure and create a alert
 // exporter.
-type System interface {
+type Provider interface {
 	GetService() string // Returns the service name.
 	GetWebhook() string // Returns the webhook URL of the service.
 }
