@@ -69,7 +69,7 @@ func (c *Check) GetTarget() checker.Component {
 func (c *Check) GetPayloads() []checker.Component {
 	payloads := make([]checker.Component, len(c.Payloads))
 	for i := range c.Payloads {
-		payloads = append(payloads, payloads[i])
+		payloads[i] = &c.Payloads[i]
 	}
 	return payloads
 }
