@@ -91,6 +91,16 @@ func initExportAndAlerts(
 						continue
 					}
 
+					if s.Err != nil {
+						// on error record the failed metric
+						metric := &config.Metric{
+							CheckID:   s.ID,
+							CheckName: s.Name,
+						}
+						metrics = append(metrics, metric)
+						continue
+					}
+
 					res, ok := s.Res.(*checker.Result)
 					if !ok {
 						ctx.Logger().
