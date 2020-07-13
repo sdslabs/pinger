@@ -9,4 +9,5 @@ import (
 	_ "github.com/sdslabs/status/internal/checker/dns"
 	_ "github.com/sdslabs/status/internal/checker/http"
 	_ "github.com/sdslabs/status/internal/checker/icmp"
+	_ "github.com/sdslabs/status/internal/checker/tcp"
 )
