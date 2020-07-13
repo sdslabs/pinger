@@ -12,5 +12,5 @@ data/
 # Build
 target/
 
-.git
-.gitignore
+# Git
+.git/

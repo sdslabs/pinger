@@ -1,3 +1,7 @@
+// Copyright (c) 2020 SDSLabs
+// Use of this source code is governed by an MIT license
+// details of which can be found in the LICENSE file.
+
 package central
 
 import (
@@ -100,6 +104,7 @@ func (cli *dockerClient) inspectContainer(ctx context.Context, containerID strin
 	if err != nil {
 		return nil, err
 	}
+
 	return containerStatus.ContainerJSONBase.State, nil
 }
 
@@ -121,11 +126,9 @@ func (cli *dockerClient) readLogs(ctx context.Context, containerID, tail string)
 		Timestamps: true,
 		Tail:       tail,
 	})
-
 	if err != nil {
 		return nil, err
 	}
-
 	defer reader.Close() //nolint:errcheck
 
 	logs := []string{}
@@ -133,7 +136,6 @@ func (cli *dockerClient) readLogs(ctx context.Context, containerID, tail string)
 
 	for {
 		_, err = reader.Read(hdr)
-
 		if err != nil {
 			return logs, err
 		}
@@ -147,9 +149,11 @@ func (cli *dockerClient) readLogs(ctx context.Context, containerID, tail string)
 			if err == io.EOF {
 				break
 			}
+
 			return logs, err
 		}
 	}
+
 	return logs, nil
 }
 
@@ -166,5 +170,6 @@ func (cli *dockerClient) pullImage(ctx context.Context, image string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
