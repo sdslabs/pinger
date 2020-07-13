@@ -19,7 +19,7 @@ import (
 // agent defaults.
 const (
 	defaultAgentConfigPath             = "agent.yml"
-	defaultAgentExpoter                = "timescale"
+	defaultAgentExporter               = "timescale"
 	defaultAgentInterval               = 2 * time.Minute
 	defaultAgentPort            uint16 = 9009
 	defaultAgentStandaloneMode         = false
@@ -86,7 +86,7 @@ to run in a standalone mode where it does not run any GRPC server.`,
 
 			if !conf.Standalone {
 				// enforce timescale metrics for non-standalone mode
-				conf.Metrics.Backend = defaultAgentExpoter
+				conf.Metrics.Backend = defaultAgentExporter
 			}
 		},
 		Run: func(*cobra.Command, []string) {
@@ -102,7 +102,7 @@ to run in a standalone mode where it does not run any GRPC server.`,
 
 	cmd.Flags().Uint16P(flagAgentConfigPort, "p", defaultAgentPort, "port to expose agent API on")
 	cmd.Flags().BoolP(flagAgentConfigStandalone, "s", defaultAgentStandaloneMode, "should agent run in standalone mode")
-	cmd.Flags().String(flagAgentConfigMetricsBackend, defaultAgentExpoter, "backend service to store metrics")
+	cmd.Flags().String(flagAgentConfigMetricsBackend, defaultAgentExporter, "backend service to store metrics")
 	cmd.Flags().String(flagAgentConfigMetricsHost, defaultAgentMetricsHost, "host to run metrics server")
 	cmd.Flags().Uint16(flagAgentConfigMetricsPort, defaultAgentMetricsPort, "port to run metrics server on")
 	cmd.Flags().String(flagAgentConfigMetricsUsername, defaultAgentMetricsUsername, "username credential for metrics")
