@@ -1,6 +1,6 @@
 .PHONY: build format help tools lint proto
 
-DEFAULT_GOAL := help
+.DEFAULT_GOAL := help
 
 GO := go
 GOPATH := $(shell go env GOPATH)
@@ -14,7 +14,7 @@ UNAME := $(shell uname)
 all: install lint proto build
 
 help:
-	@echo "SDS Status Makefile"
+	@echo "Pinger Makefile"
 	@echo "build  - Build status"
 	@echo "format - Format code using golangci-lint"
 	@echo "help   - Prints help message"
