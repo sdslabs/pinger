@@ -19,27 +19,27 @@
 //
 // Output:
 //
-// Type               Value                          Description
-// ----------- ------------------------- ------------------------------------------
-//  "TIMEOUT"   <not validated>           Success in not-timeout
-//  "MESSAGE"   <non empty messages       Messages are split by "\n---\n".
-//              separated by "\n---\n">   For "hello" and "world" as two messages,
-//                                        the output value should be
-//                                          hello
-//                                          ---
-//                                          world
-//                                        All messages should be equal in order
+//	Type               Value                          Description
+//	----------- ------------------------- ------------------------------------------
+//	 "TIMEOUT"   <not validated>           Success in not-timeout
+//	 "MESSAGE"   <non empty messages       Messages are split by "\n---\n".
+//	             separated by "\n---\n">   For "hello" and "world" as two messages,
+//	                                       the output value should be
+//	                                         hello
+//	                                         ---
+//	                                         world
+//	                                       All messages should be equal in order
 //
 // Target:
 //
-// 	   Type             Value                          Description
-// 	----------- -------------------------- --------------------------------
-// 	 "ADDRESS"   <valid HOST:PORT address>   Address to send the request to
+//	   Type             Value                          Description
+//	----------- -------------------------- --------------------------------
+//	 "ADDRESS"   <valid HOST:PORT address>   Address to send the request to
 //
 // Payload:
 //
-//    Type            Value                 Description
-// ----------- -------------------- ---------------------------
-//  "MESSAGE"   <non empty string>   Sent in order as in array
+//	   Type            Value                 Description
+//	----------- -------------------- ---------------------------
+//	 "MESSAGE"   <non empty string>   Sent in order as in array
 //
 package tcp
