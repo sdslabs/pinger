@@ -10,4 +10,6 @@ import (
 	_ "github.com/sdslabs/status/internal/checker/http"
 	_ "github.com/sdslabs/status/internal/checker/icmp"
 	_ "github.com/sdslabs/status/internal/checker/tcp"
+	_ "github.com/sdslabs/status/internal/checker/udp"
+	_ "github.com/sdslabs/status/internal/checker/ws"
 )
