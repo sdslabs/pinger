@@ -36,7 +36,7 @@ func init() {
 type Checker struct {
 	prober      *Prober
 	outputType  string
-	outputValue string
+	outputValue []string
 }
 
 // Validate validates the check configuration.
@@ -87,7 +87,20 @@ func (c *Checker) Provision(check checker.Check) (err error) {
 
 	c.prober, err = NewProber(address, messages, timeout)
 	c.outputType = check.GetOutput().GetType()
-	c.outputValue = check.GetOutput().GetValue()
+	switch c.outputType {
+	case messageType:
+		// messages are split via "\n---\n", so multiple messages which are to be
+		// verified should be separated via the same.
+		// For example, if the response should have two messages -- "hello" and say
+		// "world", output should be:
+		// 	"hello\n---\nworld"
+		// OR
+		// 	hello
+		// 	---
+		// 	world
+		c.outputValue = strings.Split(check.GetOutput().GetValue(), splitDelim)
+	default:
+	}
 	return
 }
 
@@ -115,21 +128,11 @@ func (c *Checker) Execute(ctx context.Context) (*checker.Result, error) {
 		result.Successful = true
 
 	case messageType:
-		// messages are split via "\n---\n", so multiple messages which are to be
-		// verified should be separated via the same.
-		// For example, if the response should have two messages -- "hello" and say
-		// "world", output should be:
-		// 	"hello\n---\nworld"
-		// OR
-		// 	hello
-		// 	---
-		// 	world
-		messages := strings.Split(c.outputValue, splitDelim)
 
-		if len(messages) == len(probeResult.Response) {
+		if len(c.outputValue) == len(probeResult.Response) {
 			allEq := true
-			for i := range messages {
-				if messages[i] != probeResult.Response[i] {
+			for i := range c.outputValue {
+				if c.outputValue[i] != probeResult.Response[i] {
 					allEq = false
 					break
 				}
