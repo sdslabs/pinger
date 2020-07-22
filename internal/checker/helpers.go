@@ -10,7 +10,7 @@ import (
 	"regexp"
 )
 
-// addressRegexPattern is the regex pattern fot AddressRegex.
+// addressRegexPattern is the regex pattern for AddressRegex.
 const addressRegexPattern = `^([a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*[\._]?$`
 
 // MaxMessageSize is the maximum size of the message that can be sent or
