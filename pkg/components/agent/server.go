@@ -16,6 +16,7 @@ import (
 // can interact with the agent.
 type server struct {
 	m *controller.Manager
+	a *alertMap
 }
 
 // ListChecks fetches a list of checks registered.
@@ -36,7 +37,8 @@ func (s *server) ListChecks(context.Context, *proto.Nil) (*proto.CheckList, erro
 // PushCheck creates a new check. If the check already exists it simply
 // updates the check.
 func (s *server) PushCheck(_ context.Context, check *proto.Check) (*proto.BoolResponse, error) {
-	if err := addCheckToManager(s.m, config.ProtoToCheck(check)); err != nil {
+	c := config.ProtoToCheck(check)
+	if err := addCheckToManager(s.m, s.a, &c); err != nil {
 		return &proto.BoolResponse{
 			Successful: false,
 			Error:      err.Error(),

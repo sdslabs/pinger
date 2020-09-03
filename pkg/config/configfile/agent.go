@@ -15,7 +15,7 @@ type Agent struct {
 	Standalone bool                   `mapstructure:"standalone" json:"standalone"`
 	Port       uint16                 `mapstructure:"port" json:"port"`
 	Metrics    config.MetricsProvider `mapstructure:"metrics" json:"metrics"`
-	// TODO: Alerts
-	Interval time.Duration  `mapstructure:"interval" json:"interval"`
-	Checks   []config.Check `mapstructure:"checks" json:"checks"`
+	Alerts     []config.AlertProvider `mapstructure:"alerts" json:"alerts"`
+	Interval   time.Duration          `mapstructure:"interval" json:"interval"`
+	Checks     []config.Check         `mapstructure:"checks" json:"checks"`
 }
