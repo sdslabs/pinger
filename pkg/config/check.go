@@ -23,6 +23,7 @@ type Check struct {
 	Output   Component     `mapstructure:"output" json:"output"`
 	Target   Component     `mapstructure:"target" json:"target"`
 	Payloads []Component   `mapstructure:"payloads" json:"payloads"`
+	Alerts   []Alert       `mapstructure:"alerts" json:"alerts"`
 }
 
 // GetID returns the ID for the check.
@@ -88,7 +89,7 @@ func (c *Component) GetValue() string {
 }
 
 // ProtoToCheck converts a proto.Check into checker.Check.
-func ProtoToCheck(check *proto.Check) checker.Check {
+func ProtoToCheck(check *proto.Check) Check {
 	payloads := make([]Component, len(check.Payloads))
 	for i := range check.Payloads {
 		payloads[i] = Component{
@@ -97,8 +98,15 @@ func ProtoToCheck(check *proto.Check) checker.Check {
 		}
 	}
 
-	return &Check{
-		ID:       check.ID,
+	alerts := make([]Alert, len(check.Alerts))
+	for i := range check.Alerts {
+		alerts[i] = Alert{
+			Service: check.Alerts[i].Service,
+		}
+	}
+
+	return Check{
+		ID:       uint(check.ID),
 		Name:     check.Name,
 		Interval: time.Duration(check.Interval),
 		Timeout:  time.Duration(check.Timeout),
@@ -115,6 +123,7 @@ func ProtoToCheck(check *proto.Check) checker.Check {
 			Value: check.Target.Value,
 		},
 		Payloads: payloads,
+		Alerts:   alerts,
 	}
 }
 

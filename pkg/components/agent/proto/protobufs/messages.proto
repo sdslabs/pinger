@@ -19,6 +19,12 @@ message BoolResponse {
 // Nil represents an nil message.
 message Nil {}
 
+// Alert represents the configuration for an alert corresponding to a check.
+message Alert {
+  string Service = 1;
+  string Target = 2;
+}
+
 // Check represents the configuration for a check that can be pushed to or
 // removed from an agent.
 message Check {
@@ -32,6 +38,8 @@ message Check {
   Component Output = 6;
   Component Target = 7;
   repeated Component Payloads = 8;
+
+  repeated Alert Alerts = 9;
 }
 
 // Component represents a key-value pair. This can be used for representing
