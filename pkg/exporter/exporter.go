@@ -46,13 +46,13 @@ type Exporter interface {
 	Export(context.Context, []checker.Metric) error
 }
 
-// exportFunc is the function that is used to export the metrics into the
+// ExportFunc is the function that is used to export the metrics into the
 // provider.
-type exportFunc = func(context.Context, []checker.Metric) error
+type ExportFunc = func(context.Context, []checker.Metric) error
 
 // Initialize method initializes the exporter and returns a function that
 // exports the metrics.
-func Initialize(ctx *appcontext.Context, provider Provider) (exportFunc, error) {
+func Initialize(ctx *appcontext.Context, provider Provider) (ExportFunc, error) {
 	name := provider.GetBackend()
 	newExporter, ok := exporters[name]
 	if !ok {

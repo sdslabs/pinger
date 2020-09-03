@@ -8,10 +8,12 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
 
+	"github.com/sdslabs/pinger/pkg/alerter"
 	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/checker"
 	"github.com/sdslabs/pinger/pkg/components/agent/proto"
@@ -20,6 +22,11 @@ import (
 	"github.com/sdslabs/pinger/pkg/controller"
 	"github.com/sdslabs/pinger/pkg/exporter"
 )
+
+type alertMap struct {
+	a  map[string]map[uint]alerter.Alert
+	mu sync.RWMutex
+}
 
 // Run starts the agent.
 //
@@ -38,7 +45,25 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}
 
-	err = initExportAndAlerts(ctx, conf.Interval, manager, export)
+	aMap := alertMap{a: map[string]map[uint]alerter.Alert{}}
+	alertFuncs := map[string]alerter.AlertFunc{}
+	for i := range conf.Alerts {
+		ap := conf.Alerts[i]
+
+		if _, ok := alertFuncs[ap.Service]; ok {
+			return fmt.Errorf("alerter %q already configured", ap.Service)
+		}
+
+		alert, er := alerter.Initialize(ctx, &ap)
+		if er != nil {
+			return fmt.Errorf("cannot Initialize alerter: %w", er)
+		}
+
+		alertFuncs[ap.Service] = alert
+		aMap.a[ap.Service] = map[uint]alerter.Alert{}
+	}
+
+	err = initExportAndAlerts(ctx, conf.Interval, manager, export, alertFuncs)
 	if err != nil {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}
@@ -47,7 +72,7 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 	// that the checks will be run always irrespective of the fact that agent
 	// running in standalone mode or not.
 	for i := range conf.Checks {
-		if err := addCheckToManager(manager, &conf.Checks[i]); err != nil {
+		if err := addCheckToManager(manager, &aMap, &conf.Checks[i]); err != nil {
 			return fmt.Errorf("check %d: cannot add to manager: %w", i, err)
 		}
 	}
@@ -58,11 +83,8 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		return nil
 	}
 
-	return runGRPCServer(manager, conf.Port)
+	return runGRPCServer(manager, &aMap, conf.Port)
 }
-
-// doFunc is the function that does the exporting and alerting.
-type doFunc = func(context.Context, []checker.Metric) error
 
 // initExportAndAlerts initializes the controller for exporting and alerting
 // the metrics.
@@ -70,7 +92,8 @@ func initExportAndAlerts(
 	ctx *appcontext.Context,
 	interval time.Duration,
 	manager *controller.Manager,
-	export /*, alert*/ doFunc,
+	exportFunc exporter.ExportFunc,
+	alertFuncs map[string]alerter.AlertFunc,
 ) error {
 	ctrl, err := controller.NewController(ctx, &controller.Opts{
 		Name:     "metrics_export_and_alert",
@@ -115,7 +138,7 @@ func initExportAndAlerts(
 			}
 
 			// Export metrics into the database
-			if er := export(ctx, metrics); er != nil {
+			if er := exportFunc(ctx, metrics); er != nil {
 				ctx.Logger().
 					WithError(er).
 					Errorln("error exporting metrics")
@@ -137,7 +160,7 @@ func initExportAndAlerts(
 
 // runGRPCServer starts the GRPC server that exposes an API for the central
 // to contact the agent.
-func runGRPCServer(manager *controller.Manager, port uint16) error {
+func runGRPCServer(manager *controller.Manager, aMap *alertMap, port uint16) error {
 	addr := net.JoinHostPort("0.0.0.0", fmt.Sprint(port))
 
 	lst, err := net.Listen("tcp", addr)
@@ -146,7 +169,10 @@ func runGRPCServer(manager *controller.Manager, port uint16) error {
 	}
 
 	grpcServer := grpc.NewServer()
-	proto.RegisterAgentServer(grpcServer, &server{m: manager})
+	proto.RegisterAgentServer(grpcServer, &server{
+		m: manager,
+		a: aMap,
+	})
 
 	err = grpcServer.Serve(lst)
 	if err != nil {
@@ -157,10 +183,29 @@ func runGRPCServer(manager *controller.Manager, port uint16) error {
 }
 
 // addCheckToManager adds a new check to the manager.
-func addCheckToManager(manager *controller.Manager, check checker.Check) error {
+func addCheckToManager(
+	manager *controller.Manager,
+	aMap *alertMap,
+	check *config.Check,
+) error {
 	ctrlOpts, err := checker.NewControllerOpts(check)
 	if err != nil {
 		return err
+	}
+
+	for i := range check.Alerts {
+		alt := check.Alerts[i]
+
+		aMap.mu.RLock()
+		_, ok := (aMap.a)[alt.Service]
+		aMap.mu.RUnlock()
+		if !ok {
+			return fmt.Errorf("invalid alerter %q", alt.Service)
+		}
+
+		aMap.mu.Lock()
+		(aMap.a)[alt.Service][check.ID] = &alt
+		aMap.mu.Unlock()
 	}
 
 	return manager.UpdateController(ctrlOpts)
