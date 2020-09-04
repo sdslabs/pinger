@@ -8,3 +8,9 @@ data/
 
 # Build
 target/
+
+
+#IDE
+.DS_Store
+.vscode
+.dist
