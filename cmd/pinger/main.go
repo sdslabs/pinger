@@ -10,8 +10,8 @@ package main
 import (
 	"os"
 
-	"github.com/sdslabs/status/cmd/commands"
-	"github.com/sdslabs/status/internal/appcontext"
+	"github.com/sdslabs/pinger/cmd"
+	"github.com/sdslabs/pinger/pkg/appcontext"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	)
 	defer cancel()
 
-	cmd, err := commands.NewRootCmd(ctx)
+	command, err := cmd.NewRootCmd(ctx)
 	if err != nil {
 		ctx.Logger().
 			WithError(err).
@@ -30,7 +30,7 @@ func main() {
 		return
 	}
 
-	err = cmd.Execute()
+	err = command.Execute()
 	if err != nil {
 		ctx.Logger().
 			WithError(err).

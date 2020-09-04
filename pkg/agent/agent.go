@@ -1,242 +1,174 @@
-// Package agent contains the agent that runs a GRPC server to interact with checks.
+// Copyright (c) 2020 SDSLabs
+// Use of this source code is governed by an MIT license
+// details of which can be found in the LICENSE file.
+
 package agent
 
 import (
 	"context"
 	"fmt"
 	"net"
-	"strconv"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"github.com/sdslabs/status/pkg/agent/proto"
-	"github.com/sdslabs/status/pkg/check"
-	"github.com/sdslabs/status/pkg/config"
-	"github.com/sdslabs/status/pkg/controller"
-	"github.com/sdslabs/status/pkg/database"
-	"github.com/sdslabs/status/pkg/metrics"
+	"github.com/sdslabs/pinger/pkg/appcontext"
+	"github.com/sdslabs/pinger/pkg/checker"
+	"github.com/sdslabs/pinger/pkg/config"
+	"github.com/sdslabs/pinger/pkg/config/configfile"
+	"github.com/sdslabs/pinger/pkg/controller"
+	"github.com/sdslabs/pinger/pkg/exporter"
+	"github.com/sdslabs/pinger/pkg/proto"
 )
 
-// Agent runs a bunch of checks assigned to its manager. It updates the metrics
-// depending upon the configuration of metrics provider. An agent can run in
-// two modes - standalone and with the central API server.
-type Agent struct {
-	manager    *controller.Manager
-	metrics    *metrics.ProviderConfig
-	standalone bool
-	port       int
-
-	confChecks []*config.CheckConf // just the ones from the conf
-}
-
-// NewAgent creates a new agent with it's manager and config.
-func NewAgent(conf *config.AgentConfig) (*Agent, error) {
-	a := &Agent{
-		manager:    controller.NewManager(),
-		metrics:    &conf.Metrics,
-		standalone: conf.Standalone,
-		port:       conf.Port,
-
-		confChecks: conf.Checks,
+// Run starts the agent.
+//
+// It either starts the agent in standalone mode where the manager waits for
+// it's execution to end or it starts the GRPC API server for the central
+// server to interact with.
+func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
+	if conf.Interval <= 0 {
+		return fmt.Errorf("interval should be > 0")
 	}
 
-	if err := a.setupMetrics(); err != nil {
-		return nil, err
+	manager := controller.NewManager(ctx)
+	checks := config.CheckListToInterface(conf.Checks)
+
+	// add unique ID for config-only checks now and then let the exporter handle
+	// the change in IDs
+	for i := range checks {
+		checks[i].SetID(uint(i))
 	}
 
-	return a, nil
-}
+	export, err := exporter.Initialize(ctx, &conf.Metrics, checks)
+	if err != nil {
+		return fmt.Errorf("cannot initialize exporter: %w", err)
+	}
 
-// Run updates the checks with the manager and starts the execution of checks.
-func (a *Agent) Run() error {
-	// Register the already added checks with the agent.
-	for _, c := range a.confChecks {
-		if err := a.registerCheck(c); err != nil {
-			logrus.WithField(
-				"check", c.GetName()).WithError(err).Errorln("error creating check")
+	err = initExportAndAlerts(ctx, conf.Interval, manager, export)
+	if err != nil {
+		return fmt.Errorf("cannot initialize exporter: %w", err)
+	}
+
+	// These are the checks provided through config. This essentially implies
+	// that the checks will be run always irrespective of the fact that agent
+	// running in standalone mode or not.
+	for i := range conf.Checks {
+		if err := addCheckToManager(manager, &conf.Checks[i]); err != nil {
+			return fmt.Errorf("check %d: cannot add to manager: %w", i, err)
 		}
 	}
 
-	if a.standalone {
-		// Just keep waiting for termination in standalone mode.
-		a.manager.Wait()
+	if conf.Standalone {
+		// for standalone mode we just need to wait for the controller to end.
+		manager.Wait()
 		return nil
 	}
 
-	// Start the GRPC server if running with a central api server.
-	return a.runGRPCServer()
+	return runGRPCServer(manager, conf.Port)
 }
 
-// PushCheck pushes the check in the agent.
-func (a *Agent) PushCheck(ctx context.Context, agentCheck *proto.Check) (*proto.PushStatus, error) {
-	cfg := config.GetCheckFromCheckProto(agentCheck)
+// doFunc is the function that does the exporting and alerting.
+type doFunc = func(context.Context, []checker.Metric) error
 
-	if err := a.registerCheck(cfg); err != nil {
-		return &proto.PushStatus{
-			Pushed: false,
-			Reason: err.Error(),
-		}, err
-	}
+// initExportAndAlerts initializes the controller for exporting and alerting
+// the metrics.
+func initExportAndAlerts(
+	ctx *appcontext.Context,
+	interval time.Duration,
+	manager *controller.Manager,
+	export /*, alert*/ doFunc,
+) error {
+	ctrl, err := controller.NewController(ctx, &controller.Opts{
+		Name:     "metrics_export_and_alert",
+		Interval: interval,
+		Func: func(c context.Context) (interface{}, error) {
+			stats := manager.PullAllStats()
+			metrics := []checker.Metric{}
+			for _, stat := range stats {
+				for _, s := range stat {
+					if s == nil {
+						continue
+					}
 
-	return &proto.PushStatus{Pushed: true}, nil
-}
+					if s.Err != nil {
+						// on error record the failed metric
+						metric := &config.Metric{
+							CheckID:   s.ID,
+							CheckName: s.Name,
+						}
+						metrics = append(metrics, metric)
+						continue
+					}
 
-// GetManagerStats fetches stats about the checks from the manager.
-func (a *Agent) GetManagerStats(context.Context, *proto.None) (*proto.ManagerStats, error) {
-	mStats := []*proto.ManagerStats_ControllerStatus{}
+					res, ok := s.Res.(*checker.Result)
+					if !ok {
+						ctx.Logger().
+							WithField("check_id", s.ID).
+							Warnln("unexpected error: check result not checker.Result")
+						continue
+					}
 
-	for _, stat := range a.fetchStats() {
-		mStats = append(mStats, &proto.ManagerStats_ControllerStatus{
-			Name: stat.Name,
-			ConfigStatus: &proto.ManagerStats_ControllerConfigurationStatus{
-				ErrorRetry:    stat.Configuration.ErrorRetry,
-				ShouldBackOff: stat.Configuration.ShouldBackOff,
-				Interval:      stat.Configuration.Interval,
-			},
-			RunStatus: &proto.ManagerStats_ControllerRunStatus{
-				SuccessCount:       stat.Status.SuccessCount,
-				FailureCount:       stat.Status.FailureCount,
-				ConsecFailureCount: stat.Status.ConsecutiveFailureCount,
-				LastSuccessTime:    stat.Status.LastSuccessStamp,
-				LastFailureTime:    stat.Status.LastFailureStamp,
-			},
-		})
-	}
+					metric := &config.Metric{
+						CheckID:    s.ID,
+						CheckName:  s.Name,
+						Successful: res.Successful,
+						Timeout:    res.Timeout,
+						StartTime:  res.StartTime,
+						Duration:   res.Duration,
+					}
+					metrics = append(metrics, metric)
+				}
+			}
 
-	return &proto.ManagerStats{ControllerStatus: mStats}, nil
-}
+			// Export metrics into the database
+			if er := export(ctx, metrics); er != nil {
+				ctx.Logger().
+					WithError(er).
+					Errorln("error exporting metrics")
+				return nil, er
+			}
 
-// RemoveCheck removes the check from the agent.
-func (a *Agent) RemoveCheck(ctx context.Context, agentCheck *proto.CheckMeta) (*proto.RemoveStatus, error) {
-	err := a.removeCheck(agentCheck.ID)
+			// TODO(shreyaa-sharmaa): Alert metrics (in a separate thread than this)
+
+			return nil, nil
+		},
+	})
 	if err != nil {
-		return &proto.RemoveStatus{
-			Removed: false,
-			Message: err.Error(),
-		}, err
+		return err
 	}
 
-	return &proto.RemoveStatus{Removed: true}, nil
+	ctrl.Start()
+	return nil
 }
 
-// ListChecks returns a list of checks with the agent.
-func (a *Agent) ListChecks(context.Context, *proto.None) (*proto.ChecksList, error) {
-	checksList := []*proto.CheckMeta{}
+// runGRPCServer starts the GRPC server that exposes an API for the central
+// to contact the agent.
+func runGRPCServer(manager *controller.Manager, port uint16) error {
+	addr := net.JoinHostPort("0.0.0.0", fmt.Sprint(port))
 
-	for _, ctrl := range a.fetchChecks() {
-		id, err := strconv.ParseUint(ctrl, 10, 0)
-		if err != nil {
-			id = 0
-		}
-
-		checksList = append(checksList, &proto.CheckMeta{ID: uint32(id)})
-	}
-
-	return &proto.ChecksList{Checks: checksList}, nil
-}
-
-// runGRPCServer starts a GRPC server at the specified port. This also initializes
-// the controller manager instance, which is used further to interact with the controllers.
-func (a *Agent) runGRPCServer() error {
-	listner, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", a.port))
+	lst, err := net.Listen("tcp", addr)
 	if err != nil {
-		return fmt.Errorf("error starting listener: %v", err)
+		return fmt.Errorf("unable to start listener: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	proto.RegisterAgentServiceServer(grpcServer, a)
+	proto.RegisterAgentServer(grpcServer, &server{m: manager})
 
-	if err = grpcServer.Serve(listner); err != nil {
-		return fmt.Errorf("error starting server: %v", err)
+	err = grpcServer.Serve(lst)
+	if err != nil {
+		return fmt.Errorf("unable to start serer: %v", err)
 	}
 
 	return nil
 }
 
-// setupMetrics paves the way for an agent to update metrics in the configured DB.
-func (a *Agent) setupMetrics() error {
-	if !a.standalone {
-		// For non-standalone mode only use the main database,
-		// i.e., the timescale-postgres database.
-		database.SetupMetrics(a.metrics, a.manager)
-		return nil
-	}
-
-	// For standalone mode, metrics providers have options.
-	switch a.metrics.Backend {
-	case metrics.PrometheusProviderType:
-		metrics.SetupPrometheusMetrics(a.metrics, a.manager)
-
-	case metrics.TimeScaleProviderType:
-		database.SetupMetrics(a.metrics, a.manager)
-
-	case metrics.LogProviderType:
-		metrics.SetupLogMetrics(a.metrics, a.manager)
-
-	default:
-		return fmt.Errorf("invalid metrics provider: %v", a.metrics.Backend)
-	}
-
-	return nil
-}
-
-// register check updates the manager with the check.
-func (a *Agent) registerCheck(c *config.CheckConf) error {
-	// Only add checks to the database if the backend is timescale and
-	// the agent runs in standalone mode. The standalone mode is important
-	// because for checks that come through the api-server will already be
-	// inserted into the database.
-	if a.standalone && a.metrics.Backend == metrics.TimeScaleProviderType {
-		err := database.AddCheckToDB(c)
-		if err != nil {
-			return err
-		}
-	}
-
-	checker, err := check.NewChecker(c)
+// addCheckToManager adds a new check to the manager.
+func addCheckToManager(manager *controller.Manager, check checker.Check) error {
+	ctrlOpts, err := checker.NewControllerOpts(check)
 	if err != nil {
 		return err
 	}
 
-	cFunc, err := controller.NewControllerFunction(checker.ExecuteCheck)
-	if err != nil {
-		return err
-	}
-
-	executor := controller.Internal{
-		DoFunc:      cFunc,
-		RunInterval: time.Duration(c.GetInterval()),
-	}
-
-	controllerName := fmt.Sprint(c.GetId())
-	if a.metrics.Backend != metrics.TimeScaleProviderType {
-		controllerName = c.GetLabel()
-	}
-
-	err = a.manager.UpdateController(controllerName, checker.Type(), executor)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return manager.UpdateController(ctrlOpts)
 }
-
-// fetchChecks fetches checks from the agent manager.
-func (a *Agent) fetchChecks() []string {
-	return a.manager.GetAllControllers()
-}
-
-// removeCheck removes a check from the agent manager.
-func (a *Agent) removeCheck(id uint32) error {
-	return a.manager.RemoveControllerAndWait(fmt.Sprint(id))
-}
-
-// fetchStats fetches stats from the agent manager.
-func (a *Agent) fetchStats() []*controller.Status {
-	return a.manager.GetStats()
-}
-
-// Interface guard
-var _ proto.AgentServiceServer = (*Agent)(nil)
