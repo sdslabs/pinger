@@ -1,24 +1,50 @@
-# status
+# pinger
 
-> An open source implmentation of status page.
+> This project is currently in active development
 
-A work in progress.
+Pinger is an open-source implementation of an application that can create
+status pages. Some similar applications are [Freshping](https://www.freshworks.com/website-monitoring/)
+and [Apex Ping](https://apex.sh/ping/).
 
-## Setup
+## Development
 
-1. Install the following:
-    1. [GoLang](https://golang.org/doc/install)
-    1. [PostgreSQL](https://www.postgresql.org/download/)
-    1. [TimescaleDB](https://docs.timescale.com/latest/getting-started/installation)
+### Prerequisites
 
-1. Clone the repository and `cd` to it.
+Before beginning make sure you have all the required tools installed.
 
-1. Run `make build` to build the project. Builds the project in `$GOPATH/bin`.
+- [Go](https://golang.org/doc/install) >= 1.4 (Preferred >= 1.5)
+- [PostgreSQL](https://www.postgresql.org/download/) >= 11 (Preferred >= 12)
+- [Timescale](https://docs.timescale.com/latest/getting-started/installation) >= 1.7
+- [Docker](https://docs.docker.com/get-docker/)
 
-## Contributing
+### Setup
 
-1. Run `make install` to install development tools.
+1. Clone the repository and change-directory to it.
+   ```sh
+   $ git clone git@github.com/sdslabs/pinger
+   $ cd pinger
+   ```
 
-1. Run `make lint` before pushing code and resolve all the errors.
+1. Install required development tools (linter, protoc etc.)
+   ```sh
+   $ make install
+   ```
 
-1. Many errors can be auto-fixed. Just run `make format` to fix them.
+1. Build the project as `./target/pinger`.
+   ```sh
+   $ make build
+   ```
+
+1. Check for linting errors.
+   ```sh
+   $ make lint
+
+   # Formats auto-fixable errors
+   $ make format
+   ```
+
+**NOTE** Before committing changes, make sure the project builds and there are no linting errors.
+
+***
+
+Made by [SDSLabs](https://sdslabs.co)

@@ -1,4 +1,4 @@
-module github.com/sdslabs/status
+module github.com/sdslabs/pinger
 
 go 1.13
 

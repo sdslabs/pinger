@@ -1,255 +1,229 @@
+// Copyright (c) 2020 SDSLabs
+// Use of this source code is governed by an MIT license
+// details of which can be found in the LICENSE file.
+
 package controller
 
 import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 )
 
-// Map is the map of a controller name with the underlying Controller.
-type Map map[string]*Controller
-
-// Manager manages a ControllerMap and perform actions on it.
+// Manager manages multiple controllers and running at the same time.
 type Manager struct {
-	controllers Map
+	ctx    context.Context
+	cancel context.CancelFunc
 
-	terminate chan struct{}
-	mutex     sync.RWMutex
+	mutex sync.RWMutex
+
+	controllers map[uint]*Controller
 }
 
-// NewManager Creates a new manager instance for the controller map.
-func NewManager() *Manager {
+// NewManager creates a new manager with no controllers.
+func NewManager(ctx context.Context) *Manager {
+	ctxt, cancel := context.WithCancel(ctx)
+
 	return &Manager{
-		controllers: Map{},
+		ctx:    ctxt,
+		cancel: cancel,
 
-		terminate: make(chan struct{}),
+		mutex: sync.RWMutex{},
+
+		controllers: make(map[uint]*Controller),
 	}
 }
 
-// NoopFunc is a nil function.
-func NoopFunc(_ctx context.Context) (FunctionResult, error) {
-	return nil, nil
-}
-
-// GetAllControllers Returns the name of all the controllers that are managed by this
-// manager.
-func (m *Manager) GetAllControllers() []string {
-	var ctrls []string
-
-	for key := range m.controllers {
-		ctrls = append(ctrls, key)
+// UpdateController updates the controller if it exists with the same name
+// or creates a new controller if it doesn't.
+func (m *Manager) UpdateController(opts *Opts) error {
+	if opts.Name == "" {
+		return fmt.Errorf("cannot add a controller with empty name")
 	}
 
-	return ctrls
-}
+	m.mutex.RLock()
+	ctrl, ok := m.controllers[opts.ID]
+	m.mutex.RUnlock()
 
-// UpdateController installs or updates a controller in the manager. A
-// controller is identified by its name. If a controller with the name already
-// exists, the controller will be shut down and replaced with the provided
-// controller. Updating a controller will cause the DoFunc to be run
-// immediately regardless of any previous conditions. It will also cause any
-// statistics to be reset.
-func (m *Manager) UpdateController(name, cType string, internal Internal) error {
-	_, err := m.updateController(name, cType, internal)
+	if ok {
+		if opts.Interval > 0 && opts.Interval != ctrl.interval {
+			if err := ctrl.UpdateInterval(opts.Interval); err != nil {
+				return err
+			}
+		}
 
-	return err
-}
+		if opts.Func != nil {
+			if err := ctrl.UpdateFunc(opts.Func); err != nil {
+				return err
+			}
+		}
 
-func (m *Manager) updateController(name, cType string, internal Internal) (*Controller, error) {
-	if internal.StopFunc == nil {
-		internal.StopFunc, _ = NewControllerFunction(NoopFunc) //nolint:errcheck
+		return nil
 	}
+
+	ctrl, err := NewController(m.ctx, opts)
+	if err != nil {
+		return err
+	}
+
+	ctrl.Start()
 
 	m.mutex.Lock()
-
-	if m.controllers == nil {
-		m.controllers = Map{}
-	}
-
-	ctrl, exists := m.controllers[name]
-	if exists {
-		m.mutex.Unlock()
-
-		ctrl.mutex.Lock()
-		ctrl.updateController(internal, true)
-		ctrl.mutex.Unlock()
-	} else {
-		ctrl = &Controller{
-			name:  name,
-			cType: cType,
-
-			stop:       make(chan struct{}),
-			update:     make(chan struct{}, 1),
-			terminated: make(chan struct{}),
-
-			executionStatistics: make(map[time.Time]*ExecStat),
-		}
-		ctrl.updateController(internal, false)
-
-		ctrl.ctxDoFunc, ctrl.cancelDoFunc = context.WithCancel(context.Background())
-		m.controllers[ctrl.name] = ctrl
-		m.mutex.Unlock()
-
-		go ctrl.RunController()
-	}
-
-	return ctrl, nil
-}
-
-func (m *Manager) removeController(ctrl *Controller) {
-	ctrl.stopController()
-	delete(m.controllers, ctrl.name)
-}
-
-func (m *Manager) lookup(name string) *Controller {
-	m.mutex.RLock()
-	defer m.mutex.RUnlock()
-
-	if c, ok := m.controllers[name]; ok {
-		return c
-	}
+	m.controllers[opts.ID] = ctrl
+	m.mutex.Unlock()
 
 	return nil
 }
 
-func (m *Manager) removeAndReturnController(name string) (*Controller, error) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
+// ListControllers lists all the controllers managed by the manager.
+//
+// This returns a map of controller ID with it's name.
+func (m *Manager) ListControllers() map[uint]string {
+	list := map[uint]string{}
 
-	if m.controllers == nil {
-		return nil, fmt.Errorf("empty controller map")
-	}
-
-	oldCtrl, ok := m.controllers[name]
-	if !ok {
-		return nil, fmt.Errorf("unable to find controller %s", name)
-	}
-
-	m.removeController(oldCtrl)
-
-	return oldCtrl, nil
-}
-
-// RemoveController stops and removes a controller from the manager. If DoFunc
-// is currently running, DoFunc is allowed to complete in the background.
-func (m *Manager) RemoveController(name string) error {
-	_, err := m.removeAndReturnController(name)
-	return err
-}
-
-// RemoveControllerAndWait stops and removes a controller using
-// RemoveController() and then waits for it to run to completion.
-func (m *Manager) RemoveControllerAndWait(name string) error {
-	oldCtrl, err := m.removeAndReturnController(name)
-	if err == nil {
-		<-oldCtrl.terminated
-	}
-
-	return err
-}
-
-func (m *Manager) removeAll() []*Controller {
-	ctrls := []*Controller{}
-
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	if m.controllers == nil {
-		return ctrls
-	}
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
 
 	for _, ctrl := range m.controllers {
-		m.removeController(ctrl)
-		ctrls = append(ctrls, ctrl)
+		list[ctrl.ID()] = ctrl.Name()
+	}
+
+	return list
+}
+
+// RemoveController removes the controller from manager if it exists. If it
+// doesn't, it does nothing. It does not wait for controller to stop.
+func (m *Manager) RemoveController(id uint) {
+	ctrl, ok := m.removeCtrl(id)
+	if !ok {
+		return
+	}
+
+	ctrl.Stop()
+}
+
+// RemoveControllerAndWait is like RemoveController but waits for completion
+// of controller.
+func (m *Manager) RemoveControllerAndWait(id uint) {
+	ctrl, ok := m.removeCtrl(id)
+	if !ok {
+		return
+	}
+
+	ctrl.Stop()
+	ctrl.Wait()
+}
+
+// removeCtrl removes the controller from the map. It returns the removed
+// controller and whether it existed in the map or not.
+func (m *Manager) removeCtrl(id uint) (*Controller, bool) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	ctrl, ok := m.controllers[id]
+	if !ok {
+		return nil, false
+	}
+	delete(m.controllers, id)
+
+	return ctrl, true
+}
+
+// RemoveAll removes all the controllers from the manager.
+func (m *Manager) RemoveAll() {
+	m.removeAll()
+}
+
+// RemoveAllAndWait removes all the controllers and waits
+// for them to stop completely.
+func (m *Manager) RemoveAllAndWait() {
+	ctrls := m.removeAll()
+	for _, c := range ctrls {
+		c.Wait()
+	}
+}
+
+// removeAll stops and removes all the controllers from the manager but does
+// not wait for them to terminate.
+func (m *Manager) removeAll() []*Controller {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	ctrls := []*Controller{}
+
+	for name, c := range m.controllers {
+		c.Stop()
+		ctrls = append(ctrls, c)
+		delete(m.controllers, name)
 	}
 
 	return ctrls
 }
 
-// RemoveAll stops and removes all controllers of the manager
-func (m *Manager) RemoveAll() {
-	m.removeAll()
+// Wait waits for the manager to terminate.
+func (m *Manager) Wait() {
+	<-m.ctx.Done()
 }
 
-// RemoveAllAndWait stops and removes all controllers of the manager and then
-// waits for all controllers to exit
-func (m *Manager) RemoveAllAndWait() {
-	ctrls := m.removeAll()
-	for _, ctrl := range ctrls {
-		<-ctrl.terminated
+// Shutdown gracefully attempts to close the manager and terminate and
+// remove all the controllers. In case of error, the manager is not closed,
+// and hence `Close` is required to be called to terminate the manager.
+func (m *Manager) Shutdown(ctx context.Context) error {
+	waitChan := make(chan struct{})
+
+	go func(w chan<- struct{}) {
+		m.RemoveAllAndWait()
+		w <- struct{}{}
+	}(waitChan)
+
+	select {
+	case <-waitChan:
+		m.cancel()
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
 
-// Terminate terminates all the controllers managed by the manager.
-func (m *Manager) Terminate() {
-	m.RemoveAllAndWait()
-
-	<-m.terminate
-	close(m.terminate)
+// Close closes all the controller irrespective of whether they shutdown
+// properly.
+func (m *Manager) Close() {
+	m.RemoveAll()
+	m.cancel()
 }
 
-// Wait waits for the manager to terminate the controllers.
-func (m *Manager) Wait() {
-	<-m.terminate
-}
+// PullAllStats gets all the stats for all the controllers registered with
+// the manager.
+func (m *Manager) PullAllStats() map[uint][]*RunStat {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
 
-// GetStats Return the entire stats for manager.
-func (m *Manager) GetStats() []*Status {
-	var stats []*Status
+	stats := make(map[uint][]*RunStat)
 
-	for _, controller := range m.controllers {
-		stats = append(stats, controller.Status())
+	for id, ctrl := range m.controllers {
+		cstats := []*RunStat{}
+
+		pull := ctrl.PullAllStats()
+		for _, p := range pull {
+			cstats = append(cstats, p)
+		}
+
+		stats[id] = cstats
 	}
 
 	return stats
 }
 
-// PullLatestControllerStatistics pulls the latest controller stats.
-func (m *Manager) PullLatestControllerStatistics() []ExecutionStat {
-	stat := []ExecutionStat{}
+// PullLatestStats gets latest stat for each controller in the manager.
+func (m *Manager) PullLatestStats() map[uint]*RunStat {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
 
-	for _, controller := range m.controllers {
-		statMap := controller.ExtractExecutionStatistics()
+	stats := make(map[uint]*RunStat)
 
-		for t, s := range statMap {
-			stat = append(stat, ExecutionStat{
-				Name: controller.Name(),
-				Type: controller.Type(),
-
-				StartTime: t,
-				Duration:  s.duration,
-
-				Success: s.success,
-				Timeout: s.timeout,
-			})
-		}
+	for id, ctrl := range m.controllers {
+		stats[id] = ctrl.PullLatestStat()
 	}
 
-	return stat
-}
-
-// CleanStats clears up the statistics from memory and keeps just the latest statistic.
-func (m *Manager) CleanStats() {
-	for _, controller := range m.controllers {
-		controller.cleanStats()
-	}
-}
-
-// PullOnlyLatestControllerStatistics gets only the latest stats of each controller.
-func (m *Manager) PullOnlyLatestControllerStatistics() []ExecutionStat {
-	stat := []ExecutionStat{}
-	for _, controller := range m.controllers {
-		stat = append(stat, ExecutionStat{
-			Name: controller.Name(),
-			Type: controller.Type(),
-
-			StartTime: controller.latestStat.startTime,
-			Duration:  controller.latestStat.duration,
-
-			Success: controller.latestStat.success,
-			Timeout: controller.latestStat.timeout,
-		})
-	}
-	return stat
+	return stats
 }

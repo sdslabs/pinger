@@ -2,16 +2,16 @@
 # Use of this source code is governed by an MIT license
 # details of which can be found in the LICENSE file.
 
-FROM golang:1.14.2-alpine3.11
+FROM golang:1.15.1-alpine3.12
 
-ENV METRICS_DB_NAME "status-dev"
-ENV METRICS_HOST "127.0.0.1"
-ENV METRICS_PASSWORD "password"
-ENV METRICS_PORT "5432"
-ENV METRICS_SSL_MODE "true"
-ENV METRICS_USERNAME "username"
-ENV PORT "9019"
-ENV INTERVAL "2m"
+ENV METRICS_DB_NAME "<db_name>"
+ENV METRICS_HOST "<db_host>"
+ENV METRICS_PORT "<db_port>"
+ENV METRICS_USERNAME "<db_username>"
+ENV METRICS_PASSWORD "<db_password>"
+ENV METRICS_SSL_MODE "<db_in_ssl_mode>"
+ENV PORT "<agent_port>"
+ENV INTERVAL "<update_interval>"
 
 WORKDIR /agent
 COPY . .

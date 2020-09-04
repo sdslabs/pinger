@@ -15,12 +15,12 @@ all: install lint proto build
 
 help:
 	@echo "Pinger Makefile"
-	@echo "build  - Build status"
-	@echo "format - Format code using golangci-lint"
-	@echo "help   - Prints help message"
-	@echo "tools  - Install required tools"
-	@echo "lint   - Lint code using golangci-lint"
-	@echo "proto  - Build proto files"
+	@echo "build   - Build pinger"
+	@echo "format  - Format code using golangci-lint"
+	@echo "help    - Prints help message"
+	@echo "install - Install required tools"
+	@echo "lint    - Lint code using golangci-lint"
+	@echo "proto   - Build proto files"
 
 build:
 	@echo "Building..."
@@ -69,7 +69,3 @@ install-golangcilint:
 	 	https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
 	 	sh -s -- -b $(GOPATH_BIN) v1.24.0
 	@echo "Installed successfully"
-
-# Old scripts
-build-old:
-	@./scripts/build.sh

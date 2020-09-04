@@ -1,16 +1,11 @@
-# Default configs
+# Target build
+target/
+
+# Default configuration
 app.yml
 central.yml
 agent.yml
 
-# Prometheus data
-data/
-
-# Build
-target/
-
-
-#IDE
 .DS_Store
-.vscode
-.dist
+.vscode/
+.dist/
