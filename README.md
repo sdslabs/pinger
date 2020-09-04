@@ -12,7 +12,7 @@ and [Apex Ping](https://apex.sh/ping/).
 
 Before beginning make sure you have all the required tools installed.
 
-- [Go](https://golang.org/doc/install) >= 1.4 (Preferred >= 1.5)
+- [Go](https://golang.org/doc/install) >= 1.3 (Preferred >= 1.5)
 - [PostgreSQL](https://www.postgresql.org/download/) >= 11 (Preferred >= 12)
 - [Timescale](https://docs.timescale.com/latest/getting-started/installation) >= 1.7
 - [Docker](https://docs.docker.com/get-docker/)

@@ -20,11 +20,11 @@ RUN apk update && apk add make
 RUN make build
 
 CMD ./target/pinger agent \
-    --metrics-db-name=$METRICS_DB_NAME \
-    --metrics-host=$METRICS_HOST \
-    --metrics-password=$METRICS_PASSWORD \
-    --metrics-port=$METRICS_PORT \
-    --metrics-ssl-mode=$METRICS_SSL_MODE \
-    --metrics-username=$METRICS_USERNAME \
-    --port=$PORT \
-    --interval=$INTERVAL
+  --metrics-db-name=$METRICS_DB_NAME \
+  --metrics-host=$METRICS_HOST \
+  --metrics-password=$METRICS_PASSWORD \
+  --metrics-port=$METRICS_PORT \
+  --metrics-ssl-mode=$METRICS_SSL_MODE \
+  --metrics-username=$METRICS_USERNAME \
+  --port=$PORT \
+  --interval=$INTERVAL
