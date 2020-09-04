@@ -2,7 +2,7 @@
 # Use of this source code is governed by an MIT license
 # details of which can be found in the LICENSE file.
 
-.PHONY: build format help tools lint proto
+.PHONY: build format help install lint proto docs
 
 .DEFAULT_GOAL := help
 
@@ -20,11 +20,13 @@ all: install lint proto build
 help:
 	@echo "Pinger Makefile"
 	@echo "build   - Build pinger"
+	@echo "docs    - Build documentation"
 	@echo "format  - Format code using golangci-lint"
 	@echo "help    - Prints help message"
 	@echo "install - Install required tools"
 	@echo "lint    - Lint code using golangci-lint"
 	@echo "proto   - Build proto files"
+	@echo "vendor  - Vendor dependencies and tidy up"
 
 build:
 	@echo "Building..."
@@ -43,6 +45,13 @@ lint:
 	@$(GO) vet $(GO_PACKAGES)
 	@$(GOLANGCI_LINT) run
 	@echo "No errors found"
+
+vendor:
+	@echo "Tidy up go.mod..."
+	@$(GO) mod tidy
+	@echo "Vendoring..."
+	@$(GO) mod vendor
+	@echo "Done!"
 
 proto:
 	@echo "Compiling protobufs..."
@@ -73,3 +82,23 @@ install-golangcilint:
 	 	https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
 	 	sh -s -- -b $(GOPATH_BIN) v1.24.0
 	@echo "Installed successfully"
+
+docs: docs-install docs-build
+
+docs-install:
+	@echo "Installing documentation dependencies"
+	@cd docs && bundle install
+	@echo "Dependencies installed!"
+
+docs-build:
+	@echo "Building documentation..."
+	@cd docs && bundle exec jekyll build
+	@echo "Built into ./docs/_site"
+
+docs-watch:
+	@echo "Building documentation in watch mode..."
+	@cd docs && bundle exec jekyll build --watch
+
+docs-serve:
+	@echo "Serving documentation on :4000"
+	@cd docs && bundle exec jekyll serve
