@@ -35,6 +35,7 @@ of the application.`,
 	if err := addCommands(ctx, v, cmd,
 		// Add commands here
 		newAgentCmd,
+		newPingCmd,
 	); err != nil {
 		return nil, err
 	}
