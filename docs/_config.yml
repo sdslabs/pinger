@@ -21,6 +21,11 @@ plugins:
 defaults:
 -
   scope:
+    path: "assets/js/"
+  values:
+    layout: null
+-
+  scope:
     path: ""
   values:
     layout: default
@@ -29,7 +34,6 @@ color_scheme: pinger
 
 search_enabled: true
 search:
-  heading_level: 3
   button: true
 
 aux_links_new_tab: true
