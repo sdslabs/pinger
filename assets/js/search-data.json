@@ -1,0 +1,128 @@
+{"0": {
+    "doc": "Page not found",
+    "title": "Page not found",
+    "content": "The page you’re looking for does not exist. Status Code: 404 . ",
+    "url": "/404.html",
+    "relUrl": "/404.html"
+  },"1": {
+    "doc": "Building from source",
+    "title": "Building from source",
+    "content": "Pinger is written purely in Go but is dependent on a few other external dependencies. ",
+    "url": "/development/building-from-source.html",
+    "relUrl": "/development/building-from-source.html"
+  },"2": {
+    "doc": "Building from source",
+    "title": "Prerequisites",
+    "content": "Before beginning make sure you have all the required tools installed. | Go &gt;= 1.3 (Preferred &gt;= 1.5) | PostgreSQL &gt;= 11 (Preferred &gt;= 12) | Timescale &gt;= 1.7 | Docker | . ",
+    "url": "/development/building-from-source.html#prerequisites",
+    "relUrl": "/development/building-from-source.html#prerequisites"
+  },"3": {
+    "doc": "Building from source",
+    "title": "Setup",
+    "content": ". | Clone the repository and change-directory to it. $ git clone git@github.com/sdslabs/pinger.git $ cd pinger . | Build the project as ./target/pinger. $ make build . | Verify a successful build by pinging it. $ ./target/pinger ping INFO[0000] pong . | . ",
+    "url": "/development/building-from-source.html#setup",
+    "relUrl": "/development/building-from-source.html#setup"
+  },"4": {
+    "doc": "Directory structure",
+    "title": "Directory structure",
+    "content": ". ├── cmd │   └── pinger ├── docs ├── pkg ├── target └── vendor . ",
+    "url": "/development/directory-structure.html",
+    "relUrl": "/development/directory-structure.html"
+  },"5": {
+    "doc": "Directory structure",
+    "title": "Root",
+    "content": "Root directory contains all the build related files or the meta-data for the project/repository. It contains files varying from project’s Dockerfile to linter config .golangci.yml. ",
+    "url": "/development/directory-structure.html#root",
+    "relUrl": "/development/directory-structure.html#root"
+  },"6": {
+    "doc": "Directory structure",
+    "title": "Command line",
+    "content": "cmd/ contains the commands that can be executed using the binary. It is the building block package for the Pinger CLI. cmd/pinger/ contains the main (or entry-point) for the CLI. ",
+    "url": "/development/directory-structure.html#command-line",
+    "relUrl": "/development/directory-structure.html#command-line"
+  },"7": {
+    "doc": "Directory structure",
+    "title": "Documentation",
+    "content": "docs/ contains the documentation for the project. Documentation is generated using the Jekyll framework. To know more see how to build documentation. ",
+    "url": "/development/directory-structure.html#documentation",
+    "relUrl": "/development/directory-structure.html#documentation"
+  },"8": {
+    "doc": "Directory structure",
+    "title": "Target",
+    "content": "target/ contains any of the builds, including libraries and binaries for the project. ",
+    "url": "/development/directory-structure.html#target",
+    "relUrl": "/development/directory-structure.html#target"
+  },"9": {
+    "doc": "Directory structure",
+    "title": "Vendor",
+    "content": "vendor/ contains the source code of dependencies of the project. See vendoring for more details. ",
+    "url": "/development/directory-structure.html#vendor",
+    "relUrl": "/development/directory-structure.html#vendor"
+  },"10": {
+    "doc": "Documentation",
+    "title": "Documentation",
+    "content": "It’s appericiated that you document features or release changes along-with your code change itself. ",
+    "url": "/development/documentation.html",
+    "relUrl": "/development/documentation.html"
+  },"11": {
+    "doc": "Documentation",
+    "title": "Building documentation",
+    "content": "We use Jekyll to generate the documentation. Prerequisites . Make sure you have these installed before you can build docs. | Ruby &gt;= 2.6 | Bundler | . Build . | Install dependencies: $ make docs-install . | Build documentation: $ make docs-build . | . Tip The above steps can be done together using make docs. When developing it’s helpful to build on file change. # Build in watch mode $ make docs-watch # Serve documentation on :4000 $ make docs-serve . ",
+    "url": "/development/documentation.html#building-documentation",
+    "relUrl": "/development/documentation.html#building-documentation"
+  },"12": {
+    "doc": "Development",
+    "title": "Development",
+    "content": "Here you’ll find how you can make changes to the source code of the application. ",
+    "url": "/development/",
+    "relUrl": "/development/"
+  },"13": {
+    "doc": "Introduction",
+    "title": "Introduction",
+    "content": "Pinger is an open-source implementation of an application that can create status pages. Some similar applications are Freshping and Apex Ping. ",
+    "url": "/#introduction",
+    "relUrl": "/#introduction"
+  },"14": {
+    "doc": "Introduction",
+    "title": "Introduction",
+    "content": "Project is currently under active development. If you’re a developer, head over to the developer documentation. ",
+    "url": "/",
+    "relUrl": "/"
+  },"15": {
+    "doc": "Making changes",
+    "title": "Making changes to the codebase",
+    "content": "These are a few guidelines that need to be followed in-order to make changes in the main repository. ",
+    "url": "/development/making-changes.html#making-changes-to-the-codebase",
+    "relUrl": "/development/making-changes.html#making-changes-to-the-codebase"
+  },"16": {
+    "doc": "Making changes",
+    "title": "Vendoring",
+    "content": "We vendor all the dependencies of our project. All the dependencies are listed in go.mod file and are maintained in the vendor/ directory. When updating or adding or deleting a dependency, run the following to keep the vendor up-to-date: . $ make vendor . ",
+    "url": "/development/making-changes.html#vendoring",
+    "relUrl": "/development/making-changes.html#vendoring"
+  },"17": {
+    "doc": "Making changes",
+    "title": "Protobufs",
+    "content": "To install protobuf compiler, and other development tools, use: . $ make install . Run the following to compile protobufs: . $ make proto . When making changes to protobufs, make sure that you commit the compiled proto files as-well. ",
+    "url": "/development/making-changes.html#protobufs",
+    "relUrl": "/development/making-changes.html#protobufs"
+  },"18": {
+    "doc": "Making changes",
+    "title": "Check for linting errors",
+    "content": "We use golangci-lint. Make sure your changes pass the lint tests. To install golangci-lint, or any other development dependencies, use: . $ make install . To check for linting errors, use: . $ make lint . Some errors can be fixed automatically. To do so, use: . $ make format . So, before committing any change, make sure there are no linting errors in the code. ",
+    "url": "/development/making-changes.html#check-for-linting-errors",
+    "relUrl": "/development/making-changes.html#check-for-linting-errors"
+  },"19": {
+    "doc": "Making changes",
+    "title": "Commits",
+    "content": "Following are the guidelines for committing changes to the repository: . | Break only logical changes into multiple commits. Commits such as “fix typo” or “address review commits” should be squashed into the one logical commit. | Each commit should individually pass tests and lint check. No separate commit should be made to fix these. | We don’t have a defined commit message style for our codebase but the general idea is that the commit should include a heading, a body (if it’s required) and reference to any issue that it might resolve. A good commit message looks something like this: . Short commit heading with gist of changes. Body of commit trying to explain the old behaviour and how this commit changes it for the better. Resolves: #123 Signed-off-by: Contributer &lt;example@contributor.com&gt; . | . ",
+    "url": "/development/making-changes.html#commits",
+    "relUrl": "/development/making-changes.html#commits"
+  },"20": {
+    "doc": "Making changes",
+    "title": "Making changes",
+    "content": " ",
+    "url": "/development/making-changes.html",
+    "relUrl": "/development/making-changes.html"
+  }
+}
