@@ -2,7 +2,7 @@
 # Use of this source code is governed by an MIT license
 # details of which can be found in the LICENSE file.
 
-.PHONY: build format help install lint proto docs
+.PHONY: build docker docs format help install lint proto vendor
 
 .DEFAULT_GOAL := help
 
@@ -15,11 +15,12 @@ BUILD_INPUT := cmd/pinger/main.go
 GO_PACKAGES := $(shell go list ./... | grep -v vendor)
 UNAME := $(shell uname)
 
-all: install lint proto build
+all: install lint proto docs build docker
 
 help:
 	@echo "Pinger Makefile"
 	@echo "build   - Build pinger"
+	@echo "docker  - Build docker image"
 	@echo "docs    - Build documentation"
 	@echo "format  - Format code using golangci-lint"
 	@echo "help    - Prints help message"
@@ -64,6 +65,14 @@ proto:
 	@echo "Compiled successfully"
 
 install: install-protoc install-golangcilint
+
+ifeq ($(TAG),)
+TAG := "pinger:dev"
+endif
+docker:
+	@echo "Building docker image..."
+	@docker build -t $(TAG) .
+	@echo "Built with tag $(TAG)"
 
 install-protoc:
 	@echo "Installing protoc..."
