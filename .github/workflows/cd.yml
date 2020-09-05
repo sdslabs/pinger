@@ -2,24 +2,23 @@
 # Use of this source code is governed by an MIT license
 # details of which can be found in the LICENSE file.
 
-name: Docs CD
+name: Continuous Deployment
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
-
+  docs:
+    name: Documentation
+    runs-on: ubuntu-18.04
     steps:
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: 2.6
 
-    - name: Checkout
+    - name: Check out code into the repository root
       uses: actions/checkout@v2
       with:
         persist-credentials: false

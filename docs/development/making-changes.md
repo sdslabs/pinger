@@ -39,6 +39,17 @@ $ make proto
 When making changes to protobufs, make sure that you commit the compiled
 proto files as-well.
 
+## Dockerfile
+
+When updating the `Dockerfile`, test building the image using:
+
+```sh
+$ make docker TAG="name:version" # default TAG="pinger:dev"
+
+# Try running the container, should respond with pong
+$ docker run --rm name:version
+```
+
 ## Check for linting errors
 
 We use [golangci-lint](https://golangci-lint.run/). Make sure your changes
