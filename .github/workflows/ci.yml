@@ -62,6 +62,9 @@ jobs:
     - name: Setup tools (protoc)
       run: sudo apt install -y protobuf-compiler
 
+    - name: Setup tools (protoc-gen-go)
+      run: go get github.com/golang/protobuf/protoc-gen-go
+
     - name: Compile
       run: make proto
 
