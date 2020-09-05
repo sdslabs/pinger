@@ -1,0 +1,40 @@
+# Copyright (c) 2020 SDSLabs
+# Use of this source code is governed by an MIT license
+# details of which can be found in the LICENSE file.
+
+name: Docs CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.6
+
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+
+    - name: Install dependencies
+      run: make docs-install
+
+    - name: Build site
+      run: make docs-build
+
+    - name: Add CNAME
+      run: cp ./docs/CNAME ./docs/_site
+
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@3.5.9
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: docs/_site
