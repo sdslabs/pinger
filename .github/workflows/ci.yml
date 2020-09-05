@@ -60,7 +60,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Setup tools (protoc)
-      run: apt install -y protobuf-compiler
+      run: sudo apt install -y protobuf-compiler
 
     - name: Compile
       run: make proto
@@ -91,10 +91,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build
-      uses: docker/build-action@v1
-      with:
-        repository: sdslabs/pinger
-        tags: dev
+      run: make docker TAG="pinger:dev"
 
     - name: Run container
-      run: docker run --rm sdslabs/pinger:dev
+      run: docker run --rm pinger:dev
