@@ -83,6 +83,8 @@ else
 	@echo "Install protoc manually, see: https://grpc.io/docs/protoc-installation/"
 	@echo "Not required if not changing protobufs."
 endif
+	@echo "Installing protoc-gen-go"
+	@go get github.com/golang/protobuf/protoc-gen-go
 	@echo "Installed successfully"
 
 install-golangcilint:
