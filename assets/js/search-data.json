@@ -13,7 +13,7 @@
   },"2": {
     "doc": "Building from source",
     "title": "Prerequisites",
-    "content": "Before beginning make sure you have all the required tools installed. | Go &gt;= 1.3 (Preferred &gt;= 1.5) | PostgreSQL &gt;= 11 (Preferred &gt;= 12) | Timescale &gt;= 1.7 | Docker | . ",
+    "content": "Before beginning make sure you have all the required tools installed. | Go &gt;= 1.3 (Preferred &gt;= 1.5) | PostgreSQL &gt;= 11 (Preferred &gt;= 12) | Timescale &gt;= 1.7 | Docker &gt;= 17.05 | . ",
     "url": "/development/building-from-source.html#prerequisites",
     "relUrl": "/development/building-from-source.html#prerequisites"
   },"3": {
