@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package proto;
 
+option go_package = "../proto";
+
 // BoolResponse represents a boolean response where the action could either
 // be successful or unsuccessful. If the action is not-successful, error is
 // returned as the reason for the same.

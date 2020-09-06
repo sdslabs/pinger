@@ -6,6 +6,8 @@ syntax = "proto3";
 
 package proto;
 
+option go_package = "../proto";
+
 import "messages.proto";
 
 // Central service can list, push (create and update) and remove checks.
