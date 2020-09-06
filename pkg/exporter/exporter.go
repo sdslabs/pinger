@@ -16,7 +16,7 @@ import (
 // this map is to use the `Register` method.
 var exporters = map[string]newFunc{}
 
-// newFunc is an alias for the function that can create a new checker.
+// newFunc is an alias for the function that can create a new exporter.
 type newFunc = func() Exporter
 
 // Register adds a new exporter to the package. This does not throw an
