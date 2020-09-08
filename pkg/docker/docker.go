@@ -26,10 +26,10 @@ type ContainerConf struct {
 	Image string
 
 	// Port on which container is running
-	ContainerPort int
+	ContainerPort uint16
 
 	// Port of the docker container in the host system
-	HostPort int
+	HostPort uint16
 
 	// Environment variables
 	Env map[string]interface{}
