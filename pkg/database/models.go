@@ -42,7 +42,10 @@ type User struct {
 
 // Check model.
 type Check struct {
-	gorm.Model
+	ID        string `gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
 
 	OwnerID uint
 	Owner   User
@@ -72,7 +75,7 @@ type Payload struct {
 	Owner   User
 	OwnerID uint
 
-	CheckID uint
+	CheckID string
 	Check   Check
 
 	Type  string `gorm:"NOT NULL"`
@@ -115,7 +118,7 @@ type Incident struct {
 
 // Metric model.
 type Metric struct {
-	CheckID uint
+	CheckID string
 	Check   Check
 
 	StartTime time.Time     `gorm:"NOT NULL"`

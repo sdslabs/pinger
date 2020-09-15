@@ -15,7 +15,7 @@ import (
 //
 // Implements the checker.Metric interface.
 type Metric struct {
-	CheckID    uint
+	CheckID    string
 	CheckName  string
 	Successful bool
 	Timeout    bool
@@ -24,7 +24,7 @@ type Metric struct {
 }
 
 // GetCheckID returns the ID of the check for which the metric is.
-func (m *Metric) GetCheckID() uint {
+func (m *Metric) GetCheckID() string {
 	return m.CheckID
 }
 

@@ -26,7 +26,7 @@ func (s *server) ListChecks(context.Context, *proto.Nil) (*proto.CheckList, erro
 
 	i := 0
 	for id := range checksMap {
-		checks[i] = &proto.CheckID{ID: uint32(id)}
+		checks[i] = &proto.CheckID{ID: id}
 		i++
 	}
 
@@ -48,7 +48,7 @@ func (s *server) PushCheck(_ context.Context, check *proto.Check) (*proto.BoolRe
 
 // RemoveCheck removes the check.
 func (s *server) RemoveCheck(_ context.Context, cid *proto.CheckID) (*proto.BoolResponse, error) {
-	s.m.RemoveController(uint(cid.ID))
+	s.m.RemoveController(cid.ID)
 	return &proto.BoolResponse{Successful: true}, nil
 }
 
