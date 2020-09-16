@@ -5,6 +5,7 @@
 package database
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -43,12 +44,12 @@ func rawUserWithEmail(email string) User {
 
 // CreateUser creates a new user in the database. It simply returns the user
 // with the same email if the user exists.
-func (c *Conn) CreateUser(user *User) (*User, error) {
+func (c *Conn) CreateUser(ctx context.Context, user *User) (*User, error) {
 	if user == nil {
 		return nil, fmt.Errorf("*User: %w", ErrNilPointer)
 	}
 
-	u, err := c.GetUserByEmail(user.Email, GetUserOpts{})
+	u, err := c.GetUserByEmail(ctx, user.Email, GetUserOpts{})
 	if err != nil && err != ErrRecordNotFound {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func (c *Conn) CreateUser(user *User) (*User, error) {
 		return u, nil
 	}
 
-	err = c.db.Create(user).Error
+	err = c.db.WithContext(ctx).Create(user).Error
 	return user, err
 }
 
@@ -72,8 +73,8 @@ type GetUserOpts struct {
 }
 
 // getUser gets a user with the specified "where" condition.
-func (c *Conn) getUser(where *User, opts GetUserOpts) (*User, error) {
-	tx := c.db.Where(where)
+func (c *Conn) getUser(ctx context.Context, where *User, opts GetUserOpts) (*User, error) {
+	tx := c.db.WithContext(ctx).Where(where)
 
 	if opts.Checks {
 		tx = tx.Preload("Checks")
@@ -101,54 +102,54 @@ func (c *Conn) getUser(where *User, opts GetUserOpts) (*User, error) {
 }
 
 // GetUserByID gets user by ID.
-func (c *Conn) GetUserByID(id uint, opts GetUserOpts) (*User, error) {
+func (c *Conn) GetUserByID(ctx context.Context, id uint, opts GetUserOpts) (*User, error) {
 	u := rawUserWithID(id)
-	return c.getUser(&u, opts)
+	return c.getUser(ctx, &u, opts)
 }
 
 // GetUserByEmail gets user by Email.
-func (c *Conn) GetUserByEmail(email string, opts GetUserOpts) (*User, error) {
+func (c *Conn) GetUserByEmail(ctx context.Context, email string, opts GetUserOpts) (*User, error) {
 	u := rawUserWithEmail(email)
-	return c.getUser(&u, opts)
+	return c.getUser(ctx, &u, opts)
 }
 
 // UpdateUserByID updates the user for given ID.
-func (c *Conn) UpdateUserByID(id uint, user *User) (*User, error) {
+func (c *Conn) UpdateUserByID(ctx context.Context, id uint, user *User) (*User, error) {
 	if user == nil {
 		return nil, fmt.Errorf("*User: %w", ErrNilPointer)
 	}
 
 	u := rawUserWithID(id)
 
-	tx := c.db.Model(User{}).Where(&u).Updates(*user)
+	tx := c.db.WithContext(ctx).Model(User{}).Where(&u).Updates(*user)
 	return &u, tx.Error
 }
 
 // UpdateUserByEmail updates the user for given email.
-func (c *Conn) UpdateUserByEmail(email string, user *User) (*User, error) {
+func (c *Conn) UpdateUserByEmail(ctx context.Context, email string, user *User) (*User, error) {
 	if user == nil {
 		return nil, fmt.Errorf("*User: %w", ErrNilPointer)
 	}
 
 	u := rawUserWithEmail(email)
 
-	tx := c.db.Model(User{}).Where(&u).Updates(*user)
+	tx := c.db.WithContext(ctx).Model(User{}).Where(&u).Updates(*user)
 	return &u, tx.Error
 }
 
 // DeleteUserByID deletes a user entry.
-func (c *Conn) DeleteUserByID(id uint) error {
+func (c *Conn) DeleteUserByID(ctx context.Context, id uint) error {
 	u := rawUserWithID(id)
 
-	tx := c.db.Where(&u).Unscoped().Delete(&User{})
+	tx := c.db.WithContext(ctx).Where(&u).Unscoped().Delete(&User{})
 	return tx.Error
 }
 
 // DeleteUserByEmail deletes a user entry.
-func (c *Conn) DeleteUserByEmail(email string) error {
+func (c *Conn) DeleteUserByEmail(ctx context.Context, email string) error {
 	u := rawUserWithEmail(email)
 
-	tx := c.db.Where(&u).Unscoped().Delete(&User{})
+	tx := c.db.WithContext(ctx).Where(&u).Unscoped().Delete(&User{})
 	return tx.Error
 }
 
@@ -161,13 +162,13 @@ func rawCheckWithID(ownerID uint, checkID string) Check {
 }
 
 // CreateCheck creates a new check.
-func (c *Conn) CreateCheck(ownerID uint, check *Check) (*Check, error) {
+func (c *Conn) CreateCheck(ctx context.Context, ownerID uint, check *Check) (*Check, error) {
 	if check == nil {
 		return nil, fmt.Errorf("*Check: %w", ErrNilPointer)
 	}
 
 	check.OwnerID = ownerID
-	err := c.db.Create(check).Error
+	err := c.db.WithContext(ctx).Create(check).Error
 	return check, err
 }
 
@@ -179,9 +180,9 @@ type GetCheckOpts struct {
 }
 
 // GetCheck gets a check from given checkID.
-func (c *Conn) GetCheck(ownerID uint, checkID string, opts GetCheckOpts) (*Check, error) {
+func (c *Conn) GetCheck(ctx context.Context, ownerID uint, checkID string, opts GetCheckOpts) (*Check, error) {
 	ch := rawCheckWithID(ownerID, checkID)
-	tx := c.db.Where(ch)
+	tx := c.db.WithContext(ctx).Where(ch)
 
 	if opts.Owner {
 		tx = tx.Preload("Owner")
@@ -197,22 +198,22 @@ func (c *Conn) GetCheck(ownerID uint, checkID string, opts GetCheckOpts) (*Check
 }
 
 // UpdateCheck updates a check with the given ID.
-func (c *Conn) UpdateCheck(ownerID uint, checkID string, check *Check) (*Check, error) {
+func (c *Conn) UpdateCheck(ctx context.Context, ownerID uint, checkID string, check *Check) (*Check, error) {
 	if check == nil {
 		return nil, fmt.Errorf("*Check: %w", ErrNilPointer)
 	}
 
 	ch := rawCheckWithID(ownerID, checkID)
 
-	tx := c.db.Model(Check{}).Where(&ch).Updates(*check)
+	tx := c.db.WithContext(ctx).Model(Check{}).Where(&ch).Updates(*check)
 	return &ch, tx.Error
 }
 
 // DeleteCheck deletes the check with the given ID.
-func (c *Conn) DeleteCheck(ownerID uint, checkID string) error {
+func (c *Conn) DeleteCheck(ctx context.Context, ownerID uint, checkID string) error {
 	ch := rawCheckWithID(ownerID, checkID)
 
-	tx := c.db.Where(&ch).Unscoped().Delete(&Check{})
+	tx := c.db.WithContext(ctx).Where(&ch).Unscoped().Delete(&Check{})
 	return tx.Error
 }
 
@@ -226,14 +227,14 @@ func rawPayloadWithID(ownerID, payloadID uint, checkID string) Payload {
 }
 
 // CreatePayload creates a new payload.
-func (c *Conn) CreatePayload(ownerID uint, checkID string, payload *Payload) (*Payload, error) {
+func (c *Conn) CreatePayload(ctx context.Context, ownerID uint, checkID string, payload *Payload) (*Payload, error) {
 	if payload == nil {
 		return nil, fmt.Errorf("*Payload: %w", ErrNilPointer)
 	}
 
 	payload.OwnerID = ownerID
 	payload.CheckID = checkID
-	err := c.db.Create(payload).Error
+	err := c.db.WithContext(ctx).Create(payload).Error
 	return payload, err
 }
 
@@ -244,9 +245,9 @@ type GetPayloadOpts struct {
 }
 
 // GetPayload gets a payload from given payloadID.
-func (c *Conn) GetPayload(ownerID, payloadID uint, checkID string, opts GetPayloadOpts) (*Payload, error) {
+func (c *Conn) GetPayload(ctx context.Context, ownerID, payloadID uint, checkID string, opts GetPayloadOpts) (*Payload, error) {
 	p := rawPayloadWithID(ownerID, payloadID, checkID)
-	tx := c.db.Where(p)
+	tx := c.db.WithContext(ctx).Where(p)
 
 	if opts.Owner {
 		tx = tx.Preload("Owner")
@@ -262,22 +263,22 @@ func (c *Conn) GetPayload(ownerID, payloadID uint, checkID string, opts GetPaylo
 }
 
 // UpdatePayload updates a payload with the given ID.
-func (c *Conn) UpdatePayload(ownerID, payloadID uint, checkID string, payload *Payload) (*Payload, error) {
+func (c *Conn) UpdatePayload(ctx context.Context, ownerID, payloadID uint, checkID string, payload *Payload) (*Payload, error) {
 	if payload == nil {
 		return nil, fmt.Errorf("*Payload: %w", ErrNilPointer)
 	}
 
 	p := rawPayloadWithID(ownerID, payloadID, checkID)
 
-	tx := c.db.Model(Payload{}).Where(&p).Updates(*payload)
+	tx := c.db.WithContext(ctx).Model(Payload{}).Where(&p).Updates(*payload)
 	return &p, tx.Error
 }
 
 // DeletePayload deletes the payload with the given ID.
-func (c *Conn) DeletePayload(ownerID, payloadID uint, checkID string) error {
+func (c *Conn) DeletePayload(ctx context.Context, ownerID, payloadID uint, checkID string) error {
 	p := rawPayloadWithID(ownerID, payloadID, checkID)
 
-	tx := c.db.Where(&p).Unscoped().Delete(&Payload{})
+	tx := c.db.WithContext(ctx).Where(&p).Unscoped().Delete(&Payload{})
 	return tx.Error
 }
 
@@ -290,13 +291,13 @@ func rawPageWithID(ownerID, pageID uint) Page {
 }
 
 // CreatePage creates a new page.
-func (c *Conn) CreatePage(ownerID uint, page *Page) (*Page, error) {
+func (c *Conn) CreatePage(ctx context.Context, ownerID uint, page *Page) (*Page, error) {
 	if page == nil {
 		return nil, fmt.Errorf("*Page: %w", ErrNilPointer)
 	}
 
 	page.OwnerID = ownerID
-	err := c.db.Create(page).Error
+	err := c.db.WithContext(ctx).Create(page).Error
 	return page, err
 }
 
@@ -310,9 +311,9 @@ type GetPageOpts struct {
 }
 
 // GetPage gets a page from given pageID.
-func (c *Conn) GetPage(ownerID, pageID uint, opts GetPageOpts) (*Page, error) {
+func (c *Conn) GetPage(ctx context.Context, ownerID, pageID uint, opts GetPageOpts) (*Page, error) {
 	p := rawPageWithID(ownerID, pageID)
-	tx := c.db.Where(p)
+	tx := c.db.WithContext(ctx).Where(p)
 
 	if opts.Owner {
 		tx = tx.Preload("Owner")
@@ -336,22 +337,22 @@ func (c *Conn) GetPage(ownerID, pageID uint, opts GetPageOpts) (*Page, error) {
 }
 
 // UpdatePage updates a page with the given ID.
-func (c *Conn) UpdatePage(ownerID, pageID uint, page *Page) (*Page, error) {
+func (c *Conn) UpdatePage(ctx context.Context, ownerID, pageID uint, page *Page) (*Page, error) {
 	if page == nil {
 		return nil, fmt.Errorf("*Page: %w", ErrNilPointer)
 	}
 
 	p := rawPageWithID(ownerID, pageID)
 
-	tx := c.db.Model(Page{}).Where(&p).Updates(*page)
+	tx := c.db.WithContext(ctx).Model(Page{}).Where(&p).Updates(*page)
 	return &p, tx.Error
 }
 
 // DeletePage deletes the page with the given ID.
-func (c *Conn) DeletePage(ownerID, pageID uint) error {
+func (c *Conn) DeletePage(ctx context.Context, ownerID, pageID uint) error {
 	p := rawPageWithID(ownerID, pageID)
 
-	tx := c.db.Where(&p).Unscoped().Delete(&Page{})
+	tx := c.db.WithContext(ctx).Where(&p).Unscoped().Delete(&Page{})
 	return tx.Error
 }
 
@@ -365,14 +366,14 @@ func rawIncidentWithID(ownerID, pageID, incidentID uint) Incident {
 }
 
 // CreateIncident creates a new incident.
-func (c *Conn) CreateIncident(ownerID, pageID uint, incident *Incident) (*Incident, error) {
+func (c *Conn) CreateIncident(ctx context.Context, ownerID, pageID uint, incident *Incident) (*Incident, error) {
 	if incident == nil {
 		return nil, fmt.Errorf("*Incident: %w", ErrNilPointer)
 	}
 
 	incident.OwnerID = ownerID
 	incident.PageID = pageID
-	err := c.db.Create(incident).Error
+	err := c.db.WithContext(ctx).Create(incident).Error
 	return incident, err
 }
 
@@ -383,9 +384,9 @@ type GetIncidentOpts struct {
 }
 
 // GetIncident gets an incident from given incidentID.
-func (c *Conn) GetIncident(ownerID, pageID, incidentID uint, opts GetIncidentOpts) (*Incident, error) {
+func (c *Conn) GetIncident(ctx context.Context, ownerID, pageID, incidentID uint, opts GetIncidentOpts) (*Incident, error) {
 	i := rawIncidentWithID(ownerID, pageID, incidentID)
-	tx := c.db.Where(i)
+	tx := c.db.WithContext(ctx).Where(i)
 
 	if opts.Owner {
 		tx = tx.Preload("Owner")
@@ -401,22 +402,22 @@ func (c *Conn) GetIncident(ownerID, pageID, incidentID uint, opts GetIncidentOpt
 }
 
 // UpdateIncident updates a incident with the given ID.
-func (c *Conn) UpdateIncident(ownerID, pageID, incidentID uint, incident *Incident) (*Incident, error) {
+func (c *Conn) UpdateIncident(ctx context.Context, ownerID, pageID, incidentID uint, incident *Incident) (*Incident, error) {
 	if incident == nil {
 		return nil, fmt.Errorf("*Incident: %w", ErrNilPointer)
 	}
 
 	i := rawIncidentWithID(ownerID, pageID, incidentID)
 
-	tx := c.db.Model(Incident{}).Where(&i).Updates(*incident)
+	tx := c.db.WithContext(ctx).Model(Incident{}).Where(&i).Updates(*incident)
 	return &i, tx.Error
 }
 
 // DeleteIncident deletes the incident with the given ID.
-func (c *Conn) DeleteIncident(ownerID, pageID, incidentID uint) error {
+func (c *Conn) DeleteIncident(ctx context.Context, ownerID, pageID, incidentID uint) error {
 	i := rawIncidentWithID(ownerID, pageID, incidentID)
 
-	tx := c.db.Where(&i).Unscoped().Delete(&Incident{})
+	tx := c.db.WithContext(ctx).Where(&i).Unscoped().Delete(&Incident{})
 	return tx.Error
 }
 
@@ -432,7 +433,7 @@ func checkSliceFromIDs(ownerID uint, checkIDs []string) []Check {
 
 // AddChecksToPage adds relationship between the checks and the page, hence
 // inserting checks into the page.
-func (c *Conn) AddChecksToPage(ownerID, pageID uint, checkIDs []string) error {
+func (c *Conn) AddChecksToPage(ctx context.Context, ownerID, pageID uint, checkIDs []string) error {
 	if len(checkIDs) == 0 {
 		return nil
 	}
@@ -440,12 +441,12 @@ func (c *Conn) AddChecksToPage(ownerID, pageID uint, checkIDs []string) error {
 	p := rawPageWithID(ownerID, pageID)
 	checks := checkSliceFromIDs(ownerID, checkIDs)
 
-	return c.db.Model(&p).Where(&p).Association("Checks").Append(checks)
+	return c.db.WithContext(ctx).Model(&p).Where(&p).Association("Checks").Append(checks)
 }
 
 // RemoveChecksFromPage removes relationship between the checks and the page,
 // hence deleting checks from the page.
-func (c *Conn) RemoveChecksFromPage(ownerID, pageID uint, checkIDs []string) error {
+func (c *Conn) RemoveChecksFromPage(ctx context.Context, ownerID, pageID uint, checkIDs []string) error {
 	if len(checkIDs) == 0 {
 		return nil
 	}
@@ -453,7 +454,7 @@ func (c *Conn) RemoveChecksFromPage(ownerID, pageID uint, checkIDs []string) err
 	p := rawPageWithID(ownerID, pageID)
 	checks := checkSliceFromIDs(ownerID, checkIDs)
 
-	return c.db.Model(&p).Where(&p).Association("Checks").Delete(checks)
+	return c.db.WithContext(ctx).Model(&p).Where(&p).Association("Checks").Delete(checks)
 }
 
 // rawPageTeamMemberWithID returns an empty team member with page ID and
@@ -474,11 +475,11 @@ func rawPageTeamMemberWithID(pageID, memberID uint, role string) PageTeam {
 }
 
 // AddTeamMemberToPage adds a new team member to the page with the given ID.
-func (c *Conn) AddTeamMemberToPage(ownerID, pageID, memberID uint, role string) (*PageTeam, error) {
+func (c *Conn) AddTeamMemberToPage(ctx context.Context, ownerID, pageID, memberID uint, role string) (*PageTeam, error) {
 	pt := rawPageTeamMemberWithID(pageID, memberID, role)
 	p := rawPageWithID(ownerID, pageID)
 
-	if err := c.db.Model(&p).Where(&p).Association("Team").Append(pt); err != nil {
+	if err := c.db.WithContext(ctx).Model(&p).Where(&p).Association("Team").Append(pt); err != nil {
 		return nil, err
 	}
 
@@ -486,11 +487,11 @@ func (c *Conn) AddTeamMemberToPage(ownerID, pageID, memberID uint, role string) 
 }
 
 // UpdateTeamMemberRole updates the role of a team member.
-func (c *Conn) UpdateTeamMemberRole(ownerID, pageID, memberID uint, role string) (*PageTeam, error) {
+func (c *Conn) UpdateTeamMemberRole(ctx context.Context, ownerID, pageID, memberID uint, role string) (*PageTeam, error) {
 	pt := rawPageTeamMemberWithID(pageID, memberID, role)
 	p := rawPageWithID(ownerID, pageID)
 
-	if err := c.db.Model(&p).Where(&p).Association("Team").Replace(pt, pt); err != nil {
+	if err := c.db.WithContext(ctx).Model(&p).Where(&p).Association("Team").Replace(pt, pt); err != nil {
 		return nil, err
 	}
 
@@ -498,43 +499,43 @@ func (c *Conn) UpdateTeamMemberRole(ownerID, pageID, memberID uint, role string)
 }
 
 // RemoveTeamMemberFromPage removes the team member from the page.
-func (c *Conn) RemoveTeamMemberFromPage(ownerID, pageID, memberID uint) error {
+func (c *Conn) RemoveTeamMemberFromPage(ctx context.Context, ownerID, pageID, memberID uint) error {
 	pt := rawPageTeamMemberWithID(pageID, memberID, "")
 	p := rawPageWithID(ownerID, pageID)
 
-	return c.db.Model(&p).Where(&p).Association("Team").Delete(pt)
+	return c.db.WithContext(ctx).Model(&p).Where(&p).Association("Team").Delete(pt)
 }
 
 // GetMetricsByCheckAndStartTime fetches metrics from the metrics hypertable
 // for the given check ID. It accepts a `startTime` parameter that fetches
 // metrics for the check from given time.
-func (c *Conn) GetMetricsByCheckAndStartTime(checkID string, startTime time.Time) ([]Metric, error) {
+func (c *Conn) GetMetricsByCheckAndStartTime(ctx context.Context, checkID string, startTime time.Time) ([]Metric, error) {
 	metrics := []Metric{}
 
-	tx := c.db.Where("check_id = ? AND start_time > ?", checkID, startTime).Order("start_time DESC").Find(&metrics)
+	tx := c.db.WithContext(ctx).Where("check_id = ? AND start_time > ?", checkID, startTime).Order("start_time DESC").Find(&metrics)
 	return metrics, tx.Error
 }
 
 // GetMetricsByCheckAndDuration fetches metrics from the metrics hypertable
 // for the given check ID. It accepts a `duration` parameter that fetches
 // metrics for the check in the past `duration time.Duration`.
-func (c *Conn) GetMetricsByCheckAndDuration(checkID string, duration time.Duration) ([]Metric, error) {
+func (c *Conn) GetMetricsByCheckAndDuration(ctx context.Context, checkID string, duration time.Duration) ([]Metric, error) {
 	startTime := time.Now().Add(-1 * duration)
-	return c.GetMetricsByCheckAndStartTime(checkID, startTime)
+	return c.GetMetricsByCheckAndStartTime(ctx, checkID, startTime)
 }
 
 // GetMetricsByPageAndStartTime fetches metrics for all the checks in a page
 // for the given start time.
-func (c *Conn) GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([]Metric, error) {
+func (c *Conn) GetMetricsByPageAndStartTime(ctx context.Context, pageID uint, startTime time.Time) ([]Metric, error) {
 	checkIDs := []string{}
 
-	tx1 := c.db.Table("page_checks").Where("page_id = ?", pageID).Pluck("check_id", &checkIDs)
+	tx1 := c.db.WithContext(ctx).Table("page_checks").Where("page_id = ?", pageID).Pluck("check_id", &checkIDs)
 	if err := tx1.Error; err != nil {
 		return nil, err
 	}
 
 	metrics := []Metric{}
-	tx2 := c.db.Where("check_id IN (?) AND start_time > ?", checkIDs, startTime).
+	tx2 := c.db.WithContext(ctx).Where("check_id IN (?) AND start_time > ?", checkIDs, startTime).
 		Order("start_time DESC").
 		Find(&metrics)
 	return metrics, tx2.Error
@@ -542,13 +543,13 @@ func (c *Conn) GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([
 
 // GetMetricsByPageAndDuration fetches metrics for all the checks in a page
 // for the given duration.
-func (c *Conn) GetMetricsByPageAndDuration(pageID uint, duration time.Duration) ([]Metric, error) {
+func (c *Conn) GetMetricsByPageAndDuration(ctx context.Context, pageID uint, duration time.Duration) ([]Metric, error) {
 	startTime := time.Now().Add(-1 * duration)
-	return c.GetMetricsByPageAndStartTime(pageID, startTime)
+	return c.GetMetricsByPageAndStartTime(ctx, pageID, startTime)
 }
 
 // CreateMetrics inserts multiple metrics into TimescaleDB Hypertable.
-func (c *Conn) CreateMetrics(metrics []Metric) error {
+func (c *Conn) CreateMetrics(ctx context.Context, metrics []Metric) error {
 	// We build a raw query since Gorm doesn't support bulk insert.
 	// Since there is no `string` and there is no user input we can
 	// safely build the raw query without worrying about injection.
@@ -573,5 +574,5 @@ func (c *Conn) CreateMetrics(metrics []Metric) error {
 	args := strings.Join(vals, ", ")
 	query := fmt.Sprintf(q, args)
 
-	return c.db.Exec(query).Error
+	return c.db.WithContext(ctx).Exec(query).Error
 }
