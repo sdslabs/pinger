@@ -7,7 +7,7 @@ package database
 import (
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // Bool for storing in models as a rune.
@@ -33,16 +33,16 @@ type User struct {
 	Email string `gorm:"UNIQUE;NOT NULL"`
 	Name  string `gorm:"NOT NULL"`
 
-	Checks    []Check    `gorm:"foreignkey:OwnerID"`
-	Payloads  []Payload  `gorm:"foreignkey:OwnerID"`
-	Pages     []Page     `gorm:"foreignkey:OwnerID"`
-	TeamPages []PageTeam `gorm:"foreignkey:UserID"`
-	Incidents []Incident `gorm:"foreignkey:OwnerID"`
+	Checks    []Check    `gorm:"foreignkey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Payloads  []Payload  `gorm:"foreignkey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Pages     []Page     `gorm:"foreignkey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	TeamPages []PageTeam `gorm:"foreignkey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Incidents []Incident `gorm:"foreignkey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // Check model.
 type Check struct {
-	ID        string `gorm:"primary_key"`
+	ID        string `gorm:"primaryKey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time `sql:"index"`
@@ -64,8 +64,8 @@ type Check struct {
 	TargetType  string `gorm:"NOT NULL"`
 	TargetValue string `gorm:"NOT NULL"`
 
-	Payloads []Payload `gorm:"foreignkey:CheckID"`
-	Metrics  []Metric  `gorm:"foreignkey:CheckID"`
+	Payloads []Payload `gorm:"foreignkey:CheckID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Metrics  []Metric  `gorm:"foreignkey:CheckID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // Payload model.
@@ -94,8 +94,8 @@ type Page struct {
 	Visibility  Bool   `gorm:"DEFAULT:102;size:256"`
 
 	Checks    []Check    `gorm:"many2many:page_checks"`
-	Incidents []Incident `gorm:"foreignkey:PageID"`
-	Team      []PageTeam
+	Incidents []Incident `gorm:"foreignkey:PageID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Team      []PageTeam `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // Incident model.
@@ -137,10 +137,10 @@ const (
 // PageTeam model.
 type PageTeam struct {
 	Page   Page
-	PageID uint `gorm:"primary_key;auto_increment:false"`
+	PageID uint `gorm:"primarKey;autoIncrement:false"`
 
 	User   User
-	UserID uint `gorm:"primary_key;auto_increment:false"`
+	UserID uint `gorm:"primaryKey;autoIncrement:false"`
 
 	Role string `gorm:"NOT NULL"`
 }

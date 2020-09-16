@@ -38,22 +38,36 @@ github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/jinzhu/gorm v1.9.10
-github.com/jinzhu/gorm
-github.com/jinzhu/gorm/dialects/postgres
+# github.com/jackc/chunkreader/v2 v2.0.1
+github.com/jackc/chunkreader/v2
+# github.com/jackc/pgconn v1.6.4
+github.com/jackc/pgconn
+github.com/jackc/pgconn/internal/ctxwatch
+github.com/jackc/pgconn/stmtcache
+# github.com/jackc/pgio v1.0.0
+github.com/jackc/pgio
+# github.com/jackc/pgpassfile v1.0.0
+github.com/jackc/pgpassfile
+# github.com/jackc/pgproto3/v2 v2.0.2
+github.com/jackc/pgproto3/v2
+# github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b
+github.com/jackc/pgservicefile
+# github.com/jackc/pgtype v1.4.2
+github.com/jackc/pgtype
+# github.com/jackc/pgx/v4 v4.8.1
+github.com/jackc/pgx/v4
+github.com/jackc/pgx/v4/internal/sanitize
+github.com/jackc/pgx/v4/stdlib
 # github.com/jinzhu/inflection v1.0.0
 github.com/jinzhu/inflection
+# github.com/jinzhu/now v1.1.1
+github.com/jinzhu/now
 # github.com/json-iterator/go v1.1.9
 github.com/json-iterator/go
-# github.com/konsorten/go-windows-terminal-sequences v1.0.1
+# github.com/konsorten/go-windows-terminal-sequences v1.0.2
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/leodido/go-urn v1.2.0
 github.com/leodido/go-urn
-# github.com/lib/pq v1.1.1
-github.com/lib/pq
-github.com/lib/pq/hstore
-github.com/lib/pq/oid
-github.com/lib/pq/scram
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
 # github.com/mattn/go-isatty v0.0.12
@@ -66,7 +80,7 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/pelletier/go-toml v1.6.0
 github.com/pelletier/go-toml
-# github.com/sirupsen/logrus v1.4.1
+# github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
@@ -85,6 +99,8 @@ github.com/spf13/viper
 github.com/subosito/gotenv
 # github.com/ugorji/go/codec v1.1.7
 github.com/ugorji/go/codec
+# golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+golang.org/x/crypto/pbkdf2
 # golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 golang.org/x/net/bpf
 golang.org/x/net/http/httpguts
@@ -101,11 +117,23 @@ golang.org/x/net/trace
 # golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.2
+# golang.org/x/text v0.3.3
+golang.org/x/text/cases
+golang.org/x/text/internal
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/language
+golang.org/x/text/runes
 golang.org/x/text/secure/bidirule
+golang.org/x/text/secure/precis
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
+golang.org/x/text/width
+# golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
+golang.org/x/xerrors
+golang.org/x/xerrors/internal
 # google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.27.1
@@ -179,3 +207,13 @@ google.golang.org/protobuf/types/known/timestamppb
 gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
+# gorm.io/driver/postgres v1.0.0
+gorm.io/driver/postgres
+# gorm.io/gorm v1.20.1
+gorm.io/gorm
+gorm.io/gorm/callbacks
+gorm.io/gorm/clause
+gorm.io/gorm/logger
+gorm.io/gorm/migrator
+gorm.io/gorm/schema
+gorm.io/gorm/utils
