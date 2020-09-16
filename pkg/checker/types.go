@@ -9,7 +9,7 @@ import "time"
 // Check is the interface which every check that needs to be processed here
 // should implement.
 type Check interface {
-	GetID() uint     // Returns the ID.
+	GetID() string   // Returns the ID.
 	GetName() string // Returns the name.
 
 	GetInterval() time.Duration // Returns the interval after which check is run.
@@ -28,7 +28,7 @@ type Check interface {
 type MutableCheck interface {
 	Check
 
-	SetID(uint) // Used to change the ID of the check.
+	SetID(string) // Used to change the ID of the check.
 }
 
 // Component is the Type Value component for check components like Input,
@@ -41,7 +41,7 @@ type Component interface {
 // Metric is anything that tells if the check is successful or not. It also
 // tells if the check timed out, the start time and duration of check.
 type Metric interface {
-	GetCheckID() uint
+	GetCheckID() string
 	GetCheckName() string
 
 	IsSuccessful() bool
