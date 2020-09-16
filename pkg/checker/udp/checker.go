@@ -52,7 +52,7 @@ func (c *Checker) Validate(check checker.Check) error {
 
 	validateOutputMap := validationMap{
 		timeoutType: validateNil,
-		messageType: validateNil,
+		messageType: validateOutputMessages,
 	}
 	if err := checker.ValidateComponent(check.GetOutput(), validateOutputMap); err != nil {
 		return fmt.Errorf("output: %w", err)
@@ -80,9 +80,10 @@ func (c *Checker) Provision(check checker.Check) (err error) {
 	address := check.GetTarget().GetValue()
 	timeout := check.GetTimeout()
 
-	var messages []string
-	for _, p := range check.GetPayloads() {
-		messages = append(messages, p.GetValue())
+	payloads := check.GetPayloads()
+	messages := make([]string, len(payloads))
+	for i, p := range payloads {
+		messages[i] = p.GetValue()
 	}
 
 	c.prober, err = NewProber(address, messages, timeout)
@@ -186,13 +187,6 @@ func validateOutputMessages(val string) error {
 	if len(msgs) == 0 {
 		return fmt.Errorf("messages cannot be empty")
 	}
-
-	for i := range msgs {
-		if msgs[i] == "" {
-			return fmt.Errorf("messages cannot be empty")
-		}
-	}
-
 	return nil
 }
 
