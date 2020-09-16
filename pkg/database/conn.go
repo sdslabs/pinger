@@ -7,8 +7,8 @@ package database
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres" // PostgreSQL
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 // Config can be used to create a connection with the database.
@@ -43,7 +43,7 @@ func NewConn(conf Config) (*Conn, error) {
 		connStr = fmt.Sprintf("%s sslmode=disable", connStr)
 	}
 
-	db, err := gorm.Open("postgres", connStr)
+	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -61,62 +61,9 @@ func NewConn(conf Config) (*Conn, error) {
 		&Incident{},
 		&Metric{},
 		&PageTeam{},
-	).Error
+	)
 	if err != nil {
 		return nil, err
-	}
-
-	// shortcut to add CASCADE foreign key
-	addForeignKey := func(model interface{}, field, dest string) error {
-		return db.Model(model).AddForeignKey(field, dest, "CASCADE", "CASCADE").Error
-	}
-
-	foreignKeys := []struct {
-		model       interface{}
-		field, dest string
-	}{
-		{
-			model: &Check{},
-			field: "owner_id",
-			dest:  "users(id)",
-		},
-		{
-			model: &Payload{},
-			field: "owner_id",
-			dest:  "users(id)",
-		},
-		{
-			model: &Page{},
-			field: "owner_id",
-			dest:  "users(id)",
-		},
-		{
-			model: &Incident{},
-			field: "owner_id",
-			dest:  "users(id)",
-		},
-		{
-			model: &Payload{},
-			field: "check_id",
-			dest:  "checks(id)",
-		},
-		{
-			model: &Metric{},
-			field: "check_id",
-			dest:  "checks(id)",
-		},
-		{
-			model: &Incident{},
-			field: "page_id",
-			dest:  "pages(id)",
-		},
-	}
-
-	for _, fk := range foreignKeys {
-		err = addForeignKey(fk.model, fk.field, fk.dest)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	err = db.Exec("CREATE INDEX ON metrics (check_id, start_time DESC);").Error
