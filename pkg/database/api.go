@@ -245,7 +245,12 @@ type GetPayloadOpts struct {
 }
 
 // GetPayload gets a payload from given payloadID.
-func (c *Conn) GetPayload(ctx context.Context, ownerID, payloadID uint, checkID string, opts GetPayloadOpts) (*Payload, error) {
+func (c *Conn) GetPayload(
+	ctx context.Context,
+	ownerID, payloadID uint,
+	checkID string,
+	opts GetPayloadOpts,
+) (*Payload, error) {
 	p := rawPayloadWithID(ownerID, payloadID, checkID)
 	tx := c.db.WithContext(ctx).Where(p)
 
@@ -263,7 +268,12 @@ func (c *Conn) GetPayload(ctx context.Context, ownerID, payloadID uint, checkID 
 }
 
 // UpdatePayload updates a payload with the given ID.
-func (c *Conn) UpdatePayload(ctx context.Context, ownerID, payloadID uint, checkID string, payload *Payload) (*Payload, error) {
+func (c *Conn) UpdatePayload(
+	ctx context.Context,
+	ownerID, payloadID uint,
+	checkID string,
+	payload *Payload,
+) (*Payload, error) {
 	if payload == nil {
 		return nil, fmt.Errorf("*Payload: %w", ErrNilPointer)
 	}
@@ -384,7 +394,11 @@ type GetIncidentOpts struct {
 }
 
 // GetIncident gets an incident from given incidentID.
-func (c *Conn) GetIncident(ctx context.Context, ownerID, pageID, incidentID uint, opts GetIncidentOpts) (*Incident, error) {
+func (c *Conn) GetIncident(
+	ctx context.Context,
+	ownerID, pageID, incidentID uint,
+	opts GetIncidentOpts,
+) (*Incident, error) {
 	i := rawIncidentWithID(ownerID, pageID, incidentID)
 	tx := c.db.WithContext(ctx).Where(i)
 
@@ -402,7 +416,11 @@ func (c *Conn) GetIncident(ctx context.Context, ownerID, pageID, incidentID uint
 }
 
 // UpdateIncident updates a incident with the given ID.
-func (c *Conn) UpdateIncident(ctx context.Context, ownerID, pageID, incidentID uint, incident *Incident) (*Incident, error) {
+func (c *Conn) UpdateIncident(
+	ctx context.Context,
+	ownerID, pageID, incidentID uint,
+	incident *Incident,
+) (*Incident, error) {
 	if incident == nil {
 		return nil, fmt.Errorf("*Incident: %w", ErrNilPointer)
 	}
@@ -475,7 +493,11 @@ func rawPageTeamMemberWithID(pageID, memberID uint, role string) PageTeam {
 }
 
 // AddTeamMemberToPage adds a new team member to the page with the given ID.
-func (c *Conn) AddTeamMemberToPage(ctx context.Context, ownerID, pageID, memberID uint, role string) (*PageTeam, error) {
+func (c *Conn) AddTeamMemberToPage(
+	ctx context.Context,
+	ownerID, pageID, memberID uint,
+	role string,
+) (*PageTeam, error) {
 	pt := rawPageTeamMemberWithID(pageID, memberID, role)
 	p := rawPageWithID(ownerID, pageID)
 
@@ -487,7 +509,11 @@ func (c *Conn) AddTeamMemberToPage(ctx context.Context, ownerID, pageID, memberI
 }
 
 // UpdateTeamMemberRole updates the role of a team member.
-func (c *Conn) UpdateTeamMemberRole(ctx context.Context, ownerID, pageID, memberID uint, role string) (*PageTeam, error) {
+func (c *Conn) UpdateTeamMemberRole(
+	ctx context.Context,
+	ownerID, pageID, memberID uint,
+	role string,
+) (*PageTeam, error) {
 	pt := rawPageTeamMemberWithID(pageID, memberID, role)
 	p := rawPageWithID(ownerID, pageID)
 
@@ -509,17 +535,28 @@ func (c *Conn) RemoveTeamMemberFromPage(ctx context.Context, ownerID, pageID, me
 // GetMetricsByCheckAndStartTime fetches metrics from the metrics hypertable
 // for the given check ID. It accepts a `startTime` parameter that fetches
 // metrics for the check from given time.
-func (c *Conn) GetMetricsByCheckAndStartTime(ctx context.Context, checkID string, startTime time.Time) ([]Metric, error) {
+func (c *Conn) GetMetricsByCheckAndStartTime(
+	ctx context.Context,
+	checkID string,
+	startTime time.Time,
+) ([]Metric, error) {
 	metrics := []Metric{}
 
-	tx := c.db.WithContext(ctx).Where("check_id = ? AND start_time > ?", checkID, startTime).Order("start_time DESC").Find(&metrics)
+	tx := c.db.WithContext(ctx).
+		Where("check_id = ? AND start_time > ?", checkID, startTime).
+		Order("start_time DESC").
+		Find(&metrics)
 	return metrics, tx.Error
 }
 
 // GetMetricsByCheckAndDuration fetches metrics from the metrics hypertable
 // for the given check ID. It accepts a `duration` parameter that fetches
 // metrics for the check in the past `duration time.Duration`.
-func (c *Conn) GetMetricsByCheckAndDuration(ctx context.Context, checkID string, duration time.Duration) ([]Metric, error) {
+func (c *Conn) GetMetricsByCheckAndDuration(
+	ctx context.Context,
+	checkID string,
+	duration time.Duration,
+) ([]Metric, error) {
 	startTime := time.Now().Add(-1 * duration)
 	return c.GetMetricsByCheckAndStartTime(ctx, checkID, startTime)
 }

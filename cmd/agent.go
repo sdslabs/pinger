@@ -109,7 +109,11 @@ to run in a standalone mode where it does not run any GRPC server.`,
 	cmd.Flags().String(flagAgentConfigMetricsPassword, defaultAgentMetricsPassword, "password credential for metrics")
 	cmd.Flags().String(flagAgentConfigMetricsDBName, defaultAgentMetricsDBName, "database name for metrics")
 	cmd.Flags().Bool(flagAgentConfigMetricsSSLMode, defaultAgentMetricsSSLMode, "whether to run metrics with SSL")
-	cmd.Flags().Duration(flagAgentConfigInterval, defaultAgentInterval, "interval after which metrics are pushed/pulled")
+	cmd.Flags().Duration(
+		flagAgentConfigInterval,
+		defaultAgentInterval,
+		"interval after which metrics are pushed/pulled",
+	)
 
 	mapKeysToFlags := map[string]string{
 		keyAgentConfigPort:            flagAgentConfigPort,
