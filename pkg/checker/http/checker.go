@@ -289,7 +289,7 @@ func extractStatusCode(val string) (int, error) {
 // extractsKVPair validates if the value is of the form K=V and extracts the
 // key and value.
 func extractsKVPair(val string) (k, v string, err error) {
-	kv := strings.SplitN(val, "=", 2)
+	kv := strings.SplitN(val, splitDelim, 2)
 	if len(kv) != 2 {
 		return "", "", fmt.Errorf("value should be of the format K=V")
 	}

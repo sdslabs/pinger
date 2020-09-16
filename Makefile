@@ -91,7 +91,7 @@ install-golangcilint:
 	@echo "Installing golangci-lint..."
 	@curl -sSfL \
 	 	https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
-	 	sh -s -- -b $(GOPATH_BIN) v1.24.0
+	 	sh -s -- -b $(GOPATH_BIN) v1.31.0
 	@echo "Installed successfully"
 
 docs: docs-install docs-build

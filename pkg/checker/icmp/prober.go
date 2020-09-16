@@ -181,7 +181,7 @@ func (p *Prober) sendMessage(
 		Type: msgType,
 		Code: 0,
 		Body: &icmp.Echo{
-			ID: rand.New(
+			ID: rand.New( // nolint:gosec
 				rand.NewSource(startTime.UnixNano()),
 			).Intn(math.MaxInt16),
 			Seq:  0,
