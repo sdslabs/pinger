@@ -167,7 +167,7 @@ func (c *Conn) DeleteUserByEmail(email string) error {
 }
 
 // rawCheckWithID returns an empty check with the given ID.
-func rawCheckWithID(ownerID, checkID uint) Check {
+func rawCheckWithID(ownerID uint, checkID string) Check {
 	check := Check{}
 	check.OwnerID = ownerID
 	check.ID = checkID
@@ -193,7 +193,7 @@ type GetCheckOpts struct {
 }
 
 // GetCheck gets a check from given checkID.
-func (c *Conn) GetCheck(ownerID, checkID uint, opts GetCheckOpts) (*Check, error) {
+func (c *Conn) GetCheck(ownerID uint, checkID string, opts GetCheckOpts) (*Check, error) {
 	ch := rawCheckWithID(ownerID, checkID)
 	tx := c.db.Where(ch)
 
@@ -215,7 +215,7 @@ func (c *Conn) GetCheck(ownerID, checkID uint, opts GetCheckOpts) (*Check, error
 }
 
 // UpdateCheck updates a check with the given ID.
-func (c *Conn) UpdateCheck(ownerID, checkID uint, check *Check) (*Check, error) {
+func (c *Conn) UpdateCheck(ownerID uint, checkID string, check *Check) (*Check, error) {
 	if check == nil {
 		return nil, fmt.Errorf("*Check: %w", ErrNilPointer)
 	}
@@ -231,7 +231,7 @@ func (c *Conn) UpdateCheck(ownerID, checkID uint, check *Check) (*Check, error) 
 }
 
 // DeleteCheck deletes the check with the given ID.
-func (c *Conn) DeleteCheck(ownerID, checkID uint) error {
+func (c *Conn) DeleteCheck(ownerID uint, checkID string) error {
 	ch := rawCheckWithID(ownerID, checkID)
 
 	tx := c.db.Where(&ch).Unscoped().Delete(&Check{})
@@ -243,7 +243,7 @@ func (c *Conn) DeleteCheck(ownerID, checkID uint) error {
 }
 
 // rawPayloadWithID returns an empty payload with the given ID.
-func rawPayloadWithID(ownerID, checkID, payloadID uint) Payload {
+func rawPayloadWithID(ownerID, payloadID uint, checkID string) Payload {
 	payload := Payload{}
 	payload.OwnerID = ownerID
 	payload.CheckID = checkID
@@ -252,7 +252,7 @@ func rawPayloadWithID(ownerID, checkID, payloadID uint) Payload {
 }
 
 // CreatePayload creates a new payload.
-func (c *Conn) CreatePayload(ownerID, checkID uint, payload *Payload) (*Payload, error) {
+func (c *Conn) CreatePayload(ownerID uint, checkID string, payload *Payload) (*Payload, error) {
 	if payload == nil {
 		return nil, fmt.Errorf("*Payload: %w", ErrNilPointer)
 	}
@@ -270,8 +270,8 @@ type GetPayloadOpts struct {
 }
 
 // GetPayload gets a payload from given payloadID.
-func (c *Conn) GetPayload(ownerID, checkID, payloadID uint, opts GetPayloadOpts) (*Payload, error) {
-	p := rawPayloadWithID(ownerID, checkID, payloadID)
+func (c *Conn) GetPayload(ownerID, payloadID uint, checkID string, opts GetPayloadOpts) (*Payload, error) {
+	p := rawPayloadWithID(ownerID, payloadID, checkID)
 	tx := c.db.Where(p)
 
 	if opts.Owner {
@@ -292,12 +292,12 @@ func (c *Conn) GetPayload(ownerID, checkID, payloadID uint, opts GetPayloadOpts)
 }
 
 // UpdatePayload updates a payload with the given ID.
-func (c *Conn) UpdatePayload(ownerID, checkID, payloadID uint, payload *Payload) (*Payload, error) {
+func (c *Conn) UpdatePayload(ownerID, payloadID uint, checkID string, payload *Payload) (*Payload, error) {
 	if payload == nil {
 		return nil, fmt.Errorf("*Payload: %w", ErrNilPointer)
 	}
 
-	p := rawPayloadWithID(ownerID, checkID, payloadID)
+	p := rawPayloadWithID(ownerID, payloadID, checkID)
 
 	tx := c.db.Model(Payload{}).Where(&p).Updates(*payload)
 	if tx.RecordNotFound() {
@@ -308,8 +308,8 @@ func (c *Conn) UpdatePayload(ownerID, checkID, payloadID uint, payload *Payload)
 }
 
 // DeletePayload deletes the payload with the given ID.
-func (c *Conn) DeletePayload(ownerID, checkID, payloadID uint) error {
-	p := rawPayloadWithID(ownerID, checkID, payloadID)
+func (c *Conn) DeletePayload(ownerID, payloadID uint, checkID string) error {
+	p := rawPayloadWithID(ownerID, payloadID, checkID)
 
 	tx := c.db.Where(&p).Unscoped().Delete(&Payload{})
 	if tx.RecordNotFound() {
@@ -483,7 +483,7 @@ func (c *Conn) DeleteIncident(ownerID, pageID, incidentID uint) error {
 }
 
 // checkSliceFromIDs returns a slice of raw checks from multiple IDs.
-func checkSliceFromIDs(ownerID uint, checkIDs []uint) []Check {
+func checkSliceFromIDs(ownerID uint, checkIDs []string) []Check {
 	checks := make([]Check, len(checkIDs))
 	for i := range checkIDs {
 		checks[i] = rawCheckWithID(ownerID, checkIDs[i])
@@ -494,7 +494,7 @@ func checkSliceFromIDs(ownerID uint, checkIDs []uint) []Check {
 
 // AddChecksToPage adds relationship between the checks and the page, hence
 // inserting checks into the page.
-func (c *Conn) AddChecksToPage(ownerID, pageID uint, checkIDs []uint) error {
+func (c *Conn) AddChecksToPage(ownerID, pageID uint, checkIDs []string) error {
 	if len(checkIDs) == 0 {
 		return nil
 	}
@@ -507,7 +507,7 @@ func (c *Conn) AddChecksToPage(ownerID, pageID uint, checkIDs []uint) error {
 
 // RemoveChecksFromPage removes relationship between the checks and the page,
 // hence deleting checks from the page.
-func (c *Conn) RemoveChecksFromPage(ownerID, pageID uint, checkIDs []uint) error {
+func (c *Conn) RemoveChecksFromPage(ownerID, pageID uint, checkIDs []string) error {
 	if len(checkIDs) == 0 {
 		return nil
 	}
@@ -570,7 +570,7 @@ func (c *Conn) RemoveTeamMemberFromPage(ownerID, pageID, memberID uint) error {
 // GetMetricsByCheckAndStartTime fetches metrics from the metrics hypertable
 // for the given check ID. It accepts a `startTime` parameter that fetches
 // metrics for the check from given time.
-func (c *Conn) GetMetricsByCheckAndStartTime(checkID uint, startTime time.Time) ([]Metric, error) {
+func (c *Conn) GetMetricsByCheckAndStartTime(checkID string, startTime time.Time) ([]Metric, error) {
 	metrics := []Metric{}
 
 	tx := c.db.Where("check_id = ? AND start_time > ?", checkID, startTime).Order("start_time DESC").Find(&metrics)
@@ -584,7 +584,7 @@ func (c *Conn) GetMetricsByCheckAndStartTime(checkID uint, startTime time.Time) 
 // GetMetricsByCheckAndDuration fetches metrics from the metrics hypertable
 // for the given check ID. It accepts a `duration` parameter that fetches
 // metrics for the check in the past `duration time.Duration`.
-func (c *Conn) GetMetricsByCheckAndDuration(checkID uint, duration time.Duration) ([]Metric, error) {
+func (c *Conn) GetMetricsByCheckAndDuration(checkID string, duration time.Duration) ([]Metric, error) {
 	startTime := time.Now().Add(-1 * duration)
 	return c.GetMetricsByCheckAndStartTime(checkID, startTime)
 }
@@ -592,7 +592,7 @@ func (c *Conn) GetMetricsByCheckAndDuration(checkID uint, duration time.Duration
 // GetMetricsByPageAndStartTime fetches metrics for all the checks in a page
 // for the given start time.
 func (c *Conn) GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([]Metric, error) {
-	checkIDs := []uint{}
+	checkIDs := []string{}
 
 	tx1 := c.db.Table("page_checks").Where("page_id = ?", pageID).Pluck("check_id", &checkIDs)
 	if tx1.RecordNotFound() {
@@ -635,7 +635,7 @@ func (c *Conn) CreateMetrics(metrics []Metric) error {
 	timeFormat := "2006-01-02 15:04:05.000000-07:00" // Supported by PostgreSQL
 	vals := []string{}
 	for i := range metrics {
-		val := fmt.Sprintf("(%d, '%s', %d, %t, %t)",
+		val := fmt.Sprintf("(%s, '%s', %d, %t, %t)",
 			metrics[i].CheckID,
 			metrics[i].StartTime.Format(timeFormat),
 			metrics[i].Duration,

@@ -22,7 +22,7 @@ message Nil {}
 // Check represents the configuration for a check that can be pushed to or
 // removed from an agent.
 message Check {
-  uint32 ID = 1;
+  string ID = 1;
   string Name = 2;
 
   int64 Interval = 3;
@@ -42,7 +42,7 @@ message Component {
 }
 
 // CheckID is the ID of the check on which the action will be invoked.
-message CheckID { uint32 ID = 1; }
+message CheckID { string ID = 1; }
 
 // CheckList is a list of multiple checks.
 message CheckList { repeated CheckID checks = 1; }

@@ -15,7 +15,7 @@ import (
 //
 // Implements checker.Check and checker.MutableCheck interfaces.
 type Check struct {
-	ID       uint          `mapstructure:"id" json:"id"`
+	ID       string        `mapstructure:"id" json:"id"`
 	Name     string        `mapstructure:"name" json:"name"`
 	Interval time.Duration `mapstructure:"interval" json:"interval"`
 	Timeout  time.Duration `mapstructure:"timeout" json:"timeout"`
@@ -26,12 +26,12 @@ type Check struct {
 }
 
 // GetID returns the ID for the check.
-func (c *Check) GetID() uint {
+func (c *Check) GetID() string {
 	return c.ID
 }
 
 // SetID updates the ID of the check.
-func (c *Check) SetID(id uint) {
+func (c *Check) SetID(id string) {
 	c.ID = id
 }
 
@@ -113,7 +113,7 @@ func ProtoToCheck(check *proto.Check) checker.Check {
 	}
 
 	return &Check{
-		ID:       uint(check.ID),
+		ID:       check.ID,
 		Name:     check.Name,
 		Interval: time.Duration(check.Interval),
 		Timeout:  time.Duration(check.Timeout),

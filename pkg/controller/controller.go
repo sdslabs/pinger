@@ -16,7 +16,7 @@ type RunnerFunc func(context.Context) (interface{}, error)
 
 // RunStat are the statistics for single run of the runner function.
 type RunStat struct {
-	ID   uint
+	ID   string
 	Name string
 
 	Err error
@@ -25,7 +25,7 @@ type RunStat struct {
 
 // Opts are the options required to create a new controller.
 type Opts struct {
-	ID       uint
+	ID       string
 	Name     string
 	Interval time.Duration
 	Func     RunnerFunc
@@ -48,7 +48,7 @@ type Controller struct {
 
 	fn RunnerFunc
 
-	id   uint
+	id   string
 	name string
 }
 
@@ -100,7 +100,7 @@ func validateControllerOpts(opts *Opts) error {
 }
 
 // ID returns the ID of the controller.
-func (c *Controller) ID() uint {
+func (c *Controller) ID() string {
 	return c.id
 }
 

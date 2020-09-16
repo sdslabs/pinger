@@ -34,12 +34,6 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 	manager := controller.NewManager(ctx)
 	checks := config.CheckListToInterface(conf.Checks)
 
-	// add unique ID for config-only checks now and then let the exporter handle
-	// the change in IDs
-	for i := range checks {
-		checks[i].SetID(uint(i))
-	}
-
 	export, err := exporter.Initialize(ctx, &conf.Metrics, checks)
 	if err != nil {
 		return fmt.Errorf("cannot initialize exporter: %w", err)

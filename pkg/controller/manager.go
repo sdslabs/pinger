@@ -17,7 +17,7 @@ type Manager struct {
 
 	mutex sync.RWMutex
 
-	controllers map[uint]*Controller
+	controllers map[string]*Controller
 }
 
 // NewManager creates a new manager with no controllers.
@@ -30,7 +30,7 @@ func NewManager(ctx context.Context) *Manager {
 
 		mutex: sync.RWMutex{},
 
-		controllers: make(map[uint]*Controller),
+		controllers: make(map[string]*Controller),
 	}
 }
 
@@ -78,8 +78,8 @@ func (m *Manager) UpdateController(opts *Opts) error {
 // ListControllers lists all the controllers managed by the manager.
 //
 // This returns a map of controller ID with it's name.
-func (m *Manager) ListControllers() map[uint]string {
-	list := map[uint]string{}
+func (m *Manager) ListControllers() map[string]string {
+	list := map[string]string{}
 
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
@@ -93,7 +93,7 @@ func (m *Manager) ListControllers() map[uint]string {
 
 // RemoveController removes the controller from manager if it exists. If it
 // doesn't, it does nothing. It does not wait for controller to stop.
-func (m *Manager) RemoveController(id uint) {
+func (m *Manager) RemoveController(id string) {
 	ctrl, ok := m.removeCtrl(id)
 	if !ok {
 		return
@@ -104,7 +104,7 @@ func (m *Manager) RemoveController(id uint) {
 
 // RemoveControllerAndWait is like RemoveController but waits for completion
 // of controller.
-func (m *Manager) RemoveControllerAndWait(id uint) {
+func (m *Manager) RemoveControllerAndWait(id string) {
 	ctrl, ok := m.removeCtrl(id)
 	if !ok {
 		return
@@ -116,7 +116,7 @@ func (m *Manager) RemoveControllerAndWait(id uint) {
 
 // removeCtrl removes the controller from the map. It returns the removed
 // controller and whether it existed in the map or not.
-func (m *Manager) removeCtrl(id uint) (*Controller, bool) {
+func (m *Manager) removeCtrl(id string) (*Controller, bool) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -194,11 +194,11 @@ func (m *Manager) Close() {
 
 // PullAllStats gets all the stats for all the controllers registered with
 // the manager.
-func (m *Manager) PullAllStats() map[uint][]*RunStat {
+func (m *Manager) PullAllStats() map[string][]*RunStat {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	stats := make(map[uint][]*RunStat)
+	stats := make(map[string][]*RunStat)
 
 	for id, ctrl := range m.controllers {
 		cstats := []*RunStat{}
@@ -215,11 +215,11 @@ func (m *Manager) PullAllStats() map[uint][]*RunStat {
 }
 
 // PullLatestStats gets latest stat for each controller in the manager.
-func (m *Manager) PullLatestStats() map[uint]*RunStat {
+func (m *Manager) PullLatestStats() map[string]*RunStat {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	stats := make(map[uint]*RunStat)
+	stats := make(map[string]*RunStat)
 
 	for id, ctrl := range m.controllers {
 		stats[id] = ctrl.PullLatestStat()

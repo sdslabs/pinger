@@ -76,7 +76,7 @@ func (e *Exporter) logMetric(metric checker.Metric) {
 		"is_timeout":    metric.IsTimeout(),
 		"start_time":    metric.GetStartTime(),
 		"duration":      metric.GetDuration(),
-	}).Infof("metrics for check (%d) %s", metric.GetCheckID(), metric.GetCheckName())
+	}).Infof("metrics for check (%s) %s", metric.GetCheckID(), metric.GetCheckName())
 }
 
 // Interface guard.
