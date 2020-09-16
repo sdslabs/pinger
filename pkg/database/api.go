@@ -9,12 +9,18 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 var (
 	// ErrRecordNotFound is the error returned when the database has no matching
 	// record.
-	ErrRecordNotFound = errors.New("record not found")
+	//
+	// Since gorm v2 (1.20), it returns an error rather than a check using method,
+	// so this error is just an alias of same error which can be used to check if
+	// the record did not exist.
+	ErrRecordNotFound = gorm.ErrRecordNotFound
 
 	// ErrNilPointer is the error returned in case when the pointer is nil. This
 	// can be checked using `errors.Unwrap`.
@@ -91,10 +97,6 @@ func (c *Conn) getUser(where *User, opts GetUserOpts) (*User, error) {
 
 	user := User{}
 	tx = tx.Find(&user)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &user, tx.Error
 }
 
@@ -119,10 +121,6 @@ func (c *Conn) UpdateUserByID(id uint, user *User) (*User, error) {
 	u := rawUserWithID(id)
 
 	tx := c.db.Model(User{}).Where(&u).Updates(*user)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &u, tx.Error
 }
 
@@ -135,10 +133,6 @@ func (c *Conn) UpdateUserByEmail(email string, user *User) (*User, error) {
 	u := rawUserWithEmail(email)
 
 	tx := c.db.Model(User{}).Where(&u).Updates(*user)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &u, tx.Error
 }
 
@@ -147,10 +141,6 @@ func (c *Conn) DeleteUserByID(id uint) error {
 	u := rawUserWithID(id)
 
 	tx := c.db.Where(&u).Unscoped().Delete(&User{})
-	if tx.RecordNotFound() {
-		return ErrRecordNotFound
-	}
-
 	return tx.Error
 }
 
@@ -159,10 +149,6 @@ func (c *Conn) DeleteUserByEmail(email string) error {
 	u := rawUserWithEmail(email)
 
 	tx := c.db.Where(&u).Unscoped().Delete(&User{})
-	if tx.RecordNotFound() {
-		return ErrRecordNotFound
-	}
-
 	return tx.Error
 }
 
@@ -207,10 +193,6 @@ func (c *Conn) GetCheck(ownerID uint, checkID string, opts GetCheckOpts) (*Check
 
 	check := Check{}
 	tx = tx.Find(&check)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &check, tx.Error
 }
 
@@ -223,10 +205,6 @@ func (c *Conn) UpdateCheck(ownerID uint, checkID string, check *Check) (*Check, 
 	ch := rawCheckWithID(ownerID, checkID)
 
 	tx := c.db.Model(Check{}).Where(&ch).Updates(*check)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &ch, tx.Error
 }
 
@@ -235,10 +213,6 @@ func (c *Conn) DeleteCheck(ownerID uint, checkID string) error {
 	ch := rawCheckWithID(ownerID, checkID)
 
 	tx := c.db.Where(&ch).Unscoped().Delete(&Check{})
-	if tx.RecordNotFound() {
-		return ErrRecordNotFound
-	}
-
 	return tx.Error
 }
 
@@ -284,10 +258,6 @@ func (c *Conn) GetPayload(ownerID, payloadID uint, checkID string, opts GetPaylo
 
 	payload := Payload{}
 	tx = tx.Find(&payload)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &payload, tx.Error
 }
 
@@ -300,10 +270,6 @@ func (c *Conn) UpdatePayload(ownerID, payloadID uint, checkID string, payload *P
 	p := rawPayloadWithID(ownerID, payloadID, checkID)
 
 	tx := c.db.Model(Payload{}).Where(&p).Updates(*payload)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &p, tx.Error
 }
 
@@ -312,10 +278,6 @@ func (c *Conn) DeletePayload(ownerID, payloadID uint, checkID string) error {
 	p := rawPayloadWithID(ownerID, payloadID, checkID)
 
 	tx := c.db.Where(&p).Unscoped().Delete(&Payload{})
-	if tx.RecordNotFound() {
-		return ErrRecordNotFound
-	}
-
 	return tx.Error
 }
 
@@ -370,10 +332,6 @@ func (c *Conn) GetPage(ownerID, pageID uint, opts GetPageOpts) (*Page, error) {
 
 	page := Page{}
 	tx = tx.Find(&page)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &page, tx.Error
 }
 
@@ -386,10 +344,6 @@ func (c *Conn) UpdatePage(ownerID, pageID uint, page *Page) (*Page, error) {
 	p := rawPageWithID(ownerID, pageID)
 
 	tx := c.db.Model(Page{}).Where(&p).Updates(*page)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &p, tx.Error
 }
 
@@ -398,10 +352,6 @@ func (c *Conn) DeletePage(ownerID, pageID uint) error {
 	p := rawPageWithID(ownerID, pageID)
 
 	tx := c.db.Where(&p).Unscoped().Delete(&Page{})
-	if tx.RecordNotFound() {
-		return ErrRecordNotFound
-	}
-
 	return tx.Error
 }
 
@@ -447,10 +397,6 @@ func (c *Conn) GetIncident(ownerID, pageID, incidentID uint, opts GetIncidentOpt
 
 	incident := Incident{}
 	tx = tx.Find(&incident)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &incident, tx.Error
 }
 
@@ -463,10 +409,6 @@ func (c *Conn) UpdateIncident(ownerID, pageID, incidentID uint, incident *Incide
 	i := rawIncidentWithID(ownerID, pageID, incidentID)
 
 	tx := c.db.Model(Incident{}).Where(&i).Updates(*incident)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return &i, tx.Error
 }
 
@@ -475,10 +417,6 @@ func (c *Conn) DeleteIncident(ownerID, pageID, incidentID uint) error {
 	i := rawIncidentWithID(ownerID, pageID, incidentID)
 
 	tx := c.db.Where(&i).Unscoped().Delete(&Incident{})
-	if tx.RecordNotFound() {
-		return ErrRecordNotFound
-	}
-
 	return tx.Error
 }
 
@@ -502,7 +440,7 @@ func (c *Conn) AddChecksToPage(ownerID, pageID uint, checkIDs []string) error {
 	p := rawPageWithID(ownerID, pageID)
 	checks := checkSliceFromIDs(ownerID, checkIDs)
 
-	return c.db.Model(&p).Where(&p).Association("Checks").Append(checks).Error
+	return c.db.Model(&p).Where(&p).Association("Checks").Append(checks)
 }
 
 // RemoveChecksFromPage removes relationship between the checks and the page,
@@ -515,7 +453,7 @@ func (c *Conn) RemoveChecksFromPage(ownerID, pageID uint, checkIDs []string) err
 	p := rawPageWithID(ownerID, pageID)
 	checks := checkSliceFromIDs(ownerID, checkIDs)
 
-	return c.db.Model(&p).Where(&p).Association("Checks").Delete(checks).Error
+	return c.db.Model(&p).Where(&p).Association("Checks").Delete(checks)
 }
 
 // rawPageTeamMemberWithID returns an empty team member with page ID and
@@ -540,7 +478,7 @@ func (c *Conn) AddTeamMemberToPage(ownerID, pageID, memberID uint, role string) 
 	pt := rawPageTeamMemberWithID(pageID, memberID, role)
 	p := rawPageWithID(ownerID, pageID)
 
-	if err := c.db.Model(&p).Where(&p).Association("Team").Append(pt).Error; err != nil {
+	if err := c.db.Model(&p).Where(&p).Association("Team").Append(pt); err != nil {
 		return nil, err
 	}
 
@@ -552,7 +490,7 @@ func (c *Conn) UpdateTeamMemberRole(ownerID, pageID, memberID uint, role string)
 	pt := rawPageTeamMemberWithID(pageID, memberID, role)
 	p := rawPageWithID(ownerID, pageID)
 
-	if err := c.db.Model(&p).Where(&p).Association("Team").Replace(pt, pt).Error; err != nil {
+	if err := c.db.Model(&p).Where(&p).Association("Team").Replace(pt, pt); err != nil {
 		return nil, err
 	}
 
@@ -564,7 +502,7 @@ func (c *Conn) RemoveTeamMemberFromPage(ownerID, pageID, memberID uint) error {
 	pt := rawPageTeamMemberWithID(pageID, memberID, "")
 	p := rawPageWithID(ownerID, pageID)
 
-	return c.db.Model(&p).Where(&p).Association("Team").Delete(pt).Error
+	return c.db.Model(&p).Where(&p).Association("Team").Delete(pt)
 }
 
 // GetMetricsByCheckAndStartTime fetches metrics from the metrics hypertable
@@ -574,10 +512,6 @@ func (c *Conn) GetMetricsByCheckAndStartTime(checkID string, startTime time.Time
 	metrics := []Metric{}
 
 	tx := c.db.Where("check_id = ? AND start_time > ?", checkID, startTime).Order("start_time DESC").Find(&metrics)
-	if tx.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return metrics, tx.Error
 }
 
@@ -595,10 +529,6 @@ func (c *Conn) GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([
 	checkIDs := []string{}
 
 	tx1 := c.db.Table("page_checks").Where("page_id = ?", pageID).Pluck("check_id", &checkIDs)
-	if tx1.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	if err := tx1.Error; err != nil {
 		return nil, err
 	}
@@ -607,10 +537,6 @@ func (c *Conn) GetMetricsByPageAndStartTime(pageID uint, startTime time.Time) ([
 	tx2 := c.db.Where("check_id IN (?) AND start_time > ?", checkIDs, startTime).
 		Order("start_time DESC").
 		Find(&metrics)
-	if tx2.RecordNotFound() {
-		return nil, ErrRecordNotFound
-	}
-
 	return metrics, tx2.Error
 }
 
