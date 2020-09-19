@@ -30,10 +30,6 @@ type Exporter struct {
 	formatter logrus.Formatter
 }
 
-// PrepareChecks lets exporter handle the checks registered with the
-// standalone mode.
-func (e *Exporter) PrepareChecks([]checker.MutableCheck) error { return nil }
-
 // Provision sets e's configuration.
 func (e *Exporter) Provision(ctx *appcontext.Context, provider exporter.Provider) error {
 	if provider.GetBackend() != exporterName {
