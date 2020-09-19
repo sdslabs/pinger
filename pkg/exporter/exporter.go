@@ -33,10 +33,6 @@ func Register(name string, fn newFunc) {
 
 // Exporter is anything that can export metrics into the database provider.
 type Exporter interface {
-	// PrepareChecks lets exporter handle the checks registered with the
-	// standalone mode.
-	PrepareChecks([]checker.MutableCheck) error
-
 	// Provision provisions the exporter. Creates database connection and
 	// sets other configuration for the exporter.
 	Provision(*appcontext.Context, Provider) error
@@ -51,7 +47,7 @@ type exportFunc = func(context.Context, []checker.Metric) error
 
 // Initialize method initializes the exporter and returns a function that
 // exports the metrics.
-func Initialize(ctx *appcontext.Context, provider Provider, checks []checker.MutableCheck) (exportFunc, error) {
+func Initialize(ctx *appcontext.Context, provider Provider) (exportFunc, error) {
 	name := provider.GetBackend()
 	newExporter, ok := exporters[name]
 	if !ok {
@@ -59,10 +55,6 @@ func Initialize(ctx *appcontext.Context, provider Provider, checks []checker.Mut
 	}
 
 	exporter := newExporter()
-
-	if err := exporter.PrepareChecks(checks); err != nil {
-		return nil, err
-	}
 
 	if err := exporter.Provision(ctx, provider); err != nil {
 		return nil, err

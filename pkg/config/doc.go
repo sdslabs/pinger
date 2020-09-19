@@ -5,8 +5,8 @@
 // Package config implements various config structs required in the
 // application.
 //
-// It implements Check that implements the checker.Check and
-// checker.MutableCheck and Component implements the checker.Component
+// It implements Check which implements the checker.Check and
+// Component which implements the checker.Component
 // interfaces.
 //
 // Also implements the provider interface for metrics.
