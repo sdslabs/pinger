@@ -32,9 +32,8 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 	}
 
 	manager := controller.NewManager(ctx)
-	checks := config.CheckListToInterface(conf.Checks)
 
-	export, err := exporter.Initialize(ctx, &conf.Metrics, checks)
+	export, err := exporter.Initialize(ctx, &conf.Metrics)
 	if err != nil {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}

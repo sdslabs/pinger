@@ -21,16 +21,6 @@ type Check interface {
 	GetPayloads() []Component // Returns the payloads.
 }
 
-// MutableCheck is the check for which the ID can be changed.
-//
-// Other fields define the check and hence should not be edited by the
-// program.
-type MutableCheck interface {
-	Check
-
-	SetID(string) // Used to change the ID of the check.
-}
-
 // Component is the Type Value component for check components like Input,
 // Output, Target etc.
 type Component interface {

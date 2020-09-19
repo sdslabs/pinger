@@ -13,7 +13,7 @@ import (
 
 // Check is the configuration of each check associated with each check.
 //
-// Implements checker.Check and checker.MutableCheck interfaces.
+// Implements checker.Check interface.
 type Check struct {
 	ID       string        `mapstructure:"id" json:"id"`
 	Name     string        `mapstructure:"name" json:"name"`
@@ -28,11 +28,6 @@ type Check struct {
 // GetID returns the ID for the check.
 func (c *Check) GetID() string {
 	return c.ID
-}
-
-// SetID updates the ID of the check.
-func (c *Check) SetID(id string) {
-	c.ID = id
 }
 
 // GetName returns the name of the check.
@@ -92,16 +87,6 @@ func (c *Component) GetValue() string {
 	return c.Value
 }
 
-// CheckListToInterface converts the []Check into []checker.MutableCheck.
-func CheckListToInterface(checks []Check) []checker.MutableCheck {
-	final := make([]checker.MutableCheck, len(checks))
-	for i := range checks {
-		final[i] = &checks[i]
-	}
-
-	return final
-}
-
 // ProtoToCheck converts a proto.Check into checker.Check.
 func ProtoToCheck(check *proto.Check) checker.Check {
 	payloads := make([]Component, len(check.Payloads))
@@ -135,7 +120,6 @@ func ProtoToCheck(check *proto.Check) checker.Check {
 
 // Interface guards.
 var (
-	_ checker.Check        = (*Check)(nil)
-	_ checker.MutableCheck = (*Check)(nil)
-	_ checker.Component    = (*Component)(nil)
+	_ checker.Check     = (*Check)(nil)
+	_ checker.Component = (*Component)(nil)
 )
