@@ -57,11 +57,10 @@ vendor:
 proto:
 	@echo "Compiling protobufs..."
 	@protoc \
-	 	--proto_path=pkg/proto/protobufs \
-	 	--go_out=plugins=grpc:pkg/proto \
-	 	pkg/proto/protobufs/messages.proto \
-	 	pkg/proto/protobufs/agent.proto \
-	 	pkg/proto/protobufs/central.proto
+	 	--proto_path=pkg/components/agent/proto/protobufs \
+	 	--go_out=plugins=grpc:pkg/components/agent/proto \
+	 	pkg/components/agent/proto/protobufs/messages.proto \
+	 	pkg/components/agent/proto/protobufs/agent.proto 
 	@echo "Compiled successfully"
 
 install: install-protoc install-golangcilint

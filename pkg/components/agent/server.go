@@ -7,9 +7,9 @@ package agent
 import (
 	"context"
 
+	"github.com/sdslabs/pinger/pkg/components/agent/proto"
 	"github.com/sdslabs/pinger/pkg/config"
 	"github.com/sdslabs/pinger/pkg/controller"
-	"github.com/sdslabs/pinger/pkg/proto"
 )
 
 // server is the GRPC server that exposes the API so that central server

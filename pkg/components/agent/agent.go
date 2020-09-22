@@ -14,11 +14,11 @@ import (
 
 	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/checker"
+	"github.com/sdslabs/pinger/pkg/components/agent/proto"
 	"github.com/sdslabs/pinger/pkg/config"
 	"github.com/sdslabs/pinger/pkg/config/configfile"
 	"github.com/sdslabs/pinger/pkg/controller"
 	"github.com/sdslabs/pinger/pkg/exporter"
-	"github.com/sdslabs/pinger/pkg/proto"
 )
 
 // Run starts the agent.
