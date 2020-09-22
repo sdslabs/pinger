@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/sdslabs/pinger/pkg/checker"
-	"github.com/sdslabs/pinger/pkg/proto"
+	"github.com/sdslabs/pinger/pkg/components/agent/proto"
 )
 
 // Check is the configuration of each check associated with each check.
