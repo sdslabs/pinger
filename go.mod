@@ -17,7 +17,7 @@ require (
 	github.com/spf13/viper v1.6.2
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	google.golang.org/grpc v1.27.1
-	google.golang.org/protobuf v1.25.0 // indirect
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gorm.io/driver/postgres v1.0.0
 	gorm.io/gorm v1.20.1

@@ -24,7 +24,7 @@ import (
 )
 
 type alertMap struct {
-	a  map[string]map[uint]alerter.Alert
+	a  map[string]map[string]alerter.Alert
 	mu sync.RWMutex
 }
 
@@ -45,7 +45,7 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}
 
-	aMap := alertMap{a: map[string]map[uint]alerter.Alert{}}
+	aMap := alertMap{a: map[string]map[string]alerter.Alert{}}
 	alertFuncs := map[string]alerter.AlertFunc{}
 	for i := range conf.Alerts {
 		ap := conf.Alerts[i]
@@ -60,10 +60,10 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		}
 
 		alertFuncs[ap.Service] = alert
-		aMap.a[ap.Service] = map[uint]alerter.Alert{}
+		aMap.a[ap.Service] = map[string]alerter.Alert{}
 	}
 
-	err = initExportAndAlerts(ctx, conf.Interval, manager, export, alertFuncs)
+	err = initExportAndAlerts(ctx, conf.Interval, manager, export, alertFuncs, aMap.a)
 	if err != nil {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}
@@ -94,6 +94,7 @@ func initExportAndAlerts(
 	manager *controller.Manager,
 	exportFunc exporter.ExportFunc,
 	alertFuncs map[string]alerter.AlertFunc,
+	aMap map[string]map[string]alerter.Alert,
 ) error {
 	ctrl, err := controller.NewController(ctx, &controller.Opts{
 		Name:     "metrics_export_and_alert",
@@ -145,7 +146,15 @@ func initExportAndAlerts(
 				return nil, er
 			}
 
-			// TODO(shreyaa-sharmaa): Alert metrics (in a separate thread than this)
+			// TODO(shreyaa-sharmaa): Alert metrics (in a separate thread than this using kiwi)
+			for index, element := range alertFuncs {
+				if er := element(ctx, metrics, aMap[index]); er != nil {
+					ctx.Logger().
+						WithError(er).
+						Errorln("error sending alerts")
+					return nil, er
+				}
+			}
 
 			return nil, nil
 		},

@@ -106,7 +106,7 @@ func ProtoToCheck(check *proto.Check) Check {
 	}
 
 	return Check{
-		ID:       uint(check.ID),
+		ID:       check.ID,
 		Name:     check.Name,
 		Interval: time.Duration(check.Interval),
 		Timeout:  time.Duration(check.Timeout),
