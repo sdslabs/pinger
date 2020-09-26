@@ -41,12 +41,12 @@ type Alerter interface {
 	// It gets the metrics for which the alert needs to be sent (all metrics
 	// are filtered before passing onto here). The last parameter it has is
 	// a map of check IDs and corresponding alert to be sent.
-	Alert(context.Context, []checker.Metric, map[uint]Alert) error
+	Alert(context.Context, []checker.Metric, map[string]Alert) error
 }
 
 // AlertFunc is the function that is used to alert the metrics into the
 // provider.
-type AlertFunc = func(context.Context, []checker.Metric, map[uint]Alert) error
+type AlertFunc = func(context.Context, []checker.Metric, map[string]Alert) error
 
 // Initialize method initializes the alerter and returns a function that
 // alerts the metrics.
