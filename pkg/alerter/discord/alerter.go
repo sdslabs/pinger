@@ -2,7 +2,7 @@
 // Use of this source code is governed by an MIT license
 // details of which can be found in the LICENSE file.
 
-package slack
+package discord
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ import (
 )
 
 // serviceName is the name of the service used to send the alert.
-const serviceName = "slack"
+const serviceName = "discord"
 
 func init() {
 	alerter.Register(serviceName, func() alerter.Alerter { return new(Alerter) })
@@ -28,7 +28,7 @@ func init() {
 
 // reqBody is the JSON request body format for slack webhook request.
 type reqBody struct {
-	Text string `json:"text"`
+	Text string `json:"content"`
 }
 
 // Alerter sends an alert for test status.
@@ -42,7 +42,7 @@ func (a *Alerter) Provision(ctx *appcontext.Context, _ alerter.Provider) error {
 	return nil
 }
 
-// Alert sends the notification on slack.
+// Alert sends the notification on discord.
 func (a *Alerter) Alert(ctx context.Context, metrics []checker.Metric, amap map[string]alerter.Alert) error {
 	for i := range metrics {
 		metric := metrics[i]
