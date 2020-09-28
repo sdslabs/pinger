@@ -59,21 +59,8 @@ func NewConn(conf Config) (*Conn, error) {
 		&Payload{},
 		&Page{},
 		&Incident{},
-		&Metric{},
 		&PageTeam{},
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Exec("CREATE INDEX ON metrics (check_id, start_time DESC);").Error
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Exec(
-		"SELECT create_hypertable('metrics', 'start_time', if_not_exists => TRUE, create_default_indexes => FALSE);",
-	).Error
 	if err != nil {
 		return nil, err
 	}
