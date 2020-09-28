@@ -8,8 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -530,86 +528,4 @@ func (c *Conn) RemoveTeamMemberFromPage(ctx context.Context, ownerID, pageID, me
 	p := rawPageWithID(ownerID, pageID)
 
 	return c.db.WithContext(ctx).Model(&p).Where(&p).Association("Team").Delete(pt)
-}
-
-// GetMetricsByCheckAndStartTime fetches metrics from the metrics hypertable
-// for the given check ID. It accepts a `startTime` parameter that fetches
-// metrics for the check from given time.
-func (c *Conn) GetMetricsByCheckAndStartTime(
-	ctx context.Context,
-	checkID string,
-	startTime time.Time,
-) ([]Metric, error) {
-	metrics := []Metric{}
-
-	tx := c.db.WithContext(ctx).
-		Where("check_id = ? AND start_time > ?", checkID, startTime).
-		Order("start_time DESC").
-		Find(&metrics)
-	return metrics, tx.Error
-}
-
-// GetMetricsByCheckAndDuration fetches metrics from the metrics hypertable
-// for the given check ID. It accepts a `duration` parameter that fetches
-// metrics for the check in the past `duration time.Duration`.
-func (c *Conn) GetMetricsByCheckAndDuration(
-	ctx context.Context,
-	checkID string,
-	duration time.Duration,
-) ([]Metric, error) {
-	startTime := time.Now().Add(-1 * duration)
-	return c.GetMetricsByCheckAndStartTime(ctx, checkID, startTime)
-}
-
-// GetMetricsByPageAndStartTime fetches metrics for all the checks in a page
-// for the given start time.
-func (c *Conn) GetMetricsByPageAndStartTime(ctx context.Context, pageID uint, startTime time.Time) ([]Metric, error) {
-	checkIDs := []string{}
-
-	tx1 := c.db.WithContext(ctx).Table("page_checks").Where("page_id = ?", pageID).Pluck("check_id", &checkIDs)
-	if err := tx1.Error; err != nil {
-		return nil, err
-	}
-
-	metrics := []Metric{}
-	tx2 := c.db.WithContext(ctx).Where("check_id IN (?) AND start_time > ?", checkIDs, startTime).
-		Order("start_time DESC").
-		Find(&metrics)
-	return metrics, tx2.Error
-}
-
-// GetMetricsByPageAndDuration fetches metrics for all the checks in a page
-// for the given duration.
-func (c *Conn) GetMetricsByPageAndDuration(ctx context.Context, pageID uint, duration time.Duration) ([]Metric, error) {
-	startTime := time.Now().Add(-1 * duration)
-	return c.GetMetricsByPageAndStartTime(ctx, pageID, startTime)
-}
-
-// CreateMetrics inserts multiple metrics into TimescaleDB Hypertable.
-func (c *Conn) CreateMetrics(ctx context.Context, metrics []Metric) error {
-	// We build a raw query since Gorm doesn't support bulk insert.
-	// Since there is no `string` and there is no user input we can
-	// safely build the raw query without worrying about injection.
-
-	if len(metrics) == 0 {
-		return nil
-	}
-
-	q := "INSERT INTO metrics (check_id, start_time, duration, timeout, success) VALUES %s;"
-	timeFormat := "2006-01-02 15:04:05.000000-07:00" // Supported by PostgreSQL
-	vals := []string{}
-	for i := range metrics {
-		val := fmt.Sprintf("(%s, '%s', %d, %t, %t)",
-			metrics[i].CheckID,
-			metrics[i].StartTime.Format(timeFormat),
-			metrics[i].Duration,
-			metrics[i].Timeout,
-			metrics[i].Success)
-		vals = append(vals, val)
-	}
-
-	args := strings.Join(vals, ", ")
-	query := fmt.Sprintf(q, args)
-
-	return c.db.WithContext(ctx).Exec(query).Error
 }

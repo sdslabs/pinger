@@ -65,7 +65,6 @@ type Check struct {
 	TargetValue string `gorm:"NOT NULL"`
 
 	Payloads []Payload `gorm:"foreignkey:CheckID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Metrics  []Metric  `gorm:"foreignkey:CheckID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // Payload model.
@@ -114,17 +113,6 @@ type Incident struct {
 
 	TimeStamp time.Time     `gorm:"NOT NULL"`
 	Duration  time.Duration `gorm:"NOT NULL"`
-}
-
-// Metric model.
-type Metric struct {
-	CheckID string
-	Check   Check
-
-	StartTime time.Time     `gorm:"NOT NULL"`
-	Duration  time.Duration `gorm:"NOT NULL"`
-	Timeout   bool          `gorm:"NOT NULL"`
-	Success   bool          `gorm:"NOT NULL"`
 }
 
 // Various roles of a team member.
