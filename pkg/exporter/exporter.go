@@ -7,6 +7,7 @@ package exporter
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/checker"
@@ -33,6 +34,10 @@ func Register(name string, fn newFunc) {
 
 // Exporter is anything that can export metrics into the database provider.
 type Exporter interface {
+	// GetMetrics get the metrics for the given check IDs. It accepts a `duration`
+	// parameter that fetches metrics for the check in the past `duration`.
+	GetMetrics(context.Context, time.Duration, ...string) (map[string][]checker.Metric, error)
+
 	// Provision provisions the exporter. Creates database connection and
 	// sets other configuration for the exporter.
 	Provision(*appcontext.Context, Provider) error
