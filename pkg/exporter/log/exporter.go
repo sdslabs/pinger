@@ -7,6 +7,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -15,7 +16,7 @@ import (
 	"github.com/sdslabs/pinger/pkg/exporter"
 )
 
-const exporterName = "LOG"
+const exporterName = "log"
 
 func init() {
 	exporter.Register(exporterName, func() exporter.Exporter { return new(Exporter) })
@@ -73,6 +74,19 @@ func (e *Exporter) logMetric(metric checker.Metric) {
 		"start_time":    metric.GetStartTime(),
 		"duration":      metric.GetDuration(),
 	}).Infof("metrics for check (%s) %s", metric.GetCheckID(), metric.GetCheckName())
+}
+
+// GetMetrics returns error as could not be used with log exporter.
+func (e *Exporter) GetMetrics(
+	ctx context.Context,
+	time time.Duration,
+	checkIDs ...string,
+) (map[string][]checker.Metric, error) {
+	return nil, fmt.Errorf(
+		`the method is not implemented for exporter: %s,
+		log exporter is only meant to be used for debugging`,
+		exporterName,
+	)
 }
 
 // Interface guard.
