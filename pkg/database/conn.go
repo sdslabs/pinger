@@ -5,6 +5,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 
 	"gorm.io/driver/postgres"
@@ -29,7 +30,7 @@ type Config interface {
 type Conn struct{ db *gorm.DB }
 
 // NewConn creates a new connection with the database.
-func NewConn(conf Config) (*Conn, error) {
+func NewConn(ctx context.Context, conf Config) (*Conn, error) {
 	connStr := fmt.Sprintf(
 		`host=%s port=%d user=%s dbname=%s password=%s`,
 		conf.GetHost(),
@@ -48,12 +49,12 @@ func NewConn(conf Config) (*Conn, error) {
 		return nil, err
 	}
 
-	err = db.Exec("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;").Error
+	err = db.WithContext(ctx).Exec("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;").Error
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(
+	err = db.WithContext(ctx).AutoMigrate(
 		&User{},
 		&Check{},
 		&Payload{},
