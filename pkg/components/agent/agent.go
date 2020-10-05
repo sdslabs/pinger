@@ -11,7 +11,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sdslabs/kiwi"
+	"github.com/sdslabs/kiwi/values/hash"
+
 	"google.golang.org/grpc"
+
+	"github.com/sdslabs/kiwi/stdkiwi"
 
 	"github.com/sdslabs/pinger/pkg/alerter"
 	"github.com/sdslabs/pinger/pkg/appcontext"
@@ -45,6 +50,16 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}
 
+	// alertPrevState stores the last state of the check for a particular CheckID in a has map.
+	const alertPrevStateKey = "alertPrevState"
+	store, err := stdkiwi.NewStoreFromSchema(kiwi.Schema{
+		alertPrevStateKey: hash.Type,
+	})
+	if err != nil {
+		return fmt.Errorf("cannot initialize store: %w", err)
+	}
+	alertPrevState := store.Hash(alertPrevStateKey)
+
 	aMap := alertMap{a: map[string]map[string]alerter.Alert{}}
 	alertFuncs := map[string]alerter.AlertFunc{}
 	for i := range conf.Alerts {
@@ -63,7 +78,7 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		aMap.a[ap.Service] = map[string]alerter.Alert{}
 	}
 
-	err = initExportAndAlerts(ctx, conf.Interval, manager, export, alertFuncs, aMap.a)
+	err = initExportAndAlerts(ctx, conf.Interval, manager, export, alertFuncs, &aMap, alertPrevState)
 	if err != nil {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}
@@ -94,64 +109,91 @@ func initExportAndAlerts(
 	manager *controller.Manager,
 	exportFunc exporter.ExportFunc,
 	alertFuncs map[string]alerter.AlertFunc,
-	aMap map[string]map[string]alerter.Alert,
+	aMap *alertMap,
+	alertPrevState *stdkiwi.Hash,
 ) error {
 	ctrl, err := controller.NewController(ctx, &controller.Opts{
 		Name:     "metrics_export_and_alert",
 		Interval: interval,
 		Func: func(c context.Context) (interface{}, error) {
 			stats := manager.PullAllStats()
-			metrics := []checker.Metric{}
+			var (
+				exportMetrics []checker.Metric
+				alertMetrics  []checker.Metric
+			)
 			for _, stat := range stats {
+				// stat for each check with latest timestamp will be alerted.
+				lastTimestamp := time.Time{}
 				for _, s := range stat {
 					if s == nil {
 						continue
 					}
 
+					var metric config.Metric
 					if s.Err != nil {
-						// on error record the failed metric
-						metric := &config.Metric{
+						// on error record the failed metric.
+						metric = config.Metric{
 							CheckID:   s.ID,
 							CheckName: s.Name,
 						}
-						metrics = append(metrics, metric)
-						continue
+					} else {
+						res, ok := s.Res.(*checker.Result)
+						if !ok {
+							ctx.Logger().
+								WithField("check_id", s.ID).
+								Warnln("unexpected error: check result not checker.Result")
+							continue
+						}
+
+						metric = config.Metric{
+							CheckID:    s.ID,
+							CheckName:  s.Name,
+							Successful: res.Successful,
+							Timeout:    res.Timeout,
+							StartTime:  res.StartTime,
+							Duration:   res.Duration,
+						}
 					}
 
-					res, ok := s.Res.(*checker.Result)
-					if !ok {
+					exportMetrics = append(exportMetrics, &metric)
+
+					shouldAlert, err := shouldUpdateAlert(alertPrevState, &lastTimestamp, &metric)
+					if err != nil {
 						ctx.Logger().
-							WithField("check_id", s.ID).
-							Warnln("unexpected error: check result not checker.Result")
+							WithField("check_id", s.ID).WithError(err).
+							Warnln("could not alert")
 						continue
 					}
 
-					metric := &config.Metric{
-						CheckID:    s.ID,
-						CheckName:  s.Name,
-						Successful: res.Successful,
-						Timeout:    res.Timeout,
-						StartTime:  res.StartTime,
-						Duration:   res.Duration,
+					if shouldAlert {
+						alertMetrics = append(alertMetrics, &metric)
 					}
-					metrics = append(metrics, metric)
 				}
 			}
 
 			// Export metrics into the database
-			if er := exportFunc(ctx, metrics); er != nil {
+			if er := exportFunc(ctx, exportMetrics); er != nil {
 				ctx.Logger().
 					WithError(er).
 					Errorln("error exporting metrics")
 				return nil, er
 			}
 
-			// TODO(shreyaa-sharmaa): Alert metrics (in a separate thread than this using kiwi)
-			for index, element := range alertFuncs {
-				if er := element(ctx, metrics, aMap[index]); er != nil {
+			// Alert metrics from the corresponding services
+			for alertService, alertFunc := range alertFuncs {
+				aMap.mu.RLock()
+				serviceAlertMap, ok := (aMap.a)[alertService]
+				aMap.mu.RUnlock()
+				if !ok {
+					er := fmt.Errorf("could not find alerts for service %q", alertService)
+					ctx.Logger().WithError(er).Errorf("could not alert")
+					return nil, er
+				}
+
+				if er := alertFunc(ctx, alertMetrics, serviceAlertMap); er != nil {
 					ctx.Logger().
 						WithError(er).
-						Errorln("error sending alerts")
+						Errorln("error alerting exportMetrics")
 					return nil, er
 				}
 			}
@@ -165,6 +207,48 @@ func initExportAndAlerts(
 
 	ctrl.Start()
 	return nil
+}
+
+// shouldUpdateAlert tells if an alert should be sent for the particular metric.
+func shouldUpdateAlert(
+	alertPrevState *stdkiwi.Hash,
+	lastTimestamp *time.Time,
+	metric checker.Metric,
+) (update bool, _ error) {
+	if lastTimestamp.After(metric.GetStartTime()) {
+		// If the last time stamp is after the metric, we have a stale metric
+		// and do not want to consider it for alerting.
+		return false, nil
+	}
+
+	prevState := boolNil // if nothing is fetched, first alert will be sent
+	newState := newBoolean(metric.IsSuccessful())
+
+	has, err := alertPrevState.Has(metric.GetCheckID())
+	if err != nil {
+		return false, err
+	}
+	if has {
+		v, er := alertPrevState.Get(metric.GetCheckID())
+		if er != nil {
+			return false, er
+		}
+		prevState = boolean(v[0])
+	}
+
+	if newState == prevState {
+		return false, nil
+	}
+
+	err = alertPrevState.Insert(metric.GetCheckID(), string(newState))
+	if err != nil {
+		return false, err
+	}
+
+	// update the last time stamp only when there is no error or else let the
+	// last metric to be the same as before.
+	*lastTimestamp = metric.GetStartTime()
+	return true, nil
 }
 
 // runGRPCServer starts the GRPC server that exposes an API for the central
