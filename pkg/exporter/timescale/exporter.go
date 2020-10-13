@@ -24,10 +24,7 @@ func init() {
 	exporter.Register(exporterName, func() exporter.Exporter { return new(Exporter) })
 }
 
-// Exporter logs the metrics to the console.
-//
-// Internally, it uses logrus as the logger. This is useful for testing or
-// piping the logs into a file.
+// Exporter for exporting metrics to timescale db.
 type Exporter struct {
 	connection *gorm.DB
 }
@@ -159,11 +156,7 @@ func (e *Exporter) Provision(ctx *appcontext.Context, provider exporter.Provider
 
 // Export exports the metrics to the exporter.
 func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
-	if err := e.createMetrics(ctx, metrics); err != nil {
-		return err
-	}
-
-	return nil
+	return e.createMetrics(ctx, metrics)
 }
 
 // GetMetrics get the metrics of the given checks.
