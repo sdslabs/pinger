@@ -54,7 +54,7 @@ func Initialize(ctx *appcontext.Context, provider Provider) (AlertFunc, error) {
 	name := provider.GetService()
 	newAlerter, ok := alerters[name]
 	if !ok {
-		return nil, fmt.Errorf("exporter with name does not exist: %s", name)
+		return nil, fmt.Errorf("alerter with name does not exist: %s", name)
 	}
 
 	alerter := newAlerter()

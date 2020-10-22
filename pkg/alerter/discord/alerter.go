@@ -103,8 +103,8 @@ func (a *Alerter) alert(ctx context.Context, metric checker.Metric, alt alerter.
 	if err != nil {
 		return fmt.Errorf("cannot read response: %v", err)
 	}
-	if buf.String() != "ok" {
-		return fmt.Errorf("not-ok response returned from slack")
+	if len(buf.String()) > 0 {
+		return fmt.Errorf(buf.String())
 	}
 
 	return nil
