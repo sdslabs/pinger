@@ -71,7 +71,7 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 
 		alert, er := alerter.Initialize(ctx, &ap)
 		if er != nil {
-			return fmt.Errorf("cannot Initialize alerter: %w", er)
+			return fmt.Errorf("cannot initialize alerter: %w", er)
 		}
 
 		alertFuncs[ap.Service] = alert
