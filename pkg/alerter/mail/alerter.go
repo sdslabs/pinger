@@ -2,15 +2,13 @@
 // Use of this source code is governed by an MIT license
 // details of which can be found in the LICENSE file.
 
-package discord
+package mail
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
+
+	gomail "gopkg.in/mail.v2"
 
 	"github.com/sdslabs/pinger/pkg/alerter"
 	"github.com/sdslabs/pinger/pkg/appcontext"
@@ -20,29 +18,34 @@ import (
 )
 
 // serviceName is the name of the service used to send the alert.
-const serviceName = "discord"
+const serviceName = "mail"
 
 func init() {
 	alerter.Register(serviceName, func() alerter.Alerter { return new(Alerter) })
 }
 
-// reqBody is the JSON request body format for slack webhook request.
-type reqBody struct {
-	Text string `json:"content"`
+// senderDetails stores the config for sending E-mail.
+type senderDetails struct {
+	Host   string
+	Port   uint16
+	User   string
+	Secret string
 }
 
 // Alerter sends an alert for test status.
 type Alerter struct {
-	log *logrus.Logger
+	log    *logrus.Logger
+	sender senderDetails
 }
 
 // Provision initializes required fields for a's execution.
-func (a *Alerter) Provision(ctx *appcontext.Context, _ alerter.Provider) error {
+func (a *Alerter) Provision(ctx *appcontext.Context, prov alerter.Provider) error {
 	a.log = ctx.Logger()
+	a.sender = senderDetails{prov.GetHost(), prov.GetPort(), prov.GetUser(), prov.GetSecret()}
 	return nil
 }
 
-// Alert sends the notification on discord.
+// Alert sends the notification on slack.
 func (a *Alerter) Alert(ctx context.Context, metrics []checker.Metric, amap map[string]alerter.Alert) error {
 	for i := range metrics {
 		metric := metrics[i]
@@ -72,39 +75,22 @@ func (a *Alerter) alert(ctx context.Context, metric checker.Metric, alt alerter.
 		}
 	}
 
-	body, err := json.Marshal(reqBody{Text: msg})
-	if err != nil {
-		return fmt.Errorf("unexpected error while marshaling: %v", err)
-	}
+	// Receiver's data
+	to := alt.GetTarget()
 
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPost,
-		alt.GetTarget(),
-		bytes.NewBuffer(body),
-	)
-	if err != nil {
-		return fmt.Errorf("could not create request: %v", err)
-	}
+	// Set E-mail
+	m := gomail.NewMessage()
+	m.SetHeader("From", a.sender.User)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", "Pinger Alert: "+msg)
+	m.SetBody("text/plain", msg)
 
-	req.Header.Add("Content-Type", "application/json")
+	// Settings for SMTP server
+	d := gomail.NewDialer(a.sender.Host, int(a.sender.Port), a.sender.User, a.sender.Secret)
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
+	// Sending E-Mail
+	if err := d.DialAndSend(m); err != nil {
 		return fmt.Errorf("could not send request: %v", err)
-	}
-
-	defer resp.Body.Close() // nolint:errcheck
-
-	buf := new(bytes.Buffer)
-
-	_, err = buf.ReadFrom(resp.Body)
-	if err != nil {
-		return fmt.Errorf("cannot read response: %v", err)
-	}
-	if buf.Len() > 0 {
-		return fmt.Errorf("invalid response from discord: %s", buf.String())
 	}
 
 	return nil
