@@ -49,7 +49,7 @@
   },"8": {
     "doc": "Building from source",
     "title": "Setup",
-    "content": ". | Clone the repository and change-directory to it. $ git clone git@github.com/sdslabs/pinger.git $ cd pinger . | Build the project as ./target/pinger. $ make build . | Verify a successful build by pinging it. $ ./target/pinger ping INFO[0000] pong . | . ",
+    "content": ". | Clone the repository and change-directory to it. $ git clone git@github.com:sdslabs/pinger.git $ cd pinger . | Build the project as ./target/pinger. $ make build . | Verify a successful build by pinging it. $ ./target/pinger ping INFO[0000] pong . | . ",
     "url": "/development/building-from-source.html#setup",
     "relUrl": "/development/building-from-source.html#setup"
   },"9": {
