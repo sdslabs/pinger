@@ -7,6 +7,7 @@ package mail
 import (
 	"context"
 	"fmt"
+	"time"
 
 	gomail "gopkg.in/mail.v2"
 
@@ -19,6 +20,9 @@ import (
 
 // serviceName is the name of the service used to send the alert.
 const serviceName = "mail"
+
+// defaultTimeout is the time after which a mail being sent is considered failed.
+const defaultTimeout = time.Minute
 
 func init() {
 	alerter.Register(serviceName, func() alerter.Alerter { return new(Alerter) })
@@ -45,9 +49,15 @@ func (a *Alerter) Provision(ctx *appcontext.Context, prov alerter.Provider) erro
 	return nil
 }
 
-// Alert sends the notification on slack.
+// Alert sends the notification on mail.
 func (a *Alerter) Alert(ctx context.Context, metrics []checker.Metric, amap map[string]alerter.Alert) error {
 	for i := range metrics {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
 		metric := metrics[i]
 		alt, ok := amap[metric.GetCheckID()]
 		if !ok {
@@ -65,6 +75,15 @@ func (a *Alerter) Alert(ctx context.Context, metrics []checker.Metric, amap map[
 
 // alert sends an individual notification.
 func (a *Alerter) alert(ctx context.Context, metric checker.Metric, alt alerter.Alert) error {
+	var (
+		thisCtx = ctx
+		cancel  func()
+	)
+	if _, ok := thisCtx.Deadline(); !ok {
+		thisCtx, cancel = context.WithTimeout(ctx, defaultTimeout)
+		defer cancel()
+	}
+
 	var msg string
 	if metric.IsSuccessful() {
 		msg = fmt.Sprintf("%s is back up", metric.GetCheckName())
@@ -75,25 +94,29 @@ func (a *Alerter) alert(ctx context.Context, metric checker.Metric, alt alerter.
 		}
 	}
 
-	// Receiver's data
 	to := alt.GetTarget()
 
-	// Set E-mail
 	m := gomail.NewMessage()
 	m.SetHeader("From", a.sender.User)
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", "Pinger Alert: "+msg)
 	m.SetBody("text/plain", msg)
 
-	// Settings for SMTP server
 	d := gomail.NewDialer(a.sender.Host, int(a.sender.Port), a.sender.User, a.sender.Secret)
 
-	// Sending E-Mail
-	if err := d.DialAndSend(m); err != nil {
-		return fmt.Errorf("could not send request: %v", err)
-	}
+	errChan := make(chan error)
+	go func(dialer *gomail.Dialer, message *gomail.Message, stream chan<- error) {
+		if err := d.DialAndSend(m); err != nil {
+			stream <- fmt.Errorf("could not send request: %v", err)
+		}
+	}(d, m, errChan)
 
-	return nil
+	select {
+	case <-thisCtx.Done():
+		return thisCtx.Err()
+	case err := <-errChan:
+		return err
+	}
 }
 
 // Interface guard.
