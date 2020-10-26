@@ -22,6 +22,9 @@ import (
 // serviceName is the name of the service used to send the alert.
 const serviceName = "discord"
 
+// defaultTimeout is the time after which the notification is canceled.
+const defaultTimeout = time.Minute
+
 func init() {
 	alerter.Register(serviceName, func() alerter.Alerter { return new(Alerter) })
 }
@@ -45,6 +48,12 @@ func (a *Alerter) Provision(ctx *appcontext.Context, _ alerter.Provider) error {
 // Alert sends the notification on discord.
 func (a *Alerter) Alert(ctx context.Context, metrics []checker.Metric, amap map[string]alerter.Alert) error {
 	for i := range metrics {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
 		metric := metrics[i]
 		alt, ok := amap[metric.GetCheckID()]
 		if !ok {
@@ -62,6 +71,15 @@ func (a *Alerter) Alert(ctx context.Context, metrics []checker.Metric, amap map[
 
 // alert sends an individual notification.
 func (a *Alerter) alert(ctx context.Context, metric checker.Metric, alt alerter.Alert) error {
+	var (
+		thisCtx = ctx
+		cancel  func()
+	)
+	if _, ok := thisCtx.Deadline(); !ok {
+		thisCtx, cancel = context.WithTimeout(ctx, defaultTimeout)
+		defer cancel()
+	}
+
 	var msg string
 	if metric.IsSuccessful() {
 		msg = fmt.Sprintf("%s is back up", metric.GetCheckName())
@@ -78,7 +96,7 @@ func (a *Alerter) alert(ctx context.Context, metric checker.Metric, alt alerter.
 	}
 
 	req, err := http.NewRequestWithContext(
-		ctx,
+		thisCtx,
 		http.MethodPost,
 		alt.GetTarget(),
 		bytes.NewBuffer(body),
