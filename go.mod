@@ -19,6 +19,7 @@ require (
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	google.golang.org/grpc v1.27.1
 	google.golang.org/protobuf v1.25.0
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
 	gorm.io/driver/postgres v1.0.0

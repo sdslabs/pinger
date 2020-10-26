@@ -213,8 +213,12 @@ google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
+gopkg.in/alexcesaro/quotedprintable.v3
 # gopkg.in/ini.v1 v1.52.0
 gopkg.in/ini.v1
+# gopkg.in/mail.v2 v2.3.1
+gopkg.in/mail.v2
 # gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
 # gorm.io/driver/postgres v1.0.0
