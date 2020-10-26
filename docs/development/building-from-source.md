@@ -23,7 +23,7 @@ Before beginning make sure you have all the required tools installed.
 1. Clone the repository and change-directory to it.
 
    ```sh
-   $ git clone git@github.com/sdslabs/pinger.git
+   $ git clone git@github.com:sdslabs/pinger.git
    $ cd pinger
    ```
 
