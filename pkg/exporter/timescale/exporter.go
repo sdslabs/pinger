@@ -168,7 +168,6 @@ func (e *Exporter) GetMetrics(
 	if len(checkIDs) == 0 {
 		return nil, nil
 	}
-
 	IDs := make([]string, len(checkIDs))
 	copy(IDs, checkIDs)
 
