@@ -20,7 +20,7 @@ import (
 const (
 	defaultAgentConfigPath             = "agent.yml"
 	defaultAgentExporter               = "timescale"
-	defaultAgentInterval               = 2 * time.Minute
+	defaultAgentInterval               = 1 * time.Second
 	defaultAgentPort            uint16 = 9009
 	defaultAgentStandaloneMode         = false
 	defaultAgentMetricsHost            = "127.0.0.1"
