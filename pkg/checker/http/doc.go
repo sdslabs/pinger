@@ -1,7 +1,3 @@
-// Copyright (c) 2020 SDSLabs
-// Use of this source code is governed by an MIT license
-// details of which can be found in the LICENSE file.
-
 // Package http implements the HTTP checker and prober.
 //
 // The HTTP prober creates a new request from the URL provided and sends
