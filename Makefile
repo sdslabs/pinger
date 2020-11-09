@@ -1,7 +1,3 @@
-# Copyright (c) 2020 SDSLabs
-# Use of this source code is governed by an MIT license
-# details of which can be found in the LICENSE file.
-
 .PHONY: build docker docs format help install lint proto vendor
 
 .DEFAULT_GOAL := help
@@ -60,7 +56,7 @@ proto:
 	 	--proto_path=pkg/components/agent/proto/protobufs \
 	 	--go_out=plugins=grpc:pkg/components/agent/proto \
 	 	pkg/components/agent/proto/protobufs/messages.proto \
-	 	pkg/components/agent/proto/protobufs/agent.proto 
+	 	pkg/components/agent/proto/protobufs/agent.proto
 	@echo "Compiled successfully"
 
 install: install-protoc install-golangcilint

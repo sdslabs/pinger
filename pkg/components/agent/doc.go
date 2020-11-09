@@ -1,7 +1,3 @@
-// Copyright (c) 2020 SDSLabs
-// Use of this source code is governed by an MIT license
-// details of which can be found in the LICENSE file.
-
 // Package agent runs a manager that runs various checks inside controllers.
 //
 // An agent can run in two modes, standalone mode and along with the central

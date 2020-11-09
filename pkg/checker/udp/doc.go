@@ -1,7 +1,3 @@
-// Copyright (c) 2020 SDSLabs
-// Use of this source code is governed by an MIT license
-// details of which can be found in the LICENSE file.
-
 // Package udp implements the UDP checker and prober.
 //
 // The UDP prober sends a UDP ECHO request and receives a reply from the
