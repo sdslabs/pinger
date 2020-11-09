@@ -1,7 +1,3 @@
-// Copyright (c) 2020 SDSLabs
-// Use of this source code is governed by an MIT license
-// details of which can be found in the LICENSE file.
-
 // Package dns implements the DNS checker and prober.
 //
 // The DNS prober looks up the addresses for the host name and reports them

@@ -18,7 +18,6 @@ linters:
   - gocyclo
   - gofmt
   - goimports
-  - goheader
   - misspell
   - lll
   - prealloc
@@ -58,13 +57,3 @@ linters-settings:
 
   gocyclo:
     min-complexity: 20
-
-  goheader:
-    values:
-      const:
-        COMPANY: SDSLabs
-      regexp:
-        YEAR: 202[0-9]
-    template: "Copyright (c) {{ YEAR }} {{ COMPANY }}\n\
-               Use of this source code is governed by an MIT license\n\
-               details of which can be found in the LICENSE file."
