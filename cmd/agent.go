@@ -83,11 +83,6 @@ to run in a standalone mode where it does not run any GRPC server.`,
 			if conf.Interval <= 0 {
 				conf.Interval = defaultAgentInterval
 			}
-
-			if !conf.Standalone {
-				// enforce timescale metrics for non-standalone mode
-				conf.Metrics.Backend = defaultAgentExporter
-			}
 		},
 		Run: func(*cobra.Command, []string) {
 			if err := agent.Run(ctx, &conf); err != nil {
