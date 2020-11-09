@@ -23,6 +23,7 @@ const exporterName = "influxdb"
 type Exporter struct {
 	writeAPI api.WriteAPI
 	queryAPI api.QueryAPI
+	dbname   string
 }
 
 func init() {
@@ -47,7 +48,7 @@ func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 	errorsCh := e.writeAPI.Errors()
 	go func() {
 		for err := range errorsCh {
-			fmt.Println("write error: %s\n", err.Error())
+			fmt.Printf("write error: %s\n", err.Error())
 		}
 	}()
 	for _, metric := range metrics {
@@ -71,6 +72,44 @@ func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 	return nil
 }
 
+// getMetricsByChecksAndDuration fetches metrics from the metrics hypertable
+// for the given check IDs. It accepts a `duration` parameter that fetches
+// metrics for the check in the past `duration time.Duration`.
+func (e *Exporter) getMetricsByChecksAndDuration(
+	ctx context.Context,
+	checkIDs []string,
+	duration time.Duration,
+) (map[string][]checker.Metric, error) {
+	// metrics := map[string][]checker.Metric{}
+	a := time.Duration(15) * time.Minute
+	// fmt.Println(a)
+	ids := "["
+	for _, v := range checkIDs {
+		ids += v
+	}
+	ids += "]"
+	query := fmt.Sprintf(`from(bucket:"pinger")|> range(start: -%s) |> filter(fn: (r) => r._measurement == "metrics" and r.check_id =~ /%s/ )`, a.String(), ids)
+	// fmt.Println(query)
+	result, err := e.queryAPI.Query(ctx, query)
+	if err == nil {
+		for result.Next() {
+
+			fmt.Printf("row: %s\n", result.Record().String())
+		}
+		if result.Err() != nil {
+			fmt.Printf("Query error: %s\n", result.Err().Error())
+		}
+	} else {
+		fmt.Printf("Query error: %s\n", err.Error())
+	}
+	// Close client
+	_, err = e.queryAPI.Query(ctx, query)
+	if err != nil {
+		fmt.Println("err")
+	}
+	return nil, nil
+}
+
 // GetMetrics get the metrics of the given checks.
 func (e *Exporter) GetMetrics(
 	ctx context.Context,
@@ -83,7 +122,7 @@ func (e *Exporter) GetMetrics(
 	IDs := make([]string, len(checkIDs))
 	copy(IDs, checkIDs)
 
-	return nil, nil
+	return e.getMetricsByChecksAndDuration(ctx, IDs, time)
 }
 
 // Provision sets e's configuration.
@@ -102,6 +141,7 @@ func (e *Exporter) Provision(ctx *appcontext.Context, provider exporter.Provider
 	}
 	e.writeAPI = client.WriteAPI("", provider.GetDBName())
 	e.queryAPI = client.QueryAPI("")
+	e.dbname = provider.GetDBName()
 
 	return nil
 }
