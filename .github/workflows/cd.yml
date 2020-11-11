@@ -1,4 +1,4 @@
-name: Continuous Deployment
+name: CD
 
 on:
   push:
@@ -19,11 +19,8 @@ jobs:
       with:
         persist-credentials: false
 
-    - name: Install dependencies
-      run: make docs-install
-
-    - name: Build site
-      run: make docs-build
+    - name: Build
+      run: make docs
 
     - name: Add CNAME
       run: cp ./docs/CNAME ./docs/_site

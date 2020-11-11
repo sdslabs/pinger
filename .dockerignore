@@ -1,5 +1,5 @@
-# Build
-target/
+# Binary build
+/pinger*
 
 # Git
 .git/
