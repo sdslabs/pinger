@@ -20,6 +20,9 @@ jobs:
     - name: Check out code into the repository root
       uses: actions/checkout@v2
 
+    - name: Generate static resources blob
+      run: make static
+
     - name: Build
       run: make build
 
