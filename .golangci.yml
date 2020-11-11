@@ -1,3 +1,7 @@
+run:
+  skip-files:
+  - "pkg/static/resource.go" # generated file
+
 issues:
   exclude-use-default: false
 

@@ -1,3 +1,8 @@
+# github.com/blang/vfs v1.0.0
+github.com/blang/vfs
+github.com/blang/vfs/memfs
+# github.com/daaku/go.zipexe v1.0.1
+github.com/daaku/go.zipexe
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
 # github.com/fsnotify/fsnotify v1.4.7
@@ -64,6 +69,8 @@ github.com/jinzhu/inflection
 github.com/jinzhu/now
 # github.com/json-iterator/go v1.1.9
 github.com/json-iterator/go
+# github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
+github.com/kardianos/osext
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/leodido/go-urn v1.2.0
@@ -80,6 +87,8 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/pelletier/go-toml v1.6.0
 github.com/pelletier/go-toml
+# github.com/phogolabs/parcello v0.8.2
+github.com/phogolabs/parcello
 # github.com/sdslabs/kiwi v1.0.0
 github.com/sdslabs/kiwi
 github.com/sdslabs/kiwi/stdkiwi
