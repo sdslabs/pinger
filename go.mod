@@ -8,6 +8,7 @@ require (
 	github.com/golang/protobuf v1.4.1
 	github.com/gorilla/websocket v1.4.1
 	github.com/pelletier/go-toml v1.6.0 // indirect
+	github.com/phogolabs/parcello v0.8.2
 	github.com/sdslabs/kiwi v1.0.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2 // indirect

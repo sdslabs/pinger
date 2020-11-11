@@ -18,6 +18,7 @@ help:
 		"fmt" "Formats the code" \
 		"lint" "Checks for errors in code" \
 		"proto" "Compiles the protobufs into go code" \
+		"static" "Generate static resource go file" \
 		"vendor" "Cleans up and updates vendor"
 	@echo
 
@@ -45,6 +46,14 @@ lint:
 proto:
 	./build/proto.sh
 
+.PHONY: static
+static:
+	./build/static.sh
+
 .PHONY: vendor
 vendor:
 	./build/vendor.sh
+
+# TODO(vrongmeal): Add CLI for golangci-lint and protoc-gen-go in `build/`
+# This will enable us to have lower dependency on downloading and installing
+# tools from outside. This is similar to having parcello CLI.
