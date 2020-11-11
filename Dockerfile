@@ -1,6 +1,4 @@
-#######################
-# Build Pinger binary #
-#######################
+# Build Pinger binary
 
 FROM golang:1.15.1-alpine3.12 AS builder
 
@@ -8,17 +6,18 @@ WORKDIR /go/src/github.com/sdslabs/pinger
 
 COPY . .
 
-RUN apk update && apk add make
-RUN make build
+RUN apk update && \
+  apk add make && \
+  apk add bash
+RUN make static && \
+  make build
 
-#################################
-# Copy binary into actual image #
-#################################
+# Copy binary into actual image
 
 FROM alpine:3.12.0
 
 WORKDIR /go/bin
 
-COPY --from=builder /go/src/github.com/sdslabs/pinger/target/pinger .
+COPY --from=builder /go/src/github.com/sdslabs/pinger/pinger .
 
-CMD [ "./pinger", "ping" ]
+CMD [ "./pinger", "version" ]
