@@ -1,10 +1,10 @@
-name: Continuous Integration
+name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
@@ -37,32 +37,12 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Setup tools (golangci-lint)
-      run: make install-golangcilint
+      run: >-
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh |
+        sh -s -- -b $(go env GOPATH)/bin v1.32.2
 
     - name: Lint
-      run: make lint
-
-  protoc:
-    name: Protobufs
-    runs-on: ubuntu-18.04
-    steps:
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.14
-      id: go
-
-    - name: Check out code into the repository root
-      uses: actions/checkout@v2
-
-    - name: Setup tools (protoc)
-      run: sudo apt install -y protobuf-compiler
-
-    - name: Setup tools (protoc-gen-go)
-      run: go get github.com/golang/protobuf/protoc-gen-go
-
-    - name: Compile
-      run: make proto
+      run: PATH="$(go env GOPATH)/bin:$PATH" make lint
 
   docs:
     name: Documentation
@@ -76,14 +56,11 @@ jobs:
     - name: Check out code into the repository root
       uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: make docs-install
-
-    - name: Build site
-      run: make docs-build
+    - name: Build
+      run: make docs
 
   docker:
-    name: Docker image
+    name: Docker Image
     runs-on: ubuntu-18.04
     steps:
     - name: Check out code into the repository root
