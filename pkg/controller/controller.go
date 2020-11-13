@@ -120,17 +120,20 @@ func (c *Controller) Start() {
 	go func(ctrl *Controller) {
 		defer ctrl.wg.Done()
 		for {
-			runCtx, runCancel := context.WithCancel(ctrl.ctx)
-			defer runCancel()
+			if err := func() error {
+				runCtx, runCancel := context.WithCancel(ctrl.ctx)
+				defer runCancel()
 
-			ctrl.run(runCtx)
+				ctrl.run(runCtx)
 
-			select {
-			case <-ctrl.update:
-				runCancel()
-				continue
+				select {
+				case <-ctrl.update:
+					return nil /* continue */
 
-			case <-ctrl.ctx.Done():
+				case <-ctrl.ctx.Done():
+					return ctrl.ctx.Err() /* break */
+				}
+			}(); err != nil {
 				return
 			}
 		}
