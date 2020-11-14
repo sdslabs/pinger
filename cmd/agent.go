@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/components/agent"
 	"github.com/sdslabs/pinger/pkg/config/configfile"
+	"github.com/sdslabs/pinger/pkg/util/appcontext"
 )
 
 // agent defaults.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sdslabs/pinger/pkg/controller"
+	"github.com/sdslabs/pinger/pkg/util/controller"
 )
 
 // This map stores all the checkers. The only way to add a new checker in

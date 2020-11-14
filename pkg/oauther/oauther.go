@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/sdslabs/pinger/pkg/appcontext"
+	"github.com/sdslabs/pinger/pkg/util/appcontext"
 )
 
 // This map stores all the oauthers. The only way to add a new oauther in

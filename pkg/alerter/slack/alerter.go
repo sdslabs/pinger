@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/sdslabs/pinger/pkg/alerter"
-	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/checker"
+	"github.com/sdslabs/pinger/pkg/util/appcontext"
 
 	"github.com/sirupsen/logrus"
 )
