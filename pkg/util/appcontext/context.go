@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -44,6 +45,12 @@ func (c *Context) Value(key interface{}) interface{} {
 // Logger returns the logger from context.
 func (c *Context) Logger() *logrus.Logger {
 	return c.log
+}
+
+// Debug tells if the application is running in debugging mode or not. This
+// is set by setting the `DEBUG` environment variable to "on".
+func (c *Context) Debug() bool {
+	return strings.TrimSpace(os.Getenv("DEBUG")) == "on"
 }
 
 // Background returns an empty context with default logrus logger.

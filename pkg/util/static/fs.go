@@ -5,17 +5,15 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
+
+	"github.com/sdslabs/pinger/pkg/util/appcontext"
 
 	"github.com/phogolabs/parcello"
 )
 
-// debug env constants.
-const (
-	debugEnv = "DEBUG"
-	trueVal  = "on"
-	baseDir  = "./static" // assuming commands will be run from root dir.
-)
+// baseDir is the directory with the static content. All the static data
+// should be present inside this directory.
+const baseDir = "./static" // assuming commands will be run from root dir.
 
 // fsImpl implements the parcello.FileSystemManager interface for actual FS.
 type fsImpl string
@@ -54,15 +52,9 @@ func (f fsImpl) OpenFile(name string, flag int, perm os.FileMode) (parcello.File
 	return os.OpenFile(actualPath, flag, perm) // nolint:gosec
 }
 
-// debug tells if the application is run in debug mode.
-func debug() bool {
-	env := strings.TrimSpace(os.Getenv(debugEnv))
-	return env == trueVal
-}
-
 // NewFS returns the file system manager for the given path based on the
 // environment, i.e., is application running in debug or not.
-func NewFS(path string) (parcello.FileSystem, error) {
+func NewFS(ctx *appcontext.Context, path string) (parcello.FileSystem, error) {
 	fpath := filepath.Clean(path)
 	if filepath.IsAbs(fpath) {
 		return nil, fmt.Errorf(
@@ -70,8 +62,13 @@ func NewFS(path string) (parcello.FileSystem, error) {
 		)
 	}
 
-	if !debug() {
-		return parcello.Manager.Dir(path)
+	// When running in production, expect the static content packaged inside
+	// the binary, i.e., `resource.go` file to be generated inside this package.
+	// This process will take much longer time so instead directly serve the
+	// base directory (to be packaged directory) from the file system when
+	// developing on the application.
+	if !ctx.Debug() {
+		return parcello.Manager.Dir(fpath)
 	}
 
 	return fsImpl(fpath), nil
