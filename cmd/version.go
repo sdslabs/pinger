@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/sdslabs/pinger/pkg/appcontext"
+	"github.com/sdslabs/pinger/pkg/util/appcontext"
 )
 
 // contains version information.

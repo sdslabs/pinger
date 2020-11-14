@@ -6,7 +6,7 @@ set -e
 set -x
 
 RESOURCE_DIR="./static"
-BUNDLE_DIR="./pkg/static"
+BUNDLE_DIR="./pkg/util/static"
 
 # Generate the resources file
 go run -mod=readonly github.com/phogolabs/parcello/cmd/parcello \

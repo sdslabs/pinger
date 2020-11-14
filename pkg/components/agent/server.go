@@ -5,7 +5,7 @@ import (
 
 	"github.com/sdslabs/pinger/pkg/components/agent/proto"
 	"github.com/sdslabs/pinger/pkg/config"
-	"github.com/sdslabs/pinger/pkg/controller"
+	"github.com/sdslabs/pinger/pkg/util/controller"
 )
 
 // server is the GRPC server that exposes the API so that central server
