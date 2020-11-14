@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/sdslabs/pinger/cmd"
-	"github.com/sdslabs/pinger/pkg/appcontext"
+	"github.com/sdslabs/pinger/pkg/util/appcontext"
 )
 
 func main() {

@@ -15,13 +15,13 @@ import (
 	"github.com/sdslabs/kiwi/stdkiwi"
 
 	"github.com/sdslabs/pinger/pkg/alerter"
-	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/checker"
 	"github.com/sdslabs/pinger/pkg/components/agent/proto"
 	"github.com/sdslabs/pinger/pkg/config"
 	"github.com/sdslabs/pinger/pkg/config/configfile"
-	"github.com/sdslabs/pinger/pkg/controller"
 	"github.com/sdslabs/pinger/pkg/exporter"
+	"github.com/sdslabs/pinger/pkg/util/appcontext"
+	"github.com/sdslabs/pinger/pkg/util/controller"
 )
 
 type alertMap struct {

@@ -2,4 +2,4 @@
 /pinger*
 
 # Static resources
-/pkg/static/resource.go
+/pkg/util/static/resource.go

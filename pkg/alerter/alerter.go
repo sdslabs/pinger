@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/checker"
+	"github.com/sdslabs/pinger/pkg/util/appcontext"
 )
 
 // This map stores all the alterters. The only way to add a new alerter in
