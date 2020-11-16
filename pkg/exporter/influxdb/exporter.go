@@ -7,6 +7,8 @@ package influxdb
 import (
 	"context"
 	"fmt"
+	"log"
+	"net"
 	"strconv"
 	"time"
 
@@ -15,11 +17,12 @@ import (
 	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/checker"
 	"github.com/sdslabs/pinger/pkg/exporter"
+	provider "github.com/sdslabs/pinger/pkg/exporter"
 )
 
 const exporterName = "influxdb"
 
-// Exporter for exporting metrics to timescale db.
+// Exporter for exporting metrics to influxdb.
 type Exporter struct {
 	writeAPI api.WriteAPI
 	queryAPI api.QueryAPI
@@ -32,11 +35,12 @@ func init() {
 
 // newClient creates a new client for the database.
 func newClient(ctx *appcontext.Context, provider exporter.Provider) (client.Client, error) {
-	addStr := fmt.Sprintf("http://%s:%s", provider.GetHost(), strconv.Itoa(int(provider.GetPort())))
+	addStr := fmt.Sprintf("http://%s", net.JoinHostPort(provider.GetHost(), strconv.Itoa(int(provider.GetPort()))))
 	authStr := fmt.Sprintf("%s:%s", provider.GetUsername(), provider.GetPassword())
 	c := client.NewClientWithOptions(
 		addStr,
 		authStr,
+		// currently batch size is set to 50
 		client.DefaultOptions().SetBatchSize(50),
 	)
 
@@ -48,19 +52,19 @@ func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 	errorsCh := e.writeAPI.Errors()
 	go func() {
 		for err := range errorsCh {
-			fmt.Printf("write error: %s\n", err.Error())
+			log.Printf("Write Error: %s\n", err.Error())
 		}
 	}()
 	for _, metric := range metrics {
 		tags := map[string]string{
-			"check_id":    metric.GetCheckID(),
-			"start_time ": metric.GetStartTime().String(),
+			provider.CheckID:   metric.GetCheckID(),
+			provider.StartTime: metric.GetStartTime().String(),
 		}
 		fields := map[string]interface{}{
-			"duration":      metric.GetDuration().String(),
-			"check_name":    metric.GetCheckName(),
-			"is_successful": metric.IsSuccessful(),
-			"is_timeout":    metric.IsTimeout(),
+			provider.Duration:     metric.GetDuration().String(),
+			provider.CheckName:    metric.GetCheckName(),
+			provider.IsSuccessful: metric.IsSuccessful(),
+			provider.IsTimeout:    metric.IsTimeout(),
 		}
 		p := client.NewPoint("metrics", tags, fields, time.Now())
 		//Non-blocking write client uses implicit batching.
@@ -77,19 +81,18 @@ func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 // metrics for the check in the past `duration time.Duration`.
 func (e *Exporter) getMetricsByChecksAndDuration(
 	ctx context.Context,
+	bucketName string,
 	checkIDs []string,
 	duration time.Duration,
 ) (map[string][]checker.Metric, error) {
-	// metrics := map[string][]checker.Metric{}
-	a := time.Duration(15) * time.Minute
-	// fmt.Println(a)
-	ids := "["
-	for _, v := range checkIDs {
-		ids += v
-	}
-	ids += "]"
-	query := fmt.Sprintf(`from(bucket:"pinger")|> range(start: -%s) |> filter(fn: (r) => r._measurement == "metrics" and r.check_id =~ /%s/ )`, a.String(), ids)
-	// fmt.Println(query)
+	startTime := time.Now().Add(-1 * duration).Format(time.RFC3339Nano)
+
+	query := fmt.Sprintf(`from(bucket:"%s")
+	|> range(start: %s) 
+	|> filter(fn: (r) => r._measurement == "metrics" and r.check_id =~ /%s/ )
+	|> pivot(rowKey:["_time"], columnKey:["_field"], valueColumn:"_value") 
+	`, bucketName, startTime, regexID(checkIDs))
+
 	result, err := e.queryAPI.Query(ctx, query)
 	if err == nil {
 		for result.Next() {
@@ -102,7 +105,6 @@ func (e *Exporter) getMetricsByChecksAndDuration(
 	} else {
 		fmt.Printf("Query error: %s\n", err.Error())
 	}
-	// Close client
 	_, err = e.queryAPI.Query(ctx, query)
 	if err != nil {
 		fmt.Println("err")
@@ -110,19 +112,29 @@ func (e *Exporter) getMetricsByChecksAndDuration(
 	return nil, nil
 }
 
+// Formats the checkIDs for required flux query
+func regexID(checkIDs []string) string {
+	ids := "["
+	for _, v := range checkIDs {
+		ids += v
+	}
+	ids += "]"
+	return ids
+}
+
 // GetMetrics get the metrics of the given checks.
-func (e *Exporter) GetMetrics(
-	ctx context.Context,
-	time time.Duration,
-	checkIDs ...string,
-) (map[string][]checker.Metric, error) {
+func (e *Exporter) GetMetrics(ctx context.Context, time time.Duration, checkIDs ...string) (map[string][]checker.Metric, error) {
 	if len(checkIDs) == 0 {
 		return nil, nil
 	}
-	IDs := make([]string, len(checkIDs))
-	copy(IDs, checkIDs)
+	ids := make([]string, len(checkIDs))
+	copy(ids, checkIDs)
 
-	return e.getMetricsByChecksAndDuration(ctx, IDs, time)
+	// How to set bucket name dynamically ?
+	// basically
+	bucketName := "pinger"
+
+	return e.getMetricsByChecksAndDuration(ctx, bucketName, ids, time)
 }
 
 // Provision sets e's configuration.

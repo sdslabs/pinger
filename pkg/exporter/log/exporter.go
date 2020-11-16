@@ -14,6 +14,7 @@ import (
 	"github.com/sdslabs/pinger/pkg/appcontext"
 	"github.com/sdslabs/pinger/pkg/checker"
 	"github.com/sdslabs/pinger/pkg/exporter"
+	provider "github.com/sdslabs/pinger/pkg/exporter"
 )
 
 const exporterName = "log"
@@ -67,12 +68,12 @@ func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 // logMetric logs the metric to the console.
 func (e *Exporter) logMetric(metric checker.Metric) {
 	e.logger.WithFields(logrus.Fields{
-		"check_id":      metric.GetCheckID(),
-		"check_name":    metric.GetCheckName(),
-		"is_successful": metric.IsSuccessful(),
-		"is_timeout":    metric.IsTimeout(),
-		"start_time":    metric.GetStartTime(),
-		"duration":      metric.GetDuration(),
+		provider.CheckID:      metric.GetCheckID(),
+		provider.CheckName:    metric.GetCheckName(),
+		provider.IsSuccessful: metric.IsSuccessful(),
+		provider.IsTimeout:    metric.IsTimeout(),
+		provider.StartTime:    metric.GetStartTime(),
+		provider.Duration:     metric.GetDuration(),
 	}).Infof("metrics for check (%s) %s", metric.GetCheckID(), metric.GetCheckName())
 }
 
