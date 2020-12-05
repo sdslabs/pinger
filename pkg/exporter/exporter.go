@@ -40,6 +40,15 @@ type Exporter interface {
 
 	// Export is the function that does the actual exporting.
 	Export(context.Context, []checker.Metric) error
+
+	// GetMetrics get the metrics for the given check IDs. It accepts a `duration`
+	// parameter that fetches metrics for the check in the past `duration`.
+	//
+	// In the resultant map, each of the metrics array should be ordered in
+	// descending order of their start times. This process usually happens in
+	// the database much quicker than processing it on here so it is required
+	// that the exporter returns metrics in the correct order.
+	GetMetrics(_ context.Context, _ time.Duration, checkIDs ...string) (map[string][]checker.Metric, error)
 }
 
 // ExportFunc is the function that is used to export the metrics into the
