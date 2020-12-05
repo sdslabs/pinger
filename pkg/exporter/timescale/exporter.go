@@ -3,7 +3,6 @@ package timescale
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -34,6 +33,36 @@ type Metric struct {
 	Duration  time.Duration `gorm:"NOT NULL"`
 	Timeout   bool          `gorm:"NOT NULL"`
 	Success   bool          `gorm:"NOT NULL"`
+}
+
+// GetCheckID returns the check ID.
+func (m Metric) GetCheckID() string {
+	return m.CheckID
+}
+
+// GetCheckName returns the check name.
+func (m Metric) GetCheckName() string {
+	return m.CheckName
+}
+
+// GetStartTime returns the start time.
+func (m Metric) GetStartTime() time.Time {
+	return m.StartTime
+}
+
+// GetDuration returns the duration.
+func (m Metric) GetDuration() time.Duration {
+	return m.Duration
+}
+
+// IsTimeout tells if the check timed out.
+func (m Metric) IsTimeout() bool {
+	return m.Timeout
+}
+
+// IsSuccessful tells if the check was successful.
+func (m Metric) IsSuccessful() bool {
+	return m.Success
 }
 
 // newConn creates a new connection with the database.
@@ -85,32 +114,24 @@ func newConn(ctx *appcontext.Context, provider exporter.Provider) (*gorm.DB, err
 
 // createMetrics inserts multiple metrics into TimescaleDB Hypertable.
 func (e *Exporter) createMetrics(ctx context.Context, metrics []checker.Metric) error {
-	// We build a raw query since Gorm doesn't support bulk insert.
-	// Since there is no `string` and there is no user input we can
-	// safely build the raw query without worrying about injection.
-
 	if len(metrics) == 0 {
 		return nil
 	}
 
-	q := "INSERT INTO metrics (check_id, check_name, start_time, duration, timeout, success) VALUES %s;"
-	timeFormat := "2006-01-02 15:04:05.000000-07:00" // Supported by PostgreSQL
-	vals := []string{}
+	toInsert := make([]Metric, 0, len(metrics))
 	for i := range metrics {
-		val := fmt.Sprintf("(%s, %s, '%s', %d, %t, %t)",
-			metrics[i].GetCheckID(),
-			metrics[i].GetCheckName(),
-			metrics[i].GetStartTime().Format(timeFormat),
-			metrics[i].GetDuration(),
-			metrics[i].IsTimeout(),
-			metrics[i].IsSuccessful())
-		vals = append(vals, val)
+		m := metrics[i]
+		toInsert = append(toInsert, Metric{
+			CheckID:   m.GetCheckID(),
+			CheckName: m.GetCheckName(),
+			StartTime: m.GetStartTime(),
+			Duration:  m.GetDuration(),
+			Timeout:   m.IsTimeout(),
+			Success:   m.IsSuccessful(),
+		})
 	}
 
-	args := strings.Join(vals, ", ")
-	query := fmt.Sprintf(q, args)
-
-	return e.connection.WithContext(ctx).Exec(query).Error
+	return e.connection.WithContext(ctx).Create(&toInsert).Error
 }
 
 // getMetricsByChecksAndDuration fetches metrics from the metrics hypertable
@@ -122,11 +143,21 @@ func (e *Exporter) getMetricsByChecksAndDuration(
 	duration time.Duration,
 ) (map[string][]checker.Metric, error) {
 	startTime := time.Now().Add(-1 * duration)
-	metrics := map[string][]checker.Metric{}
+	var fetched []Metric
 	tx := e.connection.WithContext(ctx).Where("check_id IN (?) AND start_time > ?", checkIDs, startTime).
 		Order("start_time DESC").
-		Group("check_id").
-		Find(&metrics)
+		Find(&fetched)
+
+	metrics := map[string][]checker.Metric{}
+	for i := range fetched {
+		m := fetched[i]
+
+		if _, ok := metrics[m.CheckID]; !ok {
+			metrics[m.CheckID] = []checker.Metric{}
+		}
+
+		metrics[m.CheckID] = append(metrics[m.CheckID], m)
+	}
 
 	return metrics, tx.Error
 }
@@ -165,11 +196,11 @@ func (e *Exporter) GetMetrics(
 		return nil, nil
 	}
 
-	IDs := make([]string, len(checkIDs))
-	copy(IDs, checkIDs)
-
-	return e.getMetricsByChecksAndDuration(ctx, IDs, time)
+	return e.getMetricsByChecksAndDuration(ctx, checkIDs, time)
 }
 
-// Interface guard.
-var _ exporter.Exporter = (*Exporter)(nil)
+// Interface guards.
+var (
+	_ exporter.Exporter = (*Exporter)(nil)
+	_ checker.Metric    = Metric{}
+)
