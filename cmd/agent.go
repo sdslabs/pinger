@@ -25,30 +25,44 @@ const (
 	defaultAgentMetricsPassword        = ""
 	defaultAgentMetricsDBName          = ""
 	defaultAgentMetricsSSLMode         = true
+	defaultAgentPageDeploy             = false
+	defaultAgentPagePort        uint16 = 9010
+	defaultAgentPageName               = "Status Page"
 )
+
+// non-const agent defaults.
+var defaultAgentPageAllowedOrigins []string = nil
 
 // config keys and flags for agent.
 const (
-	keyAgentConfigPort             = "port"
-	flagAgentConfigPort            = "port"
-	keyAgentConfigStandalone       = "standalone"
-	flagAgentConfigStandalone      = "standalone"
-	keyAgentConfigInterval         = "interval"
-	flagAgentConfigInterval        = "interval"
-	keyAgentConfigMetricsBackend   = "metrics.backend"
-	flagAgentConfigMetricsBackend  = "metrics-backend"
-	keyAgentConfigMetricsHost      = "metrics.host"
-	flagAgentConfigMetricsHost     = "metrics-host"
-	keyAgentConfigMetricsPort      = "metrics.port"
-	flagAgentConfigMetricsPort     = "metrics-port"
-	keyAgentConfigMetricsUsername  = "metrics.username"
-	flagAgentConfigMetricsUsername = "metrics-username"
-	keyAgentConfigMetricsPassword  = "metrics.password"
-	flagAgentConfigMetricsPassword = "metrics-password"
-	keyAgentConfigMetricsDBName    = "metrics.db_name"
-	flagAgentConfigMetricsDBName   = "metrics-db-name"
-	keyAgentConfigMetricsSSLMode   = "metrics.ssl_mode"
-	flagAgentConfigMetricsSSLMode  = "metrics-ssl-mode"
+	keyAgentConfigPort                = "port"
+	flagAgentConfigPort               = "port"
+	keyAgentConfigStandalone          = "standalone"
+	flagAgentConfigStandalone         = "standalone"
+	keyAgentConfigInterval            = "interval"
+	flagAgentConfigInterval           = "interval"
+	keyAgentConfigMetricsBackend      = "metrics.backend"
+	flagAgentConfigMetricsBackend     = "metrics-backend"
+	keyAgentConfigMetricsHost         = "metrics.host"
+	flagAgentConfigMetricsHost        = "metrics-host"
+	keyAgentConfigMetricsPort         = "metrics.port"
+	flagAgentConfigMetricsPort        = "metrics-port"
+	keyAgentConfigMetricsUsername     = "metrics.username"
+	flagAgentConfigMetricsUsername    = "metrics-username"
+	keyAgentConfigMetricsPassword     = "metrics.password"
+	flagAgentConfigMetricsPassword    = "metrics-password"
+	keyAgentConfigMetricsDBName       = "metrics.db_name"
+	flagAgentConfigMetricsDBName      = "metrics-db-name"
+	keyAgentConfigMetricsSSLMode      = "metrics.ssl_mode"
+	flagAgentConfigMetricsSSLMode     = "metrics-ssl-mode"
+	keyAgentConfigPageDeploy          = "page.deploy"
+	flagAgentConfigPageDeploy         = "page-deploy"
+	keyAgentConfigPagePort            = "page.port"
+	flagAgentConfigPagePort           = "page-port"
+	keyAgentConfigPageAllowedOrigins  = "page.allowed_origins"
+	flagAgentConfigPageAllowedOrigins = "page-allowed-origins"
+	keyAgentConfigPageName            = "page.name"
+	flagAgentConfigPageName           = "page-name"
 )
 
 func newAgentCmd(ctx *appcontext.Context, v *viper.Viper) (*cobra.Command, error) {
@@ -101,22 +115,28 @@ to run in a standalone mode where it does not run any GRPC server.`,
 	cmd.Flags().String(flagAgentConfigMetricsDBName, defaultAgentMetricsDBName, "database name for metrics")
 	cmd.Flags().Bool(flagAgentConfigMetricsSSLMode, defaultAgentMetricsSSLMode, "whether to run metrics with SSL")
 	cmd.Flags().Duration(
-		flagAgentConfigInterval,
-		defaultAgentInterval,
-		"interval after which metrics are pushed/pulled",
-	)
+		flagAgentConfigInterval, defaultAgentInterval, "interval after which metrics are pushed/pulled")
+	cmd.Flags().Bool(flagAgentConfigPageDeploy, defaultAgentPageDeploy, "whether to deploy agent-only status page")
+	cmd.Flags().Uint16(flagAgentConfigPagePort, defaultAgentPagePort, "port to deploy status page on")
+	cmd.Flags().StringSlice(
+		flagAgentConfigPageAllowedOrigins, defaultAgentPageAllowedOrigins, "allowed origins which can request page")
+	cmd.Flags().String(flagAgentConfigPageName, defaultAgentPageName, "name/title of status page")
 
 	mapKeysToFlags := map[string]string{
-		keyAgentConfigPort:            flagAgentConfigPort,
-		keyAgentConfigStandalone:      flagAgentConfigStandalone,
-		keyAgentConfigMetricsBackend:  flagAgentConfigMetricsBackend,
-		keyAgentConfigMetricsHost:     flagAgentConfigMetricsHost,
-		keyAgentConfigMetricsPort:     flagAgentConfigMetricsPort,
-		keyAgentConfigMetricsUsername: flagAgentConfigMetricsUsername,
-		keyAgentConfigMetricsPassword: flagAgentConfigMetricsPassword,
-		keyAgentConfigMetricsDBName:   flagAgentConfigMetricsDBName,
-		keyAgentConfigMetricsSSLMode:  flagAgentConfigMetricsSSLMode,
-		keyAgentConfigInterval:        flagAgentConfigInterval,
+		keyAgentConfigPort:               flagAgentConfigPort,
+		keyAgentConfigStandalone:         flagAgentConfigStandalone,
+		keyAgentConfigMetricsBackend:     flagAgentConfigMetricsBackend,
+		keyAgentConfigMetricsHost:        flagAgentConfigMetricsHost,
+		keyAgentConfigMetricsPort:        flagAgentConfigMetricsPort,
+		keyAgentConfigMetricsUsername:    flagAgentConfigMetricsUsername,
+		keyAgentConfigMetricsPassword:    flagAgentConfigMetricsPassword,
+		keyAgentConfigMetricsDBName:      flagAgentConfigMetricsDBName,
+		keyAgentConfigMetricsSSLMode:     flagAgentConfigMetricsSSLMode,
+		keyAgentConfigInterval:           flagAgentConfigInterval,
+		keyAgentConfigPageDeploy:         flagAgentConfigPageDeploy,
+		keyAgentConfigPagePort:           flagAgentConfigPagePort,
+		keyAgentConfigPageAllowedOrigins: flagAgentConfigPageAllowedOrigins,
+		keyAgentConfigPageName:           flagAgentConfigPageName,
 	}
 
 	if err := bindFlagsToViper(v, cmd, mapKeysToFlags); err != nil {
