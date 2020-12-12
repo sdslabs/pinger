@@ -6,9 +6,19 @@ import (
 	"github.com/sdslabs/pinger/pkg/config"
 )
 
+// AgentPage defines the configuration of the stand alone page deployed by
+// the agent.
+type AgentPage struct {
+	Deploy         bool     `mapstructure:"deploy" json:"deploy"`
+	Port           uint16   `mapstructure:"port" json:"port"`
+	AllowedOrigins []string `mapstructure:"allowed_origins" json:"allowed_origins"`
+	Name           string   `mapstructure:"name" json:"name"`
+}
+
 // Agent represents the configuration for an agent.
 type Agent struct {
 	Standalone bool                   `mapstructure:"standalone" json:"standalone"`
+	Page       AgentPage              `mapstructure:"page" json:"page"`
 	Port       uint16                 `mapstructure:"port" json:"port"`
 	Metrics    config.MetricsProvider `mapstructure:"metrics" json:"metrics"`
 	Alerts     []config.AlertProvider `mapstructure:"alerts" json:"alerts"`

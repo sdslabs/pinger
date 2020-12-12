@@ -41,7 +41,7 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 
 	manager := controller.NewManager(ctx)
 
-	export, err := exporter.Initialize(ctx, &conf.Metrics)
+	export, getMetrics, err := exporter.Initialize(ctx, &conf.Metrics)
 	if err != nil {
 		return fmt.Errorf("cannot initialize exporter: %w", err)
 	}
@@ -85,6 +85,12 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 	for i := range conf.Checks {
 		if err := addCheckToManager(manager, &aMap, &conf.Checks[i]); err != nil {
 			return fmt.Errorf("check %d: cannot add to manager: %w", i, err)
+		}
+	}
+
+	if conf.Page.Deploy {
+		if err := serveStatusPage(ctx, &conf.Page, manager, getMetrics); err != nil {
+			return fmt.Errorf("cannot serve status page: %w", err)
 		}
 	}
 

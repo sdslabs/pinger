@@ -30,10 +30,6 @@ func Register(name string, fn newFunc) {
 
 // Exporter is anything that can export metrics into the database provider.
 type Exporter interface {
-	// GetMetrics get the metrics for the given check IDs. It accepts a `duration`
-	// parameter that fetches metrics for the check in the past `duration`.
-	GetMetrics(context.Context, time.Duration, ...string) (map[string][]checker.Metric, error)
-
 	// Provision provisions the exporter. Creates database connection and
 	// sets other configuration for the exporter.
 	Provision(*appcontext.Context, Provider) error
@@ -55,20 +51,24 @@ type Exporter interface {
 // provider.
 type ExportFunc = func(context.Context, []checker.Metric) error
 
+// GetterFunc is the function that fetches metrics from the database for
+// the given checks.
+type GetterFunc = func(context.Context, time.Duration, ...string) (map[string][]checker.Metric, error)
+
 // Initialize method initializes the exporter and returns a function that
 // exports the metrics.
-func Initialize(ctx *appcontext.Context, provider Provider) (ExportFunc, error) {
+func Initialize(ctx *appcontext.Context, provider Provider) (ExportFunc, GetterFunc, error) {
 	name := provider.GetBackend()
 	newExporter, ok := exporters[name]
 	if !ok {
-		return nil, fmt.Errorf("exporter with name does not exist: %s", name)
+		return nil, nil, fmt.Errorf("exporter with name does not exist: %s", name)
 	}
 
 	exporter := newExporter()
 
 	if err := exporter.Provision(ctx, provider); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return exporter.Export, nil
+	return exporter.Export, exporter.GetMetrics, nil
 }

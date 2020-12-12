@@ -10,6 +10,7 @@ help:
 	@echo ""
 	@echo "$(BOLD)Targets:$(NORMAL)"
 	@printf "  make %s\n    %s\n" \
+		"all" "Builds binary and documentation" \
 		"build" "Builds the binary" \
 		"docker" "Builds the docker image" \
 		"docker TAG=abc:def" "Builds the docker image with given tag" \
@@ -21,6 +22,9 @@ help:
 		"static" "Generate static resource go file" \
 		"vendor" "Cleans up and updates vendor"
 	@echo
+
+.PHONY: all
+all: static build docs
 
 .PHONY: build
 build:
