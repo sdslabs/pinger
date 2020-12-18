@@ -29,5 +29,5 @@ require (
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
 	gorm.io/driver/postgres v1.0.0
-	gorm.io/gorm v1.20.1
+	gorm.io/gorm v1.20.8
 )
