@@ -4,16 +4,6 @@
 
 package exporter
 
-// metric keys
-const (
-	CheckID      = "check_id"
-	CheckName    = "check_name"
-	IsSuccessful = "is_successful"
-	IsTimeout    = "is_timeout"
-	StartTime    = "start_time"
-	Duration     = "duration"
-)
-
 // Provider is anything that can be used to configure and create a metrics
 // exporter.
 type Provider interface {

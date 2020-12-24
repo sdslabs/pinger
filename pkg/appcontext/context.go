@@ -93,8 +93,6 @@ func WithSignals(parent context.Context, signals ...os.Signal) (ctx *Context, ca
 		// wait for cancel at this point. There is no need to exit this go routine
 		// since this is meant to be used in case of cmd exit and the thread will
 		// be exited in case of successful cancel and shutdown.
-		//
-		// FIXME(vrongmeal): On cancellation this still requires another signal .
 		<-recv
 		os.Exit(1)
 	}(stream, ctx, cancel)

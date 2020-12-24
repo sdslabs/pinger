@@ -168,10 +168,8 @@ func (e *Exporter) GetMetrics(
 	if len(checkIDs) == 0 {
 		return nil, nil
 	}
-	ids := make([]string, len(checkIDs))
-	copy(ids, checkIDs)
 
-	return e.getMetricsByChecksAndDuration(ctx, ids, time)
+	return e.getMetricsByChecksAndDuration(ctx, checkIDs, time)
 }
 
 // Interface guard.
