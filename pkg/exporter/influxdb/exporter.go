@@ -25,12 +25,12 @@ const exporterName = "influxdb"
 
 // metric keys
 const (
-	CheckID      = "check_id"
-	CheckName    = "check_name"
-	IsSuccessful = "is_successful"
-	IsTimeout    = "is_timeout"
-	StartTime    = "start_time"
-	Duration     = "duration"
+	keyCheckID      = "check_id"
+	keyCheckName    = "check_name"
+	keyIsSuccessful = "is_successful"
+	keyIsTimeout    = "is_timeout"
+	keyStartTime    = "start_time"
+	keyDuration     = "duration"
 )
 
 // Exporter for exporting metrics to influxdb.
@@ -70,14 +70,14 @@ func newClient(ctx *appcontext.Context, provider exporter.Provider) (client.Clie
 func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 	for _, metric := range metrics {
 		tags := map[string]string{
-			CheckID: metric.GetCheckID(),
+			keyCheckID: metric.GetCheckID(),
 		}
 		fields := map[string]interface{}{
-			StartTime:    metric.GetStartTime(),
-			Duration:     metric.GetDuration(),
-			CheckName:    metric.GetCheckName(),
-			IsSuccessful: metric.IsSuccessful(),
-			IsTimeout:    metric.IsTimeout(),
+			keyStartTime:    metric.GetStartTime(),
+			keyDuration:     metric.GetDuration(),
+			keyCheckName:    metric.GetCheckName(),
+			keyIsSuccessful: metric.IsSuccessful(),
+			keyIsTimeout:    metric.IsTimeout(),
 		}
 		p := client.NewPoint("metrics", tags, fields, time.Now())
 		err := e.writeAPI.WritePoint(ctx, p)
@@ -117,22 +117,21 @@ func (e *Exporter) getMetricsByChecksAndDuration(
 	for result.Next() {
 		// duration and time are parsed separately because influx converts time.Time to string
 		// hence manually parsing and assigning is done here
-		parsedDuration, err = time.ParseDuration(result.Record().ValueByKey(Duration).(string))
+		parsedDuration, err = time.ParseDuration(result.Record().ValueByKey(keyDuration).(string))
 		if err != nil {
 			return nil, err
-
 		}
-		parsedTime, err = time.Parse(time.RFC3339Nano, result.Record().ValueByKey(StartTime).(string))
+		parsedTime, err = time.Parse(time.RFC3339Nano, result.Record().ValueByKey(keyStartTime).(string))
 		if err != nil {
 			return nil, err
 		}
 		metric := config.Metric{
-			CheckID:    result.Record().ValueByKey(CheckID).(string),
-			CheckName:  result.Record().ValueByKey(CheckName).(string),
+			CheckID:    result.Record().ValueByKey(keyCheckID).(string),
+			CheckName:  result.Record().ValueByKey(keyCheckName).(string),
 			StartTime:  parsedTime,
 			Duration:   parsedDuration,
-			Timeout:    result.Record().ValueByKey(IsTimeout).(bool),
-			Successful: result.Record().ValueByKey(IsSuccessful).(bool),
+			Timeout:    result.Record().ValueByKey(keyIsTimeout).(bool),
+			Successful: result.Record().ValueByKey(keyIsSuccessful).(bool),
 		}
 
 		if _, ok := metrics[metric.CheckID]; !ok {
@@ -144,6 +143,7 @@ func (e *Exporter) getMetricsByChecksAndDuration(
 	return metrics, nil
 }
 
+// TODO(h3llix): validate variable to be alphanumeric
 // Formats the checkIDs for required flux query
 func regexID(checkIDs []string) string {
 	ids := "[%s]"
