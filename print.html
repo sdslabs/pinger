@@ -1,0 +1,514 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Pinger</title>
+        
+        <meta name="robots" content="noindex" />
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Pinger</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#pinger" id="pinger">Pinger</a></h1>
+<p>Pinger is an uptime and status monitoring application. It is an open-source
+implementation of platforms used to create status pages. Unlike other
+alternatives, Pinger can be deployed to create a standalone status page from
+a config file as well as a complete platform to manage users, checks, pages,
+alerts, etc.</p>
+<blockquote>
+<p><strong>Note:</strong> Pinger is currently being developed actively. If you would like
+to contribute to the project, head over to the repository hosted on
+<a href="https://github.com/sdslabs/pinger">Github</a>.</p>
+</blockquote>
+<h2><a class="header" href="#license" id="license">License</a></h2>
+<p>Pinger, all the source code, is released under the
+<a href="https://github.com/sdslabs/pinger/blob/main/LICENSE">MIT License</a>.</p>
+<h1><a class="header" href="#getting-started" id="getting-started">Getting Started</a></h1>
+<p>The Pinger binary is all you need to create your own status page. As we are
+still actively working on development of the project, you will need to build
+the project from its <a href="https://github.com/sdslabs/pinger">source code</a>.</p>
+<p>You can head over to the <a href="getting-started/../contributing/index.html">contribution section</a> of
+this documentation to see how to build the project from scratch.</p>
+<h1><a class="header" href="#ping-google" id="ping-google">Ping Google</a></h1>
+<p>Here, we'll deploy a status page using Pinger in the standalone mode, i.e.,
+without complex deployment of the complete platform. But before that we need
+to learn how to run checks.</p>
+<h2><a class="header" href="#what-is-a-check" id="what-is-a-check">What is a Check?</a></h2>
+<p>Check, in hindsight, is a request sent to specified target which has its
+response verified through some conditions which determine whether the request
+returned valid response or not. These conditions might vary depending upon
+the protocol of the request. For example, an HTTP request can be checked
+from the status code received in the response.</p>
+<h2><a class="header" href="#writing-the-configuration-file" id="writing-the-configuration-file">Writing the configuration file</a></h2>
+<p>For specifying the checks in the status page, we need to write a config file.
+We will start by writing an ICMP check for <strong>google.com</strong>. This will be
+equivalent of running the command:</p>
+<pre><code class="language-shell">$ ping google.com
+</code></pre>
+<p>The config file can be written in any of the following formats – YAML, TOML
+or JSON. To create the status page we will be using the <code>agent</code> command which
+takes the default file path to be <code>./agent.yml</code> so create a file with the
+same name.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# We need to tell Pinger to run the agent in standalone mode since the
+# default behaviour is something else.
+standalone: true
+
+# Configuration for where metrics are stored.
+metrics:
+  backend: log # We will just log them on the console for now
+
+# Interval after which metrics are logged into database.
+interval: 5s
+
+# All the checks we need to run.
+checks:
+  - id: ping-google # unique ID
+    name: Ping Google # human-readable name
+    interval: 3s # Ping every 3 seconds
+    timeout: 0.5s # Timeout if it takes longer than half a second
+    input:
+      type: ICMP # Protocol
+    output:
+      type: TIMEOUT # Condition for success/failure
+    target: # Target to hit/request
+      type: ADDRESS
+      value: google.com
+</code></pre>
+<h2><a class="header" href="#running-the-check" id="running-the-check">Running the check</a></h2>
+<p>Now that we have the config file ready, we can launch our agent to ping the
+Google servers. Assuming you have the Pinger binary, run the following
+command:</p>
+<pre><code class="language-shell">$ path/to/pinger agent
+INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=79.065304ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:09.313387 +0530 IST m=+0.024071573&quot;
+INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=43.521461ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:12.314517 +0530 IST m=+3.025195953&quot;
+INFO[0010] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=49.180263ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:15.318509 +0530 IST m=+6.029181599&quot;
+INFO[0010] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=500ms is_successful=false is_timeout=true start_time=&quot;2020-12-29 22:28:18.318521 +0530 IST m=+9.029187048&quot;
+</code></pre>
+<p>You will get an output similar to the one above. Each 5 seconds we get logs
+for the metrics that we collected. We can also see the start times for each
+log is 3 seconds apart, which is what we set for our check. Finally, the last
+check is considered as a failure, given it took more than the set limit of
+half a second (or 500 milli-second).</p>
+<h1><a class="header" href="#storing-metrics" id="storing-metrics">Storing Metrics</a></h1>
+<p>Currently we only logged the metrics on the console. In long term, we would
+want to persist the metrics in a time-series database. Let's see how.</p>
+<h2><a class="header" href="#setting-up-timescaledb" id="setting-up-timescaledb">Setting up TimescaleDB</a></h2>
+<p>Pinger supports <a href="https://www.timescale.com/">TimescaleDB</a> as of now.
+Timescale is a PostgreSQL extension for storing time-series data.</p>
+<p>Using the instructions
+<a href="https://docs.timescale.com/latest/getting-started/installation">here</a>
+we can set it up. For this tutorial we can use Docker to spawn a container
+which is Timescale ready.</p>
+<pre><code class="language-shell">$ docker run -d --name timescaledb -p 5432:5432 \
+  -e POSTGRES_PASSWORD=password timescale/timescaledb:2.0.0-pg12
+</code></pre>
+<p>This will start a PostgreSQL instance on <code>:5432</code> with Timescale installed,
+the user <code>postgres</code> having password <code>password</code>.</p>
+<p>Before we configure our storage, we should create a database to store the
+data in.</p>
+<pre><code class="language-shell"># This step is just to interactively exec into the container.
+# If Timescale was set up natively into the system, it is not required.
+$ docker exec -it 7e13ffbb3612 /bin/bash
+# Open the postgres shell
+$ psql -U postgres postgres
+# Create a database named `pinger`
+$ CREATE DATABASE pinger;
+# List databases and verify that it is created
+$ \l
+                                   List of databases
+      Name      |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
+----------------+----------+----------+------------+------------+-----------------------
+ pinger         | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ postgres       | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ template0      | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+                |          |          |            |            | postgres=CTc/postgres
+ template1      | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+                |          |          |            |            | postgres=CTc/postgres
+(4 rows)
+
+</code></pre>
+<p>Now that we have created our database, we can configure the agent to use it.</p>
+<h2><a class="header" href="#configuring-storage-backend" id="configuring-storage-backend">Configuring storage backend</a></h2>
+<p>Now, we can update our config file replacing the log metrics backend with
+the timescale instance.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+# The new metrics configuration should look like this
+metrics:
+  backend: timescale
+  host: 127.0.0.1
+  port: 5432
+  username: postgres
+  password: password
+  db_name: pinger
+  ssl_mode: false # Let's just keep it off for now
+
+# ...
+</code></pre>
+<p>That's it. We can restart our agent and see metrics being stored into the
+database.</p>
+<pre><code class="language-shell">$ path/to/pinger agent
+</code></pre>
+<p>Now we can change the database from Postgres shell and see if metrics were
+actually collected into the database.</p>
+<pre><code class="language-shell">$ \c pinger
+You are now connected to database &quot;pinger&quot; as user &quot;postgres&quot;.
+$ SELECT * FROM metrics;
+  check_id   | check_name  |          start_time           | duration  | timeout | success
+-------------+-------------+-------------------------------+-----------+---------+---------
+ ping-google | Ping Google | 2020-12-29 19:11:06.926541+00 |  72592580 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:11:09.931472+00 | 116203210 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:11:12.930745+00 |  54831874 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:11:15.930645+00 |  39025993 | f       | t
+(4 rows)
+</code></pre>
+<p>You should see something like above.</p>
+<p>Hurray! We have successfully set up a persistent storage backend for our
+metrics.</p>
+<h1><a class="header" href="#deploying-a-status-page" id="deploying-a-status-page">Deploying a Status Page</a></h1>
+<p>Deploying a status page is quite easy. We just need to set a boolean equal to
+<code>true</code>, and set a couple other variables.</p>
+<h2><a class="header" href="#configuration" id="configuration">Configuration</a></h2>
+<p>Add the following to the configuration file.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+page:
+  deploy: true
+  allowed_origins: ['*'] # For now allow every origin
+  name: My Status Page
+</code></pre>
+<h2><a class="header" href="#seeing-metrics-on-browser" id="seeing-metrics-on-browser">Seeing metrics on browser</a></h2>
+<blockquote>
+<p><strong>TODO:</strong> Frontend of the metrics is still in development. We can verify
+the working of status page using the API endpoint it exposes and a very
+bare-bone template it renders on request.</p>
+</blockquote>
+<p>Open up your browser and visit
+<a href="http://127.0.0.1:9010/">http://127.0.0.1:9010/</a> and you'll be greeted by a
+screen shouting the words <code>My Status Page</code>.</p>
+<p><img src="getting-started/./status-page-template.png" alt="Status Page Template" />.</p>
+<p>To look at the metrics returned by the server, visit
+<a href="http://127.0.0.1:9010/metrics">http://127.0.0.1:9010/metrics</a>. You'll see
+a messed up JSON in your browser. Don't worry, soon the frontend will make
+sense of that data and will render a beautiful status page.</p>
+<p><img src="getting-started/./status-page-metrics.png" alt="Status Page Metrics" />.</p>
+<p>We have finally created a status page, and it was super easy. Let's
+continue this journey with one of the coolest features – alerts.</p>
+<h1><a class="header" href="#mail-on-check-failure" id="mail-on-check-failure">Mail on Check Failure</a></h1>
+<p>Pinger can send alerts when a check fails, or when a check comes back from
+the dead.</p>
+<h2><a class="header" href="#updating-the-check" id="updating-the-check">Updating the check</a></h2>
+<p>Previously we set a timeout for <code>0.5s</code> which rarely timed out. Let's change
+it to <code>0.1s</code> to encounter more failures.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+checks:
+  - id: ping-google
+    name: Ping Google
+    interval: 3s
+    timeout: 0.1s
+    input:
+      type: ICMP
+    output:
+      type: TIMEOUT
+    target:
+      type: ADDRESS
+      value: google.com
+
+# ...
+</code></pre>
+<p>Let's run the check and see if we encountered any failures:</p>
+<pre><code class="language-shell">$ path/to/pinger agent
+</code></pre>
+<p>After a few seconds, let's query our database for metrics.</p>
+<pre><code class="language-shell"># In the postgres shell
+$ SELECT * FROM metrics;
+  check_id   | check_name  |          start_time           | duration  | timeout | success
+-------------+-------------+-------------------------------+-----------+---------+---------
+...
+ ping-google | Ping Google | 2020-12-29 19:58:54.686244+00 |  43848273 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:58:57.686358+00 | 100000000 | t       | f
+ ping-google | Ping Google | 2020-12-29 19:59:00.685532+00 |  45252482 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:59:03.682839+00 |  44708297 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:59:06.681564+00 | 100000000 | t       | f
+ ping-google | Ping Google | 2020-12-29 19:59:09.683893+00 |  73249643 | f       | t
+...
+</code></pre>
+<p>Looks like we did encounter a few failures. Amazing. Let's set up an alert
+now.</p>
+<h2><a class="header" href="#adding-senders-information" id="adding-senders-information">Adding sender's information</a></h2>
+<p>We need to inform Pinger about the account from where to send the emails.
+This means you need to provide an email and password in configuration file.
+I'll be using my personal Gmail account for this.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+alerts:
+  - service: mail
+    host: smtp.gmail.com # Since I'll be using a Gmail Account
+    port: 587
+    user: &lt;email&gt;
+    secret: &lt;password&gt;
+</code></pre>
+<p>Replace the <code>&lt;email&gt;</code> and <code>&lt;password&gt;</code> with your email account and password
+respectively.</p>
+<blockquote>
+<p><strong>Note:</strong> You might need to turn on <em><strong>Less Secure App Access</strong></em> in your
+Google account security settings.</p>
+</blockquote>
+<p>Once done, we can add a mail alert to our check.</p>
+<h2><a class="header" href="#setting-alert-for-the-check" id="setting-alert-for-the-check">Setting alert for the check</a></h2>
+<p>In the check configuration, we need to add what alerts are required to be
+sent.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+checks:
+  - # ...
+    alerts:
+      - service: mail
+        target: &lt;email&gt; # For now just send the mail to yourself
+
+# ...
+</code></pre>
+<p>We can now start our agent and see if we get any mail.</p>
+<h2><a class="header" href="#checking-mails" id="checking-mails">Checking mails</a></h2>
+<p>Start the agent again and look for any new mails from yourself.</p>
+<pre><code class="language-shell">$ path/to/pinger agent
+</code></pre>
+<p>Open up your mail, and you'll see one like this:</p>
+<p><img src="getting-started/./alert-mail.png" alt="Alert Mail" /></p>
+<blockquote>
+<p><strong>TODO:</strong> An email is sent each time the agent is re-started. Rather,
+what should happen is, we should fetch the previous state, if any, from
+the database and then see if we want to alert the user.</p>
+</blockquote>
+<h1><a class="header" href="#architecture" id="architecture">Architecture</a></h1>
+<h1><a class="header" href="#contributing" id="contributing">Contributing</a></h1>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>

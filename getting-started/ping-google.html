@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Pinger - Pinger</title>
+        <title>Ping Google - Pinger</title>
         
         
 
@@ -18,28 +18,28 @@
         <meta name="theme-color" content="#ffffff" />
 
         
-        <link rel="icon" href="favicon.svg">
+        <link rel="icon" href="../favicon.svg">
         
         
-        <link rel="shortcut icon" href="favicon.png">
+        <link rel="shortcut icon" href="../favicon.png">
         
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
         
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="stylesheet" href="../css/print.css" media="print">
         
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
         
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
         
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         
@@ -49,7 +49,7 @@
     <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
-            var path_to_root = "";
+            var path_to_root = "../";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html" class="active"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html" class="active"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -131,7 +131,7 @@
 
                     <div class="right-buttons">
                         
-                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                         
@@ -163,29 +163,81 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#pinger" id="pinger">Pinger</a></h1>
-<p>Pinger is an uptime and status monitoring application. It is an open-source
-implementation of platforms used to create status pages. Unlike other
-alternatives, Pinger can be deployed to create a standalone status page from
-a config file as well as a complete platform to manage users, checks, pages,
-alerts, etc.</p>
-<blockquote>
-<p><strong>Note:</strong> Pinger is currently being developed actively. If you would like
-to contribute to the project, head over to the repository hosted on
-<a href="https://github.com/sdslabs/pinger">Github</a>.</p>
-</blockquote>
-<h2><a class="header" href="#license" id="license">License</a></h2>
-<p>Pinger, all the source code, is released under the
-<a href="https://github.com/sdslabs/pinger/blob/main/LICENSE">MIT License</a>.</p>
+                        <h1><a class="header" href="#ping-google" id="ping-google">Ping Google</a></h1>
+<p>Here, we'll deploy a status page using Pinger in the standalone mode, i.e.,
+without complex deployment of the complete platform. But before that we need
+to learn how to run checks.</p>
+<h2><a class="header" href="#what-is-a-check" id="what-is-a-check">What is a Check?</a></h2>
+<p>Check, in hindsight, is a request sent to specified target which has its
+response verified through some conditions which determine whether the request
+returned valid response or not. These conditions might vary depending upon
+the protocol of the request. For example, an HTTP request can be checked
+from the status code received in the response.</p>
+<h2><a class="header" href="#writing-the-configuration-file" id="writing-the-configuration-file">Writing the configuration file</a></h2>
+<p>For specifying the checks in the status page, we need to write a config file.
+We will start by writing an ICMP check for <strong>google.com</strong>. This will be
+equivalent of running the command:</p>
+<pre><code class="language-shell">$ ping google.com
+</code></pre>
+<p>The config file can be written in any of the following formats – YAML, TOML
+or JSON. To create the status page we will be using the <code>agent</code> command which
+takes the default file path to be <code>./agent.yml</code> so create a file with the
+same name.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# We need to tell Pinger to run the agent in standalone mode since the
+# default behaviour is something else.
+standalone: true
+
+# Configuration for where metrics are stored.
+metrics:
+  backend: log # We will just log them on the console for now
+
+# Interval after which metrics are logged into database.
+interval: 5s
+
+# All the checks we need to run.
+checks:
+  - id: ping-google # unique ID
+    name: Ping Google # human-readable name
+    interval: 3s # Ping every 3 seconds
+    timeout: 0.5s # Timeout if it takes longer than half a second
+    input:
+      type: ICMP # Protocol
+    output:
+      type: TIMEOUT # Condition for success/failure
+    target: # Target to hit/request
+      type: ADDRESS
+      value: google.com
+</code></pre>
+<h2><a class="header" href="#running-the-check" id="running-the-check">Running the check</a></h2>
+<p>Now that we have the config file ready, we can launch our agent to ping the
+Google servers. Assuming you have the Pinger binary, run the following
+command:</p>
+<pre><code class="language-shell">$ path/to/pinger agent
+INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=79.065304ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:09.313387 +0530 IST m=+0.024071573&quot;
+INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=43.521461ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:12.314517 +0530 IST m=+3.025195953&quot;
+INFO[0010] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=49.180263ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:15.318509 +0530 IST m=+6.029181599&quot;
+INFO[0010] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=500ms is_successful=false is_timeout=true start_time=&quot;2020-12-29 22:28:18.318521 +0530 IST m=+9.029187048&quot;
+</code></pre>
+<p>You will get an output similar to the one above. Each 5 seconds we get logs
+for the metrics that we collected. We can also see the start times for each
+log is 3 seconds apart, which is what we set for our check. Finally, the last
+check is considered as a failure, given it took more than the set limit of
+half a second (or 500 milli-second).</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
+                            <a rel="prev" href="../getting-started/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
 
                         
-                            <a rel="next" href="getting-started/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../getting-started/storing-metrics.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -197,9 +249,13 @@ to contribute to the project, head over to the repository hosted on
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
+                    <a rel="prev" href="../getting-started/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
 
                 
-                    <a rel="next" href="getting-started/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../getting-started/storing-metrics.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
@@ -222,14 +278,14 @@ to contribute to the project, head over to the repository hosted on
         
 
         
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
         
 
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
         

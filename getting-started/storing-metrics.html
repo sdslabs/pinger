@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Architecture - Pinger</title>
+        <title>Storing Metrics - Pinger</title>
         
         
 
@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="../architecture/index.html" class="active"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html" class="active"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -163,20 +163,97 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#architecture" id="architecture">Architecture</a></h1>
+                        <h1><a class="header" href="#storing-metrics" id="storing-metrics">Storing Metrics</a></h1>
+<p>Currently we only logged the metrics on the console. In long term, we would
+want to persist the metrics in a time-series database. Let's see how.</p>
+<h2><a class="header" href="#setting-up-timescaledb" id="setting-up-timescaledb">Setting up TimescaleDB</a></h2>
+<p>Pinger supports <a href="https://www.timescale.com/">TimescaleDB</a> as of now.
+Timescale is a PostgreSQL extension for storing time-series data.</p>
+<p>Using the instructions
+<a href="https://docs.timescale.com/latest/getting-started/installation">here</a>
+we can set it up. For this tutorial we can use Docker to spawn a container
+which is Timescale ready.</p>
+<pre><code class="language-shell">$ docker run -d --name timescaledb -p 5432:5432 \
+  -e POSTGRES_PASSWORD=password timescale/timescaledb:2.0.0-pg12
+</code></pre>
+<p>This will start a PostgreSQL instance on <code>:5432</code> with Timescale installed,
+the user <code>postgres</code> having password <code>password</code>.</p>
+<p>Before we configure our storage, we should create a database to store the
+data in.</p>
+<pre><code class="language-shell"># This step is just to interactively exec into the container.
+# If Timescale was set up natively into the system, it is not required.
+$ docker exec -it 7e13ffbb3612 /bin/bash
+# Open the postgres shell
+$ psql -U postgres postgres
+# Create a database named `pinger`
+$ CREATE DATABASE pinger;
+# List databases and verify that it is created
+$ \l
+                                   List of databases
+      Name      |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
+----------------+----------+----------+------------+------------+-----------------------
+ pinger         | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ postgres       | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ template0      | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+                |          |          |            |            | postgres=CTc/postgres
+ template1      | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+                |          |          |            |            | postgres=CTc/postgres
+(4 rows)
+
+</code></pre>
+<p>Now that we have created our database, we can configure the agent to use it.</p>
+<h2><a class="header" href="#configuring-storage-backend" id="configuring-storage-backend">Configuring storage backend</a></h2>
+<p>Now, we can update our config file replacing the log metrics backend with
+the timescale instance.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+# The new metrics configuration should look like this
+metrics:
+  backend: timescale
+  host: 127.0.0.1
+  port: 5432
+  username: postgres
+  password: password
+  db_name: pinger
+  ssl_mode: false # Let's just keep it off for now
+
+# ...
+</code></pre>
+<p>That's it. We can restart our agent and see metrics being stored into the
+database.</p>
+<pre><code class="language-shell">$ path/to/pinger agent
+</code></pre>
+<p>Now we can change the database from Postgres shell and see if metrics were
+actually collected into the database.</p>
+<pre><code class="language-shell">$ \c pinger
+You are now connected to database &quot;pinger&quot; as user &quot;postgres&quot;.
+$ SELECT * FROM metrics;
+  check_id   | check_name  |          start_time           | duration  | timeout | success
+-------------+-------------+-------------------------------+-----------+---------+---------
+ ping-google | Ping Google | 2020-12-29 19:11:06.926541+00 |  72592580 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:11:09.931472+00 | 116203210 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:11:12.930745+00 |  54831874 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:11:15.930645+00 |  39025993 | f       | t
+(4 rows)
+</code></pre>
+<p>You should see something like above.</p>
+<p>Hurray! We have successfully set up a persistent storage backend for our
+metrics.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="../getting-started/mail-on-failure.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting-started/ping-google.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="../contributing/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../getting-started/status-page.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -188,13 +265,13 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a rel="prev" href="../getting-started/mail-on-failure.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting-started/ping-google.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a rel="next" href="../contributing/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../getting-started/status-page.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Pinger - Pinger</title>
+        <title>Mail on Check Failure - Pinger</title>
         
         
 
@@ -18,28 +18,28 @@
         <meta name="theme-color" content="#ffffff" />
 
         
-        <link rel="icon" href="favicon.svg">
+        <link rel="icon" href="../favicon.svg">
         
         
-        <link rel="shortcut icon" href="favicon.png">
+        <link rel="shortcut icon" href="../favicon.png">
         
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
         
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="stylesheet" href="../css/print.css" media="print">
         
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
         
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
         
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         
@@ -49,7 +49,7 @@
     <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
-            var path_to_root = "";
+            var path_to_root = "../";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html" class="active"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html" class="active"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -131,7 +131,7 @@
 
                     <div class="right-buttons">
                         
-                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                         
@@ -163,29 +163,112 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#pinger" id="pinger">Pinger</a></h1>
-<p>Pinger is an uptime and status monitoring application. It is an open-source
-implementation of platforms used to create status pages. Unlike other
-alternatives, Pinger can be deployed to create a standalone status page from
-a config file as well as a complete platform to manage users, checks, pages,
-alerts, etc.</p>
+                        <h1><a class="header" href="#mail-on-check-failure" id="mail-on-check-failure">Mail on Check Failure</a></h1>
+<p>Pinger can send alerts when a check fails, or when a check comes back from
+the dead.</p>
+<h2><a class="header" href="#updating-the-check" id="updating-the-check">Updating the check</a></h2>
+<p>Previously we set a timeout for <code>0.5s</code> which rarely timed out. Let's change
+it to <code>0.1s</code> to encounter more failures.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+checks:
+  - id: ping-google
+    name: Ping Google
+    interval: 3s
+    timeout: 0.1s
+    input:
+      type: ICMP
+    output:
+      type: TIMEOUT
+    target:
+      type: ADDRESS
+      value: google.com
+
+# ...
+</code></pre>
+<p>Let's run the check and see if we encountered any failures:</p>
+<pre><code class="language-shell">$ path/to/pinger agent
+</code></pre>
+<p>After a few seconds, let's query our database for metrics.</p>
+<pre><code class="language-shell"># In the postgres shell
+$ SELECT * FROM metrics;
+  check_id   | check_name  |          start_time           | duration  | timeout | success
+-------------+-------------+-------------------------------+-----------+---------+---------
+...
+ ping-google | Ping Google | 2020-12-29 19:58:54.686244+00 |  43848273 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:58:57.686358+00 | 100000000 | t       | f
+ ping-google | Ping Google | 2020-12-29 19:59:00.685532+00 |  45252482 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:59:03.682839+00 |  44708297 | f       | t
+ ping-google | Ping Google | 2020-12-29 19:59:06.681564+00 | 100000000 | t       | f
+ ping-google | Ping Google | 2020-12-29 19:59:09.683893+00 |  73249643 | f       | t
+...
+</code></pre>
+<p>Looks like we did encounter a few failures. Amazing. Let's set up an alert
+now.</p>
+<h2><a class="header" href="#adding-senders-information" id="adding-senders-information">Adding sender's information</a></h2>
+<p>We need to inform Pinger about the account from where to send the emails.
+This means you need to provide an email and password in configuration file.
+I'll be using my personal Gmail account for this.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+alerts:
+  - service: mail
+    host: smtp.gmail.com # Since I'll be using a Gmail Account
+    port: 587
+    user: &lt;email&gt;
+    secret: &lt;password&gt;
+</code></pre>
+<p>Replace the <code>&lt;email&gt;</code> and <code>&lt;password&gt;</code> with your email account and password
+respectively.</p>
 <blockquote>
-<p><strong>Note:</strong> Pinger is currently being developed actively. If you would like
-to contribute to the project, head over to the repository hosted on
-<a href="https://github.com/sdslabs/pinger">Github</a>.</p>
+<p><strong>Note:</strong> You might need to turn on <em><strong>Less Secure App Access</strong></em> in your
+Google account security settings.</p>
 </blockquote>
-<h2><a class="header" href="#license" id="license">License</a></h2>
-<p>Pinger, all the source code, is released under the
-<a href="https://github.com/sdslabs/pinger/blob/main/LICENSE">MIT License</a>.</p>
+<p>Once done, we can add a mail alert to our check.</p>
+<h2><a class="header" href="#setting-alert-for-the-check" id="setting-alert-for-the-check">Setting alert for the check</a></h2>
+<p>In the check configuration, we need to add what alerts are required to be
+sent.</p>
+<pre><code class="language-yaml"># agent.yml
+
+# ...
+
+checks:
+  - # ...
+    alerts:
+      - service: mail
+        target: &lt;email&gt; # For now just send the mail to yourself
+
+# ...
+</code></pre>
+<p>We can now start our agent and see if we get any mail.</p>
+<h2><a class="header" href="#checking-mails" id="checking-mails">Checking mails</a></h2>
+<p>Start the agent again and look for any new mails from yourself.</p>
+<pre><code class="language-shell">$ path/to/pinger agent
+</code></pre>
+<p>Open up your mail, and you'll see one like this:</p>
+<p><img src="./alert-mail.png" alt="Alert Mail" /></p>
+<blockquote>
+<p><strong>TODO:</strong> An email is sent each time the agent is re-started. Rather,
+what should happen is, we should fetch the previous state, if any, from
+the database and then see if we want to alert the user.</p>
+</blockquote>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
+                            <a rel="prev" href="../getting-started/status-page.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
 
                         
-                            <a rel="next" href="getting-started/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../architecture/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -197,9 +280,13 @@ to contribute to the project, head over to the repository hosted on
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
+                    <a rel="prev" href="../getting-started/status-page.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
 
                 
-                    <a rel="next" href="getting-started/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../architecture/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
@@ -222,14 +309,14 @@ to contribute to the project, head over to the repository hosted on
         
 
         
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
         
 
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
         
