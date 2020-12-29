@@ -13,6 +13,8 @@ import (
 
 	client "github.com/influxdata/influxdb-client-go/v2"
 	api "github.com/influxdata/influxdb-client-go/v2/api"
+	write "github.com/influxdata/influxdb-client-go/v2/api/write"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/sdslabs/pinger/pkg/appcontext"
@@ -68,6 +70,7 @@ func newClient(ctx *appcontext.Context, provider exporter.Provider) (client.Clie
 
 // Export exports the metrics to the exporter.
 func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
+	points := make([]*write.Point, 0)
 	for _, metric := range metrics {
 		tags := map[string]string{
 			keyCheckID: metric.GetCheckID(),
@@ -80,10 +83,12 @@ func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 			keyIsTimeout:    metric.IsTimeout(),
 		}
 		p := client.NewPoint("metrics", tags, fields, time.Now())
-		err := e.writeAPI.WritePoint(ctx, p)
-		if err != nil {
-			return err
-		}
+		points = append(points, p)
+
+	}
+	err := e.writeAPI.WritePoint(ctx, points...)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -163,10 +168,7 @@ func (e *Exporter) GetMetrics(
 		return nil, nil
 	}
 
-	//TODO(h3llix): to set bucket dynamically
-	bucketName := e.dbname
-
-	return e.getMetricsByChecksAndDuration(ctx, bucketName, checkIDs, time)
+	return e.getMetricsByChecksAndDuration(ctx, e.dbname, checkIDs, time)
 }
 
 // Provision sets e's configuration.
