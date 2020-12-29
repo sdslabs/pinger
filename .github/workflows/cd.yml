@@ -9,10 +9,10 @@ jobs:
     name: Documentation
     runs-on: ubuntu-18.04
     steps:
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
+    - name: Setup mdBook
+      uses: peaceiris/actions-mdbook@v1
       with:
-        ruby-version: 2.6
+        mdbook-version: '0.4.4'
 
     - name: Check out code into the repository root
       uses: actions/checkout@v2
@@ -22,12 +22,8 @@ jobs:
     - name: Build
       run: make docs
 
-    - name: Add CNAME
-      run: cp ./docs/CNAME ./docs/_site
-
     - name: Deploy
-      uses: JamesIves/github-pages-deploy-action@3.5.9
+      uses: peaceiris/actions-gh-pages@v3
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages
-        FOLDER: docs/_site
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/book

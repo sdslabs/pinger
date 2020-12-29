@@ -51,16 +51,18 @@ jobs:
     name: Documentation
     runs-on: ubuntu-18.04
     steps:
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: 2.6
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: '0.4.4'
 
-    - name: Check out code into the repository root
-      uses: actions/checkout@v2
+      - name: Check out code into the repository root
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
-    - name: Build
-      run: make docs
+      - name: Build
+        run: make docs
 
   docker:
     name: Docker Image

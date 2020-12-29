@@ -16,9 +16,7 @@ BUILD_CMD="build"
 if [ "${DEBUG}" = "on" ]
 then
   BUILD_CMD="serve"
-else
-  bundle install
 fi
-bundle exec jekyll "${BUILD_CMD}"
+mdbook "${BUILD_CMD}"
 
-finally "Built in '${DOCS_DIR}/_site'"
+finally "Built in '${DOCS_DIR}/book'"
