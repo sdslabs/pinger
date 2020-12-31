@@ -28,14 +28,14 @@ Open up your browser and visit
 [http://127.0.0.1:9010/](http://127.0.0.1:9010/) and you'll be greeted by a
 screen shouting the words `My Status Page`.
 
-![Status Page Template](./status-page-template.png).
+![Status Page Template](./status-page-template.png)
 
 To look at the metrics returned by the server, visit
 [http://127.0.0.1:9010/metrics](http://127.0.0.1:9010/metrics). You'll see
 a messed up JSON in your browser. Don't worry, soon the frontend will make
 sense of that data and will render a beautiful status page.
 
-![Status Page Metrics](./status-page-metrics.png).
+![Status Page Metrics](./status-page-metrics.png)
 
 We have finally created a status page, and it was super easy. Let's
 continue this journey with one of the coolest features – alerts.
