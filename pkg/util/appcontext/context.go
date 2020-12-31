@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -15,8 +14,9 @@ import (
 //
 // Implements context.Context.
 type Context struct {
-	ctx context.Context
-	log *logrus.Logger
+	ctx   context.Context
+	log   *logrus.Logger
+	debug bool
 }
 
 // Deadline returns the time when work done on behalf of this context should
@@ -50,7 +50,7 @@ func (c *Context) Logger() *logrus.Logger {
 // Debug tells if the application is running in debugging mode or not. This
 // is set by setting the `DEBUG` environment variable to "on".
 func (c *Context) Debug() bool {
-	return strings.TrimSpace(os.Getenv("DEBUG")) == "on"
+	return c.debug
 }
 
 // Background returns an empty context with default logrus logger.
@@ -60,26 +60,26 @@ func Background() *Context {
 	return &Context{ctx: ctx, log: log}
 }
 
+// BackgroundDebug is same as Background with Debug returning true.
+func BackgroundDebug() *Context {
+	ctx := Background()
+	ctx.debug = true
+	return ctx
+}
+
 // WithCancel creates a Context from context.Context with a cancel function.
-func WithCancel(parent context.Context) (ctx *Context, cancel func()) {
+func WithCancel(parent *Context) (ctx *Context, cancel func()) {
 	// check if the parent is already a *Context
-	var parentCtx *Context
-	if parent != nil {
-		var ok bool
-		parentCtx, ok = parent.(*Context)
-		if !ok {
-			parentCtx = &Context{ctx: parent, log: logrus.New()}
-		}
-	} else {
-		parentCtx = Background()
+	if parent == nil {
+		return nil, nil
 	}
 
-	child, cancelFunc := context.WithCancel(parentCtx.ctx)
-	return &Context{ctx: child, log: parentCtx.log}, cancelFunc
+	child, cancelFunc := context.WithCancel(parent.ctx)
+	return &Context{ctx: child, log: parent.log, debug: parent.debug}, cancelFunc
 }
 
 // WithSignals creates a context that cancels on receiving the os.Signal.
-func WithSignals(parent context.Context, signals ...os.Signal) (ctx *Context, cancel func()) {
+func WithSignals(parent *Context, signals ...os.Signal) (ctx *Context, cancel func()) {
 	ctx, cancel = WithCancel(parent)
 
 	stream := make(chan os.Signal, 1)
