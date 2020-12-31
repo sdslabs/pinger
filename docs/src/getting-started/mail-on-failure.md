@@ -31,13 +31,13 @@ checks:
 
 Let's run the check and see if we encountered any failures:
 
-```shell
+```sh
 $ path/to/pinger agent
 ```
 
 After a few seconds, let's query our database for metrics.
 
-```shell
+```sh
 # In the postgres shell
 $ SELECT * FROM metrics;
   check_id   | check_name  |          start_time           | duration  | timeout | success
@@ -107,7 +107,7 @@ We can now start our agent and see if we get any mail.
 
 Start the agent again and look for any new mails from yourself.
 
-```shell
+```sh
 $ path/to/pinger agent
 ```
 
