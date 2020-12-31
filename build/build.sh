@@ -14,6 +14,10 @@ CURRENT_TAG=$(git describe --tags --exact-match 2> /dev/null \
   || echo "$(git rev-parse --short HEAD)" "(dev)")
 
 LDFLAGS="-X '${IMPORT_PATH}/cmd.version=${CURRENT_TAG}'"
+if [ "${DEBUG}" = "on" ]
+then
+  LDFLAGS="${LDFLAGS} -X '${IMPORT_PATH}/cmd.debug=true'"
+fi
 
 # Create the target directory if it doesn't exist.
 test -d "${TARGET_DIR}" || mkdir "${TARGET_DIR}"

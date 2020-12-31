@@ -12,6 +12,7 @@ help:
 	@printf "  make %s\n    %s\n" \
 		"all" "Builds binary and documentation" \
 		"build" "Builds the binary" \
+		"build DEBUG=on" "Build the binary in debug mode" \
 		"docker" "Builds the docker image" \
 		"docker TAG=abc:def" "Builds the docker image with given tag" \
 		"docs" "Builds the documentation" \
@@ -28,7 +29,7 @@ all: static build docs
 
 .PHONY: build
 build:
-	./build/build.sh
+	DEBUG=$(DEBUG) ./build/build.sh
 
 .PHONY: docker
 docker:
@@ -57,7 +58,3 @@ static:
 .PHONY: vendor
 vendor:
 	./build/vendor.sh
-
-# TODO(vrongmeal): Add CLI for golangci-lint and protoc-gen-go in `build/`
-# This will enable us to have lower dependency on downloading and installing
-# tools from outside. This is similar to having parcello CLI.
