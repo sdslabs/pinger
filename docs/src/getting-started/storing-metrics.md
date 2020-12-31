@@ -13,7 +13,7 @@ Using the instructions
 we can set it up. For this tutorial we can use Docker to spawn a container
 which is Timescale ready.
 
-```shell
+```sh
 $ docker run -d --name timescaledb -p 5432:5432 \
   -e POSTGRES_PASSWORD=password timescale/timescaledb:2.0.0-pg12
 ```
@@ -24,7 +24,7 @@ the user `postgres` having password `password`.
 Before we configure our storage, we should create a database to store the
 data in.
 
-```shell
+```sh
 # This step is just to interactively exec into the container.
 # If Timescale was set up natively into the system, it is not required.
 $ docker exec -it 7e13ffbb3612 /bin/bash
@@ -75,14 +75,14 @@ metrics:
 That's it. We can restart our agent and see metrics being stored into the
 database.
 
-```shell
+```sh
 $ path/to/pinger agent
 ```
 
 Now we can change the database from Postgres shell and see if metrics were
 actually collected into the database.
 
-```shell
+```sh
 $ \c pinger
 You are now connected to database "pinger" as user "postgres".
 $ SELECT * FROM metrics;

@@ -18,7 +18,7 @@ For specifying the checks in the status page, we need to write a config file.
 We will start by writing an ICMP check for **google.com**. This will be
 equivalent of running the command:
 
-```shell
+```sh
 $ ping google.com
 ```
 
@@ -62,7 +62,7 @@ Now that we have the config file ready, we can launch our agent to ping the
 Google servers. Assuming you have the Pinger binary, run the following
 command:
 
-```shell
+```sh
 $ path/to/pinger agent
 INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name="Ping Google" duration=79.065304ms is_successful=true is_timeout=false start_time="2020-12-29 22:28:09.313387 +0530 IST m=+0.024071573"
 INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name="Ping Google" duration=43.521461ms is_successful=true is_timeout=false start_time="2020-12-29 22:28:12.314517 +0530 IST m=+3.025195953"
