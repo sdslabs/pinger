@@ -1,4 +1,4 @@
-package agent
+package plugins
 
 import (
 	// Register all the checkers here.

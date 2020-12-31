@@ -8,6 +8,10 @@ import (
 
 	"github.com/sdslabs/pinger/cmd"
 	"github.com/sdslabs/pinger/pkg/util/appcontext"
+
+	// Initialize all the plugins here.
+	// Standard plugins included in the `pkg/plugins` package.
+	_ "github.com/sdslabs/pinger/pkg/plugins"
 )
 
 func main() {
