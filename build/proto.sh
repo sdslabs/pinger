@@ -12,8 +12,9 @@ PROTO_FILES=$(echo ${PROTO_PATH}/*.proto)
 # Compile proto files into Go code.
 # shellcheck disable=SC2086
 protoc \
-	"--proto_path=${PROTO_PATH}" \
-	"--go_out=plugins=grpc:${GO_OUT}" \
-	${PROTO_FILES}
+  "--proto_path=${PROTO_PATH}" \
+  "--go_out=${GO_OUT}" \
+  "--go-grpc_out=${GO_OUT}" \
+  ${PROTO_FILES}
 
 finally "Compiled in '${GO_OUT}'"

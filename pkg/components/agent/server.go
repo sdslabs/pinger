@@ -13,6 +13,8 @@ import (
 type server struct {
 	m *controller.Manager
 	a *alertMap
+	// Unimplemented agent server for "forward compatibility".
+	proto.UnimplementedAgentServer
 }
 
 // ListChecks fetches a list of checks registered.

@@ -13,10 +13,11 @@ storing metrics.
 
 Before beginning make sure you have all the required tools installed:
 
-- [Go](https://golang.org/doc/install) `v1.15`
+- [Go](https://golang.org/doc/install) `v1.15.x`
 - [Protobuf for Golang](https://developers.google.com/protocol-buffers/docs/gotutorial#compiling-your-protocol-buffers)
-  - `protoc v3.14`
-  - `protoc-gen-go v1.25`
+  - [`protoc`](https://github.com/protocolbuffers/protobuf/releases) `v3.14.x`
+  - [`protoc-gen-go`](https://google.golang.org/protobuf/cmd/protoc-gen-go) `v1.25.x`
+  - [`protoc-gen-go-grpc`](https://google.golang.org/grpc/cmd/protoc-gen-go-grpc) `v1.0.x`
 - [Golang CI Lint](https://golangci-lint.run/usage/install/) `v1.32.2`
 - [mdBook](https://rust-lang.github.io/mdBook/cli/index.html) `v0.4.4`
 
