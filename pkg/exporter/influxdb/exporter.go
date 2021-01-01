@@ -70,7 +70,7 @@ func newClient(ctx *appcontext.Context, provider exporter.Provider) (client.Clie
 
 // Export exports the metrics to the exporter.
 func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
-	points := make([]*write.Point, 0)
+	points := make([]*write.Point, 0, len(metrics))
 	for _, metric := range metrics {
 		tags := map[string]string{
 			keyCheckID: metric.GetCheckID(),
@@ -82,16 +82,11 @@ func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 			keyIsSuccessful: metric.IsSuccessful(),
 			keyIsTimeout:    metric.IsTimeout(),
 		}
-		p := client.NewPoint("metrics", tags, fields, time.Now())
+		p := client.NewPoint("metrics", tags, fields, metric.GetStartTime())
 		points = append(points, p)
 
 	}
-	err := e.writeAPI.WritePoint(ctx, points...)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return e.writeAPI.WritePoint(ctx, points...)
 }
 
 // getMetricsByChecksAndDuration fetches metrics from the metrics hypertable
