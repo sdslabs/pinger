@@ -11,10 +11,10 @@ jobs:
     name: Build
     runs-on: ubuntu-18.04
     steps:
-    - name: Set up Go 1.x
+    - name: Set up Go 1.15
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: ^1.15
       id: go
 
     - name: Check out code into the repository root
@@ -30,10 +30,10 @@ jobs:
     name: Lint
     runs-on: ubuntu-18.04
     steps:
-    - name: Set up Go 1.x
+    - name: Set up Go 1.15
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: ^1.15
       id: go
 
     - name: Check out code into the repository root
@@ -76,3 +76,53 @@ jobs:
 
     - name: Run container
       run: docker run --rm pinger:dev
+
+  proto:
+    name: Protobuf
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.14.0'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install proto-gen-go and proto-gen-go-grpc
+        run: |
+          export GO111MODULE=on
+          go get google.golang.org/protobuf/cmd/protoc-gen-go@v1.25.0
+          go get google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.0.1
+
+      - name: Check out code into the repository root
+        uses: actions/checkout@v2
+
+      - name: Generate proto
+        run: PATH="$(go env GOPATH)/bin:$PATH" make proto
+
+      - name: Check diff
+        run: ./build/diff.sh
+
+  vendor:
+    name: Vendor
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: Check out code into the repository root
+        uses: actions/checkout@v2
+
+      - name: Update vendor
+        run: make vendor
+
+      - name: Check diff
+        run: ./build/diff.sh
