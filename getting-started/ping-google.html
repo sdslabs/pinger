@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html" class="active"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html" class="active"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Deploying</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Plugins</div></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">5.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Agents</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Central Organizer</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Application Server</div></li></ol></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../contributing/build-process.html"><strong aria-hidden="true">6.1.</strong> Build Process</a></li><li class="chapter-item expanded "><a href="../contributing/pull-request.html"><strong aria-hidden="true">6.2.</strong> Submitting a Pull Request</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Maintaining</div></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -135,6 +135,10 @@
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                         
+                        
+                        <a href="https://github.com/sdslabs/pinger" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
                         
                     </div>
                 </div>
@@ -177,7 +181,7 @@ from the status code received in the response.</p>
 <p>For specifying the checks in the status page, we need to write a config file.
 We will start by writing an ICMP check for <strong>google.com</strong>. This will be
 equivalent of running the command:</p>
-<pre><code class="language-shell">$ ping google.com
+<pre><code class="language-sh">$ ping google.com
 </code></pre>
 <p>The config file can be written in any of the following formats – YAML, TOML
 or JSON. To create the status page we will be using the <code>agent</code> command which
@@ -214,7 +218,7 @@ checks:
 <p>Now that we have the config file ready, we can launch our agent to ping the
 Google servers. Assuming you have the Pinger binary, run the following
 command:</p>
-<pre><code class="language-shell">$ path/to/pinger agent
+<pre><code class="language-sh">$ path/to/pinger agent
 INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=79.065304ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:09.313387 +0530 IST m=+0.024071573&quot;
 INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=43.521461ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:12.314517 +0530 IST m=+3.025195953&quot;
 INFO[0010] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=49.180263ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:15.318509 +0530 IST m=+6.029181599&quot;

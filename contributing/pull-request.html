@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Mail on Check Failure - Pinger</title>
+        <title>Submitting a Pull Request - Pinger</title>
         
         
 
@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html" class="active"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Deploying</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Plugins</div></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">5.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Agents</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Central Organizer</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Application Server</div></li></ol></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../contributing/build-process.html"><strong aria-hidden="true">6.1.</strong> Build Process</a></li><li class="chapter-item expanded "><a href="../contributing/pull-request.html"><strong aria-hidden="true">6.2.</strong> Submitting a Pull Request</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Maintaining</div></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Deploying</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Plugins</div></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">5.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Agents</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Central Organizer</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Application Server</div></li></ol></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../contributing/build-process.html"><strong aria-hidden="true">6.1.</strong> Build Process</a></li><li class="chapter-item expanded "><a href="../contributing/pull-request.html" class="active"><strong aria-hidden="true">6.2.</strong> Submitting a Pull Request</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Maintaining</div></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -167,114 +167,72 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#mail-on-check-failure" id="mail-on-check-failure">Mail on Check Failure</a></h1>
-<p>Pinger can send alerts when a check fails, or when a check comes back from
-the dead.</p>
-<h2><a class="header" href="#updating-the-check" id="updating-the-check">Updating the check</a></h2>
-<p>Previously we set a timeout for <code>0.5s</code> which rarely timed out. Let's change
-it to <code>0.1s</code> to encounter more failures.</p>
-<pre><code class="language-yaml"># agent.yml
-
-# ...
-
-checks:
-  - id: ping-google
-    name: Ping Google
-    interval: 3s
-    timeout: 0.1s
-    input:
-      type: ICMP
-    output:
-      type: TIMEOUT
-    target:
-      type: ADDRESS
-      value: google.com
-
-# ...
+                        <h1><a class="header" href="#submitting-a-pull-request" id="submitting-a-pull-request">Submitting a Pull Request</a></h1>
+<p>These are a few guidelines that need to be followed in-order to make
+changes in the main repository.</p>
+<h2><a class="header" href="#pre-commit" id="pre-commit">Pre-commit</a></h2>
+<p>There are a few things to take care of before committing your changes.</p>
+<h3><a class="header" href="#vendoring" id="vendoring">Vendoring</a></h3>
+<p>All the dependencies in our repository are vendored. All the dependencies
+are listed in <code>go.mod</code> file and are maintained in the <code>vendor</code> directory.
+When updating/adding/deleting a dependency, run the following to keep the
+<code>vendor</code> up-to-date:</p>
+<pre><code class="language-sh">$ make vendor
 </code></pre>
-<p>Let's run the check and see if we encountered any failures:</p>
-<pre><code class="language-sh">$ path/to/pinger agent
+<p>This will cleanup unused dependencies from <code>go.mod</code> as well as add new
+dependencies to <code>vendor</code>.</p>
+<h3><a class="header" href="#lint" id="lint">Lint</a></h3>
+<p>We use <a href="https://golangci-lint.run/">golangci-lint</a> to lint our code. Each
+commit should pass all the lint checks. To ensure that it does, use the
+<code>make lint</code> command. Many times, these errors might be related to
+formatting of the code. These are usually auto-fixable. <code>make fmt</code> fixes
+all the errors that might be resolved automatically.</p>
+<pre><code class="language-sh"># To check for linting errors
+$ make lint
+# To fix auto-fixable errors
+$ make format
 </code></pre>
-<p>After a few seconds, let's query our database for metrics.</p>
-<pre><code class="language-sh"># In the postgres shell
-$ SELECT * FROM metrics;
-  check_id   | check_name  |          start_time           | duration  | timeout | success
--------------+-------------+-------------------------------+-----------+---------+---------
-...
- ping-google | Ping Google | 2020-12-29 19:58:54.686244+00 |  43848273 | f       | t
- ping-google | Ping Google | 2020-12-29 19:58:57.686358+00 | 100000000 | t       | f
- ping-google | Ping Google | 2020-12-29 19:59:00.685532+00 |  45252482 | f       | t
- ping-google | Ping Google | 2020-12-29 19:59:03.682839+00 |  44708297 | f       | t
- ping-google | Ping Google | 2020-12-29 19:59:06.681564+00 | 100000000 | t       | f
- ping-google | Ping Google | 2020-12-29 19:59:09.683893+00 |  73249643 | f       | t
-...
+<h3><a class="header" href="#other-checks" id="other-checks">Other checks</a></h3>
+<p>Apart from the fact that the code should build successfully, we need to
+take care of following:</p>
+<ul>
+<li>Ensure that you have compiled any protobuf that may have been updated.</li>
+<li>The Docker image should be built successfully as well.</li>
+</ul>
+<h2><a class="header" href="#commits" id="commits">Commits</a></h2>
+<p>Break only logical changes into multiple commits. Commits such as &quot;fix 
+typo&quot; or &quot;address review commits&quot; should be squashed into the one
+logical commit. Each commit should individually pass tests and lint check
+No separate commit should be made to fix these.</p>
+<h3><a class="header" href="#commit-messages" id="commit-messages">Commit Messages</a></h3>
+<p>We don't have a defined commit message style for our codebase, but the
+general idea is that the commit should include a heading, a body (if it's
+required) and reference to any issue that it might resolve. A good commit
+message looks something like this:</p>
+<pre><code>scope: Short commit heading with gist of changes.
+
+Body of commit trying to explain the old behaviour and how this commit
+changes it for the better.
+
+Resolves: #123
+
+Signed-off-by: Contributer &lt;example@contributor.com&gt;
 </code></pre>
-<p>Looks like we did encounter a few failures. Amazing. Let's set up an alert
-now.</p>
-<h2><a class="header" href="#adding-senders-information" id="adding-senders-information">Adding sender's information</a></h2>
-<p>We need to inform Pinger about the account from where to send the emails.
-This means you need to provide an email and password in configuration file.
-I'll be using my personal Gmail account for this.</p>
-<pre><code class="language-yaml"># agent.yml
-
-# ...
-
-alerts:
-  - service: mail
-    host: smtp.gmail.com # Since I'll be using a Gmail Account
-    port: 587
-    user: &lt;email&gt;
-    secret: &lt;password&gt;
-</code></pre>
-<p>Replace the <code>&lt;email&gt;</code> and <code>&lt;password&gt;</code> with your email account and password
-respectively.</p>
-<blockquote>
-<p><strong>Note:</strong> You might need to turn on <em><strong>Less Secure App Access</strong></em> in your
-Google account security settings.</p>
-</blockquote>
-<p>Once done, we can add a mail alert to our check.</p>
-<h2><a class="header" href="#setting-alert-for-the-check" id="setting-alert-for-the-check">Setting alert for the check</a></h2>
-<p>In the check configuration, we need to add what alerts are required to be
-sent.</p>
-<pre><code class="language-yaml"># agent.yml
-
-# ...
-
-checks:
-  - # ...
-    alerts:
-      - service: mail
-        target: &lt;email&gt; # For now just send the mail to yourself
-
-# ...
-</code></pre>
-<p>We can now start our agent and see if we get any mail.</p>
-<h2><a class="header" href="#checking-mails" id="checking-mails">Checking mails</a></h2>
-<p>Start the agent again and look for any new mails from yourself.</p>
-<pre><code class="language-sh">$ path/to/pinger agent
-</code></pre>
-<p>Open up your mail, and you'll see one like this:</p>
-<p><img src="./alert-mail.png" alt="Alert Mail" /></p>
-<blockquote>
-<p><strong>TODO:</strong> An email is sent each time the agent is re-started. Rather,
-what should happen is, we should fetch the previous state, if any, from
-the database and then see if we want to alert the user.</p>
-</blockquote>
+<h2><a class="header" href="#pull-request" id="pull-request">Pull Request</a></h2>
+<p>Pull requests follows same guidelines as mentioned for the commit messages.
+The title should give a clear idea of what it is about, followed by a
+descriptive body and should mention what issue it resolves (if any).</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="../getting-started/status-page.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../contributing/build-process.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
-                        
-                            <a rel="next" href="../architecture/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
                         
 
                         <div style="clear: both"></div>
@@ -284,15 +242,11 @@ the database and then see if we want to alert the user.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a rel="prev" href="../getting-started/status-page.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../contributing/build-process.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
-                
-                    <a rel="next" href="../architecture/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
                 
             </nav>
 

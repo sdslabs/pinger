@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../contributing/index.html" class="active"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Deploying</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Plugins</div></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">5.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Agents</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Central Organizer</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Application Server</div></li></ol></li><li class="chapter-item expanded "><a href="../contributing/index.html" class="active"><strong aria-hidden="true">6.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../contributing/build-process.html"><strong aria-hidden="true">6.1.</strong> Build Process</a></li><li class="chapter-item expanded "><a href="../contributing/pull-request.html"><strong aria-hidden="true">6.2.</strong> Submitting a Pull Request</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Maintaining</div></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -136,6 +136,10 @@
                         </a>
                         
                         
+                        <a href="https://github.com/sdslabs/pinger" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        
                     </div>
                 </div>
 
@@ -164,6 +168,57 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#contributing" id="contributing">Contributing</a></h1>
+<blockquote>
+<p><strong>Note:</strong> This guide is for developers who want to make changes to the
+Pinger codebase. If you want to create your Pinger plugin, there's
+a completely different section dedicated for it.</p>
+</blockquote>
+<h2><a class="header" href="#prerequisites" id="prerequisites">Prerequisites</a></h2>
+<p>These include some tools like the Go compiler and time series database for
+storing metrics.</p>
+<h3><a class="header" href="#build-dependencies" id="build-dependencies">Build dependencies</a></h3>
+<p>Before beginning make sure you have all the required tools installed:</p>
+<ul>
+<li><a href="https://golang.org/doc/install">Go</a> <code>v1.15.x</code></li>
+<li><a href="https://developers.google.com/protocol-buffers/docs/gotutorial#compiling-your-protocol-buffers">Protobuf for Golang</a>
+<ul>
+<li><a href="https://github.com/protocolbuffers/protobuf/releases"><code>protoc</code></a> <code>v3.14.x</code></li>
+<li><a href="https://google.golang.org/protobuf/cmd/protoc-gen-go"><code>protoc-gen-go</code></a> <code>v1.25.x</code></li>
+<li><a href="https://google.golang.org/grpc/cmd/protoc-gen-go-grpc"><code>protoc-gen-go-grpc</code></a> <code>v1.0.x</code></li>
+</ul>
+</li>
+<li><a href="https://golangci-lint.run/usage/install/">Golang CI Lint</a> <code>v1.32.2</code></li>
+<li><a href="https://rust-lang.github.io/mdBook/cli/index.html">mdBook</a> <code>v0.4.4</code></li>
+</ul>
+<h3><a class="header" href="#runtime-dependencies" id="runtime-dependencies">Runtime Dependencies</a></h3>
+<p>Externally, Pinger only relies on databases.</p>
+<ul>
+<li><a href="https://www.postgresql.org/download/">PostgreSQL</a> <code>v12</code></li>
+<li><a href="https://docs.timescale.com/latest/getting-started/installation">Timescale</a> <code>v2.0</code></li>
+</ul>
+<h2><a class="header" href="#make-pinger" id="make-pinger">Make Pinger</a></h2>
+<p>Before we can do anything, ewe need to fetch the source code present in
+<a href="https://github.com/sdslabs/pinger">this Github repository</a>.</p>
+<pre><code class="language-sh"># If you use SSH
+$ git clone git@github.com:sdslabs/pinger.git
+# or with HTTP
+$ git clone https://github.com/sdslabs/pinger.git
+$ cd pinger
+</code></pre>
+<p>Pinger uses GNU Make. We can run a simple make command to build the Pinger
+binary as well as the documentation.</p>
+<blockquote>
+<p><strong>Note:</strong> In most of what we will learn in this section of documentation,
+everything is done using <code>make</code>. If you're ever stuck, run <code>make help</code>
+and hopefully you'll find something useful.</p>
+</blockquote>
+<pre><code class="language-sh">$ make all
+</code></pre>
+<p>The above command might take a while but at the end you should have an
+executable called <code>pinger</code> and documentation built in the <code>docs/book</code>
+directory.</p>
+<p>We should take a deeper look into the build process and understand how
+to use the <code>Makefile</code> for our development flow.</p>
 
                     </main>
 
@@ -175,6 +230,10 @@
                             </a>
                         
 
+                        
+                            <a rel="next" href="../contributing/build-process.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
 
                         <div style="clear: both"></div>
@@ -189,6 +248,10 @@
                     </a>
                 
 
+                
+                    <a rel="next" href="../contributing/build-process.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                 
             </nav>
 

@@ -97,7 +97,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><a href="architecture/index.html"><strong aria-hidden="true">3.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="contributing/index.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Deploying</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Plugins</div></li><li class="chapter-item expanded "><a href="architecture/index.html"><strong aria-hidden="true">5.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Agents</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Central Organizer</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Application Server</div></li></ol></li><li class="chapter-item expanded "><a href="contributing/index.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="contributing/build-process.html"><strong aria-hidden="true">6.1.</strong> Build Process</a></li><li class="chapter-item expanded "><a href="contributing/pull-request.html"><strong aria-hidden="true">6.2.</strong> Submitting a Pull Request</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Maintaining</div></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -138,6 +138,10 @@
                         </a>
                         
                         
+                        <a href="https://github.com/sdslabs/pinger" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        
                     </div>
                 </div>
 
@@ -168,17 +172,24 @@
                         <h1><a class="header" href="#pinger" id="pinger">Pinger</a></h1>
 <p>Pinger is an uptime and status monitoring application. It is an open-source
 implementation of platforms used to create status pages. Unlike other
-alternatives, Pinger can be deployed to create a standalone status page from
-a config file as well as a complete platform to manage users, checks, pages,
-alerts, etc.</p>
+alternatives, Pinger can be deployed to create a standalone status page
+from a config file as well as a complete platform to manage users, checks,
+pages, alerts, etc.</p>
+<ul>
+<li>Issue Tracker: <a href="https://github.com/sdslabs/pinger/issues">https://github.com/sdslabs/pinger/issues</a></li>
+<li>Source Code: <a href="https://github.com/sdslabs/pinger/issues">https://github.com/sdslabs/pinger</a></li>
+</ul>
 <blockquote>
 <p><strong>Note:</strong> Pinger is currently being developed actively. If you would like
 to contribute to the project, head over to the repository hosted on
-<a href="https://github.com/sdslabs/pinger">Github</a>.</p>
+<a href="https://github.com/sdslabs/pinger">Github</a>. Contribution guidelines are
+available in this documentation <a href="./contributing/index.html">here</a>.</p>
 </blockquote>
 <h2><a class="header" href="#license" id="license">License</a></h2>
 <p>Pinger, all the source code, is released under the
 <a href="https://github.com/sdslabs/pinger/blob/main/LICENSE">MIT License</a>.</p>
+<h2><a class="header" href="#credits" id="credits">Credits</a></h2>
+<p><a href="https://sdslabs.co"><img src="./sdslabs-logo.png" alt="Made by SDSLabs" /></a></p>
 <h1><a class="header" href="#getting-started" id="getting-started">Getting Started</a></h1>
 <p>The Pinger binary is all you need to create your own status page. As we are
 still actively working on development of the project, you will need to build
@@ -199,7 +210,7 @@ from the status code received in the response.</p>
 <p>For specifying the checks in the status page, we need to write a config file.
 We will start by writing an ICMP check for <strong>google.com</strong>. This will be
 equivalent of running the command:</p>
-<pre><code class="language-shell">$ ping google.com
+<pre><code class="language-sh">$ ping google.com
 </code></pre>
 <p>The config file can be written in any of the following formats – YAML, TOML
 or JSON. To create the status page we will be using the <code>agent</code> command which
@@ -236,7 +247,7 @@ checks:
 <p>Now that we have the config file ready, we can launch our agent to ping the
 Google servers. Assuming you have the Pinger binary, run the following
 command:</p>
-<pre><code class="language-shell">$ path/to/pinger agent
+<pre><code class="language-sh">$ path/to/pinger agent
 INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=79.065304ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:09.313387 +0530 IST m=+0.024071573&quot;
 INFO[0005] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=43.521461ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:12.314517 +0530 IST m=+3.025195953&quot;
 INFO[0010] metrics for check (ping-google) Ping Google   check_id=ping-google check_name=&quot;Ping Google&quot; duration=49.180263ms is_successful=true is_timeout=false start_time=&quot;2020-12-29 22:28:15.318509 +0530 IST m=+6.029181599&quot;
@@ -257,14 +268,14 @@ Timescale is a PostgreSQL extension for storing time-series data.</p>
 <a href="https://docs.timescale.com/latest/getting-started/installation">here</a>
 we can set it up. For this tutorial we can use Docker to spawn a container
 which is Timescale ready.</p>
-<pre><code class="language-shell">$ docker run -d --name timescaledb -p 5432:5432 \
+<pre><code class="language-sh">$ docker run -d --name timescaledb -p 5432:5432 \
   -e POSTGRES_PASSWORD=password timescale/timescaledb:2.0.0-pg12
 </code></pre>
 <p>This will start a PostgreSQL instance on <code>:5432</code> with Timescale installed,
 the user <code>postgres</code> having password <code>password</code>.</p>
 <p>Before we configure our storage, we should create a database to store the
 data in.</p>
-<pre><code class="language-shell"># This step is just to interactively exec into the container.
+<pre><code class="language-sh"># This step is just to interactively exec into the container.
 # If Timescale was set up natively into the system, it is not required.
 $ docker exec -it 7e13ffbb3612 /bin/bash
 # Open the postgres shell
@@ -307,11 +318,11 @@ metrics:
 </code></pre>
 <p>That's it. We can restart our agent and see metrics being stored into the
 database.</p>
-<pre><code class="language-shell">$ path/to/pinger agent
+<pre><code class="language-sh">$ path/to/pinger agent
 </code></pre>
 <p>Now we can change the database from Postgres shell and see if metrics were
 actually collected into the database.</p>
-<pre><code class="language-shell">$ \c pinger
+<pre><code class="language-sh">$ \c pinger
 You are now connected to database &quot;pinger&quot; as user &quot;postgres&quot;.
 $ SELECT * FROM metrics;
   check_id   | check_name  |          start_time           | duration  | timeout | success
@@ -348,12 +359,12 @@ bare-bone template it renders on request.</p>
 <p>Open up your browser and visit
 <a href="http://127.0.0.1:9010/">http://127.0.0.1:9010/</a> and you'll be greeted by a
 screen shouting the words <code>My Status Page</code>.</p>
-<p><img src="getting-started/./status-page-template.png" alt="Status Page Template" />.</p>
+<p><img src="getting-started/./status-page-template.png" alt="Status Page Template" /></p>
 <p>To look at the metrics returned by the server, visit
 <a href="http://127.0.0.1:9010/metrics">http://127.0.0.1:9010/metrics</a>. You'll see
 a messed up JSON in your browser. Don't worry, soon the frontend will make
 sense of that data and will render a beautiful status page.</p>
-<p><img src="getting-started/./status-page-metrics.png" alt="Status Page Metrics" />.</p>
+<p><img src="getting-started/./status-page-metrics.png" alt="Status Page Metrics" /></p>
 <p>We have finally created a status page, and it was super easy. Let's
 continue this journey with one of the coolest features – alerts.</p>
 <h1><a class="header" href="#mail-on-check-failure" id="mail-on-check-failure">Mail on Check Failure</a></h1>
@@ -382,10 +393,10 @@ checks:
 # ...
 </code></pre>
 <p>Let's run the check and see if we encountered any failures:</p>
-<pre><code class="language-shell">$ path/to/pinger agent
+<pre><code class="language-sh">$ path/to/pinger agent
 </code></pre>
 <p>After a few seconds, let's query our database for metrics.</p>
-<pre><code class="language-shell"># In the postgres shell
+<pre><code class="language-sh"># In the postgres shell
 $ SELECT * FROM metrics;
   check_id   | check_name  |          start_time           | duration  | timeout | success
 -------------+-------------+-------------------------------+-----------+---------+---------
@@ -440,7 +451,7 @@ checks:
 <p>We can now start our agent and see if we get any mail.</p>
 <h2><a class="header" href="#checking-mails" id="checking-mails">Checking mails</a></h2>
 <p>Start the agent again and look for any new mails from yourself.</p>
-<pre><code class="language-shell">$ path/to/pinger agent
+<pre><code class="language-sh">$ path/to/pinger agent
 </code></pre>
 <p>Open up your mail, and you'll see one like this:</p>
 <p><img src="getting-started/./alert-mail.png" alt="Alert Mail" /></p>
@@ -450,7 +461,263 @@ what should happen is, we should fetch the previous state, if any, from
 the database and then see if we want to alert the user.</p>
 </blockquote>
 <h1><a class="header" href="#architecture" id="architecture">Architecture</a></h1>
+<blockquote>
+<p><strong>Note:</strong> This document also acts as a guideline for components being
+developed.</p>
+</blockquote>
+<p>To understand how Pinger works internally, first, we need to understand
+exactly what Pinger does. We will dive into all the components and
+understand various aspects and how the deployment can be scaled for all of
+them.</p>
+<h2><a class="header" href="#key-terms" id="key-terms">Key Terms</a></h2>
+<p>Before we begin with the explanation, let's get familiar with some terms
+that might be frequently used:</p>
+<ul>
+<li><strong>Check:</strong> Anything that can be pinged. <em>Say, pinging google.com using</em>
+<em>HTTP protocol and checking for status code 200.</em></li>
+<li><strong>Metric:</strong> Result of a ping. <em>Whether google.com returned status 200</em>
+<em>in reasonable time or not.</em></li>
+<li><strong>Controller:</strong> Something that runs a specific task again and again at
+regular intervals of time.</li>
+<li><strong>Manager:</strong> Manages multiple controllers together and collects
+statistics from each of them.</li>
+<li><strong>Page (or Status Page):</strong> A collection of various checks and their corresponding
+metrics.</li>
+</ul>
+<h2><a class="header" href="#overview" id="overview">Overview</a></h2>
+<p>Pinger will typically be deployed in one of the two modes:</p>
+<ul>
+<li><strong>Standalone:</strong> An <em>agent</em> deployed on a single node to execute checks
+and collect metrics. A status page can be deployed as well. Everything
+is configured via a configuration file.</li>
+<li><strong>Complete Application:</strong> Includes user auth, a dedicated dashboard to
+manage checks, pages, etc. Supports distribution of load over multiple
+nodes. Comprises multiple components that we will understand in this
+section.</li>
+</ul>
+<blockquote>
+<p><strong>Note:</strong> In this section we will mainly focus on the architecture of
+the complete application, since, standalone mode is simply one
+component, <em>the agent</em>, interacting with a database. Anyways, we will
+still go into depth of <a href="architecture/./the-agent.html">agent</a> which will give you a
+better overview of how standalone mode actually works.</p>
+</blockquote>
+<p>A typical user would create their account, create a few checks, and then
+create status pages comprising those checks. Creating a page, or adding an
+incident to a page is not a complicated task, rather a simple CRUD
+operation. The difficult part is creating a check. That's because once a
+check has been created in the database we also need to execute it. A
+check is like a cron job that keeps on running forever at regular 
+intervals. We would usually want to distribute the load of checks on 
+various nodes, so, separating this component makes sense. This component
+is called an <strong>agent.</strong></p>
+<p>There can be multiple agents distributed across various nodes, and hence,
+we would need a central entity to balance the load among the agents. The
+<strong>central organizer</strong> is responsible for distributing checks among the
+various agents.</p>
+<p>We also need an API server to interact with the user dashboard, or what
+we call, a <strong>client.</strong> An <strong>app server</strong> does exactly that.</p>
+<h2><a class="header" href="#flow-of-a-request" id="flow-of-a-request">Flow of a request</a></h2>
+<p>Let's take the example of creating a check. <strong>Client</strong> requests the <strong>app</strong>
+<strong>server,</strong> which inserts the check into <strong>app database.</strong> As we remember,
+inserting into the database isn't enough for a check. We need check to run,
+indefinitely. One choice could have been to just spawn a controller for
+the check. The problem would be that we couldn't have been able to scale
+or distribute checks over multiple nodes. So what we do instead is keep
+dedicated <strong>agents</strong> on multiple nodes, which in hindsight, are just a
+wrapper around a <em>manager of controllers for checks.</em></p>
+<p>We want things to be atomic, i.e., checks should be assigned to agents when
+created in the database. We also need to balance the load between all the
+nodes and assign checks accordingly. Both the aforementioned reasons result
+in an independent entity which can accept new checks from the database
+and assigns them to the agent. It's the <strong>central organizer.</strong></p>
+<p>We also need to store the metrics. Usually the database we need to store
+metrics and application data would be different for two reasons:</p>
+<ol>
+<li>We would store metrics in a time-series database and not every general
+purpose database supports high performance time series queries.</li>
+<li>We want to scale the metrics database much differently than the app
+database.</li>
+</ol>
+<p>So an overview of our deployment would look something like:</p>
+<p><img src="architecture/./architecture-overview.jpg" alt="Architecture Overview" /></p>
+<p>We'll now dive into each component individually to analyse how they
+function.</p>
 <h1><a class="header" href="#contributing" id="contributing">Contributing</a></h1>
+<blockquote>
+<p><strong>Note:</strong> This guide is for developers who want to make changes to the
+Pinger codebase. If you want to create your Pinger plugin, there's
+a completely different section dedicated for it.</p>
+</blockquote>
+<h2><a class="header" href="#prerequisites" id="prerequisites">Prerequisites</a></h2>
+<p>These include some tools like the Go compiler and time series database for
+storing metrics.</p>
+<h3><a class="header" href="#build-dependencies" id="build-dependencies">Build dependencies</a></h3>
+<p>Before beginning make sure you have all the required tools installed:</p>
+<ul>
+<li><a href="https://golang.org/doc/install">Go</a> <code>v1.15.x</code></li>
+<li><a href="https://developers.google.com/protocol-buffers/docs/gotutorial#compiling-your-protocol-buffers">Protobuf for Golang</a>
+<ul>
+<li><a href="https://github.com/protocolbuffers/protobuf/releases"><code>protoc</code></a> <code>v3.14.x</code></li>
+<li><a href="https://google.golang.org/protobuf/cmd/protoc-gen-go"><code>protoc-gen-go</code></a> <code>v1.25.x</code></li>
+<li><a href="https://google.golang.org/grpc/cmd/protoc-gen-go-grpc"><code>protoc-gen-go-grpc</code></a> <code>v1.0.x</code></li>
+</ul>
+</li>
+<li><a href="https://golangci-lint.run/usage/install/">Golang CI Lint</a> <code>v1.32.2</code></li>
+<li><a href="https://rust-lang.github.io/mdBook/cli/index.html">mdBook</a> <code>v0.4.4</code></li>
+</ul>
+<h3><a class="header" href="#runtime-dependencies" id="runtime-dependencies">Runtime Dependencies</a></h3>
+<p>Externally, Pinger only relies on databases.</p>
+<ul>
+<li><a href="https://www.postgresql.org/download/">PostgreSQL</a> <code>v12</code></li>
+<li><a href="https://docs.timescale.com/latest/getting-started/installation">Timescale</a> <code>v2.0</code></li>
+</ul>
+<h2><a class="header" href="#make-pinger" id="make-pinger">Make Pinger</a></h2>
+<p>Before we can do anything, ewe need to fetch the source code present in
+<a href="https://github.com/sdslabs/pinger">this Github repository</a>.</p>
+<pre><code class="language-sh"># If you use SSH
+$ git clone git@github.com:sdslabs/pinger.git
+# or with HTTP
+$ git clone https://github.com/sdslabs/pinger.git
+$ cd pinger
+</code></pre>
+<p>Pinger uses GNU Make. We can run a simple make command to build the Pinger
+binary as well as the documentation.</p>
+<blockquote>
+<p><strong>Note:</strong> In most of what we will learn in this section of documentation,
+everything is done using <code>make</code>. If you're ever stuck, run <code>make help</code>
+and hopefully you'll find something useful.</p>
+</blockquote>
+<pre><code class="language-sh">$ make all
+</code></pre>
+<p>The above command might take a while but at the end you should have an
+executable called <code>pinger</code> and documentation built in the <code>docs/book</code>
+directory.</p>
+<p>We should take a deeper look into the build process and understand how
+to use the <code>Makefile</code> for our development flow.</p>
+<h1><a class="header" href="#build-process" id="build-process">Build Process</a></h1>
+<p>We won't be running <code>make all</code> everytime. Since the command builds all the
+components, it would take longer than usual when changing a couple lines in
+one part of the code.</p>
+<p>Currently we need to build three things:</p>
+<ol>
+<li>Binary</li>
+<li>Docker Image</li>
+<li>Documentation</li>
+</ol>
+<p>Let's take a look at both of them individually.</p>
+<h2><a class="header" href="#binary" id="binary">Binary</a></h2>
+<p>The binary packs all the static files, including the CSS and JavaScript
+files, required for the frontend. The <code>static</code> directory in root of the
+repository is home to all the content packed inside the binary. There is
+some preprocessing required for packing the static content into the
+binary. This is done using the <code>make static</code> command. This essentially
+generates a file called <code>pkg/util/static/resource.go</code> which contains all
+the content in a compressed format.</p>
+<p>Once we have our resources ready, we can build the executable using the
+<code>make build</code> command. Hence, the workflow can be:</p>
+<pre><code class="language-sh"># If there's a change in `static` dir
+$ make static
+# Building the binary
+$ make build
+</code></pre>
+<p>Once the <code>static</code> directory is large enough, it's going to take a while to
+generate the <code>resource.go</code>. For this we have the <code>DEBUG</code> flag that can be
+set once while building. A binary built in debug mode takes the static
+content directly from the file system and is not required to be packaged
+inside the executable.</p>
+<p>There are other advantages of building binary in debug mode that you'll
+learn while working on the project. For now, we can use the following to
+speed up our builds:</p>
+<pre><code class="language-sh"># Note that `make static` is not required now.
+$ make build DEBUG=on
+</code></pre>
+<blockquote>
+<p><strong>Note:</strong> This does pose the constraint that any Pinger command has to
+be executed in the repository's root directory. This shouldn't be an
+issue while developing.</p>
+</blockquote>
+<h3><a class="header" href="#protobuf" id="protobuf">Protobuf</a></h3>
+<p>When making changes to a <code>.proto</code> file, we need to compile it into the
+equivalent Go code. These generated files (<code>*.pb.go</code>) need to be committed.</p>
+<pre><code class="language-sh">$ make proto
+</code></pre>
+<h2><a class="header" href="#docker-image" id="docker-image">Docker Image</a></h2>
+<p><code>Dockerfile</code> for the image is present in the root directory. To build the
+image, use <code>make docker</code> command. This generates an image with tag –
+<code>pinger:dev</code>. To change the tag, we can use the <code>TAG</code> option for make
+command.</p>
+<pre><code class="language-sh">$ make docker TAG=&quot;pinger:v1.2.3&quot;
+</code></pre>
+<h2><a class="header" href="#documentation" id="documentation">Documentation</a></h2>
+<p>Documentation is not (yet) packaged into the binary. We currently host it
+using <a href="https://pages.github.com/">Github Pages</a>. We use
+<a href="https://rust-lang.github.io/mdBook/">mdBook</a> as the documentation
+framework. Make sure you have that installed in your <code>$PATH</code>.</p>
+<p>You can build the documentation using <code>make docs</code> command. This generates
+the documentation in <code>docs/book</code> directory. While developing you might
+require to watch the <code>docs</code> directory. We can again use the <code>DEBUG=on</code>
+option in that case.</p>
+<pre><code class="language-sh"># To build the documentation
+$ make docs
+# Builds the documentation, watches for changes and serves on :3000
+$ make docs DEBUG=on
+</code></pre>
+<h1><a class="header" href="#submitting-a-pull-request" id="submitting-a-pull-request">Submitting a Pull Request</a></h1>
+<p>These are a few guidelines that need to be followed in-order to make
+changes in the main repository.</p>
+<h2><a class="header" href="#pre-commit" id="pre-commit">Pre-commit</a></h2>
+<p>There are a few things to take care of before committing your changes.</p>
+<h3><a class="header" href="#vendoring" id="vendoring">Vendoring</a></h3>
+<p>All the dependencies in our repository are vendored. All the dependencies
+are listed in <code>go.mod</code> file and are maintained in the <code>vendor</code> directory.
+When updating/adding/deleting a dependency, run the following to keep the
+<code>vendor</code> up-to-date:</p>
+<pre><code class="language-sh">$ make vendor
+</code></pre>
+<p>This will cleanup unused dependencies from <code>go.mod</code> as well as add new
+dependencies to <code>vendor</code>.</p>
+<h3><a class="header" href="#lint" id="lint">Lint</a></h3>
+<p>We use <a href="https://golangci-lint.run/">golangci-lint</a> to lint our code. Each
+commit should pass all the lint checks. To ensure that it does, use the
+<code>make lint</code> command. Many times, these errors might be related to
+formatting of the code. These are usually auto-fixable. <code>make fmt</code> fixes
+all the errors that might be resolved automatically.</p>
+<pre><code class="language-sh"># To check for linting errors
+$ make lint
+# To fix auto-fixable errors
+$ make format
+</code></pre>
+<h3><a class="header" href="#other-checks" id="other-checks">Other checks</a></h3>
+<p>Apart from the fact that the code should build successfully, we need to
+take care of following:</p>
+<ul>
+<li>Ensure that you have compiled any protobuf that may have been updated.</li>
+<li>The Docker image should be built successfully as well.</li>
+</ul>
+<h2><a class="header" href="#commits" id="commits">Commits</a></h2>
+<p>Break only logical changes into multiple commits. Commits such as &quot;fix 
+typo&quot; or &quot;address review commits&quot; should be squashed into the one
+logical commit. Each commit should individually pass tests and lint check
+No separate commit should be made to fix these.</p>
+<h3><a class="header" href="#commit-messages" id="commit-messages">Commit Messages</a></h3>
+<p>We don't have a defined commit message style for our codebase, but the
+general idea is that the commit should include a heading, a body (if it's
+required) and reference to any issue that it might resolve. A good commit
+message looks something like this:</p>
+<pre><code>scope: Short commit heading with gist of changes.
+
+Body of commit trying to explain the old behaviour and how this commit
+changes it for the better.
+
+Resolves: #123
+
+Signed-off-by: Contributer &lt;example@contributor.com&gt;
+</code></pre>
+<h2><a class="header" href="#pull-request" id="pull-request">Pull Request</a></h2>
+<p>Pull requests follows same guidelines as mentioned for the commit messages.
+The title should give a clear idea of what it is about, followed by a
+descriptive body and should mention what issue it resolves (if any).</p>
 
                     </main>
 

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Mail on Check Failure - Pinger</title>
+        <title>Build Process - Pinger</title>
         
         
 
@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html" class="active"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Deploying</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Plugins</div></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">5.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Agents</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Central Organizer</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Application Server</div></li></ol></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../contributing/build-process.html"><strong aria-hidden="true">6.1.</strong> Build Process</a></li><li class="chapter-item expanded "><a href="../contributing/pull-request.html"><strong aria-hidden="true">6.2.</strong> Submitting a Pull Request</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Maintaining</div></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Pinger</a></li><li class="chapter-item expanded "><a href="../getting-started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting-started/ping-google.html"><strong aria-hidden="true">2.1.</strong> Ping Google</a></li><li class="chapter-item expanded "><a href="../getting-started/storing-metrics.html"><strong aria-hidden="true">2.2.</strong> Storing Metrics</a></li><li class="chapter-item expanded "><a href="../getting-started/status-page.html"><strong aria-hidden="true">2.3.</strong> Deploying a Status Page</a></li><li class="chapter-item expanded "><a href="../getting-started/mail-on-failure.html"><strong aria-hidden="true">2.4.</strong> Mail on Check Failure</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Deploying</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Plugins</div></li><li class="chapter-item expanded "><a href="../architecture/index.html"><strong aria-hidden="true">5.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Agents</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Central Organizer</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Application Server</div></li></ol></li><li class="chapter-item expanded "><a href="../contributing/index.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../contributing/build-process.html" class="active"><strong aria-hidden="true">6.1.</strong> Build Process</a></li><li class="chapter-item expanded "><a href="../contributing/pull-request.html"><strong aria-hidden="true">6.2.</strong> Submitting a Pull Request</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Maintaining</div></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -167,112 +167,87 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#mail-on-check-failure" id="mail-on-check-failure">Mail on Check Failure</a></h1>
-<p>Pinger can send alerts when a check fails, or when a check comes back from
-the dead.</p>
-<h2><a class="header" href="#updating-the-check" id="updating-the-check">Updating the check</a></h2>
-<p>Previously we set a timeout for <code>0.5s</code> which rarely timed out. Let's change
-it to <code>0.1s</code> to encounter more failures.</p>
-<pre><code class="language-yaml"># agent.yml
-
-# ...
-
-checks:
-  - id: ping-google
-    name: Ping Google
-    interval: 3s
-    timeout: 0.1s
-    input:
-      type: ICMP
-    output:
-      type: TIMEOUT
-    target:
-      type: ADDRESS
-      value: google.com
-
-# ...
+                        <h1><a class="header" href="#build-process" id="build-process">Build Process</a></h1>
+<p>We won't be running <code>make all</code> everytime. Since the command builds all the
+components, it would take longer than usual when changing a couple lines in
+one part of the code.</p>
+<p>Currently we need to build three things:</p>
+<ol>
+<li>Binary</li>
+<li>Docker Image</li>
+<li>Documentation</li>
+</ol>
+<p>Let's take a look at both of them individually.</p>
+<h2><a class="header" href="#binary" id="binary">Binary</a></h2>
+<p>The binary packs all the static files, including the CSS and JavaScript
+files, required for the frontend. The <code>static</code> directory in root of the
+repository is home to all the content packed inside the binary. There is
+some preprocessing required for packing the static content into the
+binary. This is done using the <code>make static</code> command. This essentially
+generates a file called <code>pkg/util/static/resource.go</code> which contains all
+the content in a compressed format.</p>
+<p>Once we have our resources ready, we can build the executable using the
+<code>make build</code> command. Hence, the workflow can be:</p>
+<pre><code class="language-sh"># If there's a change in `static` dir
+$ make static
+# Building the binary
+$ make build
 </code></pre>
-<p>Let's run the check and see if we encountered any failures:</p>
-<pre><code class="language-sh">$ path/to/pinger agent
+<p>Once the <code>static</code> directory is large enough, it's going to take a while to
+generate the <code>resource.go</code>. For this we have the <code>DEBUG</code> flag that can be
+set once while building. A binary built in debug mode takes the static
+content directly from the file system and is not required to be packaged
+inside the executable.</p>
+<p>There are other advantages of building binary in debug mode that you'll
+learn while working on the project. For now, we can use the following to
+speed up our builds:</p>
+<pre><code class="language-sh"># Note that `make static` is not required now.
+$ make build DEBUG=on
 </code></pre>
-<p>After a few seconds, let's query our database for metrics.</p>
-<pre><code class="language-sh"># In the postgres shell
-$ SELECT * FROM metrics;
-  check_id   | check_name  |          start_time           | duration  | timeout | success
--------------+-------------+-------------------------------+-----------+---------+---------
-...
- ping-google | Ping Google | 2020-12-29 19:58:54.686244+00 |  43848273 | f       | t
- ping-google | Ping Google | 2020-12-29 19:58:57.686358+00 | 100000000 | t       | f
- ping-google | Ping Google | 2020-12-29 19:59:00.685532+00 |  45252482 | f       | t
- ping-google | Ping Google | 2020-12-29 19:59:03.682839+00 |  44708297 | f       | t
- ping-google | Ping Google | 2020-12-29 19:59:06.681564+00 | 100000000 | t       | f
- ping-google | Ping Google | 2020-12-29 19:59:09.683893+00 |  73249643 | f       | t
-...
-</code></pre>
-<p>Looks like we did encounter a few failures. Amazing. Let's set up an alert
-now.</p>
-<h2><a class="header" href="#adding-senders-information" id="adding-senders-information">Adding sender's information</a></h2>
-<p>We need to inform Pinger about the account from where to send the emails.
-This means you need to provide an email and password in configuration file.
-I'll be using my personal Gmail account for this.</p>
-<pre><code class="language-yaml"># agent.yml
-
-# ...
-
-alerts:
-  - service: mail
-    host: smtp.gmail.com # Since I'll be using a Gmail Account
-    port: 587
-    user: &lt;email&gt;
-    secret: &lt;password&gt;
-</code></pre>
-<p>Replace the <code>&lt;email&gt;</code> and <code>&lt;password&gt;</code> with your email account and password
-respectively.</p>
 <blockquote>
-<p><strong>Note:</strong> You might need to turn on <em><strong>Less Secure App Access</strong></em> in your
-Google account security settings.</p>
+<p><strong>Note:</strong> This does pose the constraint that any Pinger command has to
+be executed in the repository's root directory. This shouldn't be an
+issue while developing.</p>
 </blockquote>
-<p>Once done, we can add a mail alert to our check.</p>
-<h2><a class="header" href="#setting-alert-for-the-check" id="setting-alert-for-the-check">Setting alert for the check</a></h2>
-<p>In the check configuration, we need to add what alerts are required to be
-sent.</p>
-<pre><code class="language-yaml"># agent.yml
-
-# ...
-
-checks:
-  - # ...
-    alerts:
-      - service: mail
-        target: &lt;email&gt; # For now just send the mail to yourself
-
-# ...
+<h3><a class="header" href="#protobuf" id="protobuf">Protobuf</a></h3>
+<p>When making changes to a <code>.proto</code> file, we need to compile it into the
+equivalent Go code. These generated files (<code>*.pb.go</code>) need to be committed.</p>
+<pre><code class="language-sh">$ make proto
 </code></pre>
-<p>We can now start our agent and see if we get any mail.</p>
-<h2><a class="header" href="#checking-mails" id="checking-mails">Checking mails</a></h2>
-<p>Start the agent again and look for any new mails from yourself.</p>
-<pre><code class="language-sh">$ path/to/pinger agent
+<h2><a class="header" href="#docker-image" id="docker-image">Docker Image</a></h2>
+<p><code>Dockerfile</code> for the image is present in the root directory. To build the
+image, use <code>make docker</code> command. This generates an image with tag –
+<code>pinger:dev</code>. To change the tag, we can use the <code>TAG</code> option for make
+command.</p>
+<pre><code class="language-sh">$ make docker TAG=&quot;pinger:v1.2.3&quot;
 </code></pre>
-<p>Open up your mail, and you'll see one like this:</p>
-<p><img src="./alert-mail.png" alt="Alert Mail" /></p>
-<blockquote>
-<p><strong>TODO:</strong> An email is sent each time the agent is re-started. Rather,
-what should happen is, we should fetch the previous state, if any, from
-the database and then see if we want to alert the user.</p>
-</blockquote>
+<h2><a class="header" href="#documentation" id="documentation">Documentation</a></h2>
+<p>Documentation is not (yet) packaged into the binary. We currently host it
+using <a href="https://pages.github.com/">Github Pages</a>. We use
+<a href="https://rust-lang.github.io/mdBook/">mdBook</a> as the documentation
+framework. Make sure you have that installed in your <code>$PATH</code>.</p>
+<p>You can build the documentation using <code>make docs</code> command. This generates
+the documentation in <code>docs/book</code> directory. While developing you might
+require to watch the <code>docs</code> directory. We can again use the <code>DEBUG=on</code>
+option in that case.</p>
+<pre><code class="language-sh"># To build the documentation
+$ make docs
+# Builds the documentation, watches for changes and serves on :3000
+$ make docs DEBUG=on
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="../getting-started/status-page.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../contributing/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="../architecture/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../contributing/pull-request.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -284,13 +259,13 @@ the database and then see if we want to alert the user.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a rel="prev" href="../getting-started/status-page.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../contributing/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a rel="next" href="../architecture/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../contributing/pull-request.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
