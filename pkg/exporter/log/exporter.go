@@ -14,6 +14,16 @@ import (
 
 const exporterName = "log"
 
+// metric keys
+const (
+	keyCheckID      = "check_id"
+	keyCheckName    = "check_name"
+	keyIsSuccessful = "is_successful"
+	keyIsTimeout    = "is_timeout"
+	keyStartTime    = "start_time"
+	keyDuration     = "duration"
+)
+
 func init() {
 	exporter.Register(exporterName, func() exporter.Exporter { return new(Exporter) })
 }
@@ -63,12 +73,12 @@ func (e *Exporter) Export(ctx context.Context, metrics []checker.Metric) error {
 // logMetric logs the metric to the console.
 func (e *Exporter) logMetric(metric checker.Metric) {
 	e.logger.WithFields(logrus.Fields{
-		"check_id":      metric.GetCheckID(),
-		"check_name":    metric.GetCheckName(),
-		"is_successful": metric.IsSuccessful(),
-		"is_timeout":    metric.IsTimeout(),
-		"start_time":    metric.GetStartTime(),
-		"duration":      metric.GetDuration(),
+		keyCheckID:      metric.GetCheckID(),
+		keyCheckName:    metric.GetCheckName(),
+		keyIsSuccessful: metric.IsSuccessful(),
+		keyIsTimeout:    metric.IsTimeout(),
+		keyStartTime:    metric.GetStartTime(),
+		keyDuration:     metric.GetDuration(),
 	}).Infof("metrics for check (%s) %s", metric.GetCheckID(), metric.GetCheckName())
 }
 
