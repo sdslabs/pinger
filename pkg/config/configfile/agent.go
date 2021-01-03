@@ -13,6 +13,10 @@ type AgentPage struct {
 	Port           uint16   `mapstructure:"port" json:"port"`
 	AllowedOrigins []string `mapstructure:"allowed_origins" json:"allowed_origins"`
 	Name           string   `mapstructure:"name" json:"name"`
+	Media          string   `mapstructure:"media" json:"media"`
+	Logo           string   `mapstructure:"logo" json:"logo"`
+	Favicon        string   `mapstructure:"favicon" json:"favicon"`
+	Website        string   `mapstructure:"website" json:"website"`
 }
 
 // Agent represents the configuration for an agent.

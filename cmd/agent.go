@@ -28,6 +28,10 @@ const (
 	defaultAgentPageDeploy             = false
 	defaultAgentPagePort        uint16 = 9010
 	defaultAgentPageName               = "Status Page"
+	defaultAgentPageMedia              = ""
+	defaultAgentPageLogo               = ""
+	defaultAgentPageFavicon            = ""
+	defaultAgentPageWebsite            = "/"
 )
 
 // non-const agent defaults.
@@ -63,6 +67,14 @@ const (
 	flagAgentConfigPageAllowedOrigins = "page-allowed-origins"
 	keyAgentConfigPageName            = "page.name"
 	flagAgentConfigPageName           = "page-name"
+	keyAgentConfigPageMedia           = "page.media"
+	flagAgentConfigPageMedia          = "page-media"
+	keyAgentConfigPageLogo            = "page.logo"
+	flagAgentConfigPageLogo           = "page-logo"
+	keyAgentConfigPageFavicon         = "page.favicon"
+	flagAgentConfigPageFavicon        = "page-favicon"
+	keyAgentConfigPageWebsite         = "page.website"
+	flagAgentConfigPageWebsite        = "page-website"
 )
 
 func newAgentCmd(ctx *appcontext.Context, v *viper.Viper) (*cobra.Command, error) {
@@ -121,6 +133,10 @@ to run in a standalone mode where it does not run any GRPC server.`,
 	cmd.Flags().StringSlice(
 		flagAgentConfigPageAllowedOrigins, defaultAgentPageAllowedOrigins, "allowed origins which can request page")
 	cmd.Flags().String(flagAgentConfigPageName, defaultAgentPageName, "name/title of status page")
+	cmd.Flags().String(flagAgentConfigPageMedia, defaultAgentPageMedia, "directory to serve page media from")
+	cmd.Flags().String(flagAgentConfigPageLogo, defaultAgentPageLogo, "filename for logo in media directory")
+	cmd.Flags().String(flagAgentConfigPageFavicon, defaultAgentPageFavicon, "filename for favicon in media directory")
+	cmd.Flags().String(flagAgentConfigPageWebsite, defaultAgentPageWebsite, "website url for the page")
 
 	mapKeysToFlags := map[string]string{
 		keyAgentConfigPort:               flagAgentConfigPort,
@@ -137,6 +153,10 @@ to run in a standalone mode where it does not run any GRPC server.`,
 		keyAgentConfigPagePort:           flagAgentConfigPagePort,
 		keyAgentConfigPageAllowedOrigins: flagAgentConfigPageAllowedOrigins,
 		keyAgentConfigPageName:           flagAgentConfigPageName,
+		keyAgentConfigPageMedia:          flagAgentConfigPageMedia,
+		keyAgentConfigPageLogo:           flagAgentConfigPageLogo,
+		keyAgentConfigPageFavicon:        flagAgentConfigPageFavicon,
+		keyAgentConfigPageWebsite:        flagAgentConfigPageWebsite,
 	}
 
 	if err := bindFlagsToViper(v, cmd, mapKeysToFlags); err != nil {
