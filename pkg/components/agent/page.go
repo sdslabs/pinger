@@ -31,7 +31,7 @@ const (
 	staticFilesPath = agentFilePath + "/public"
 
 	// templateName is the name of the template for agent's status page.
-	templateName = "status_page.tmpl"
+	templateName = "page.gohtml"
 
 	// maxMetricsDuration is the maximum duration for which the metrics are
 	// fetched from the database for displaying on status page.
@@ -46,6 +46,18 @@ const (
 
 	// routeMetrics is the route for fetching metrics.
 	routeMetrics = "/metrics"
+
+	// routeMedia is the route that serves files from the fs provided in the
+	// config file.
+	routeMedia = "/media"
+
+	// defaultPageLogo is the logo URL for page when a logo is not provided
+	// in the config.
+	defaultPageLogo = routeStatic + "/page/logo.png"
+
+	// defaultPageFavicon is the favicon URL for page when a favicon is not
+	// provided in the config.
+	defaultPageFavicon = routeStatic + "/page/favicon.png"
 )
 
 // serveStatusPage starts a HTTP server that responds with the status page
@@ -65,7 +77,7 @@ func serveStatusPage(
 		AllowedMethods: []string{http.MethodGet},
 	})
 
-	if err := addBaseRoute(ctx, router, manager, conf.Name); err != nil {
+	if err := addBaseRoute(ctx, router, manager, conf); err != nil {
 		return err
 	}
 
@@ -76,6 +88,10 @@ func serveStatusPage(
 		return err
 	}
 	router.StaticFS(routeStatic, staticFS)
+
+	if conf.Media != "" {
+		router.Static(routeMedia, conf.Media)
+	}
 
 	go func() {
 		ctx.Logger().
@@ -94,7 +110,7 @@ func addBaseRoute(
 	ctx *appcontext.Context,
 	router *gin.Engine,
 	manager *controller.Manager,
-	name string,
+	conf *configfile.AgentPage,
 ) error {
 	agentFS, err := static.NewFS(ctx, agentFilePath)
 	if err != nil {
@@ -117,20 +133,41 @@ func addBaseRoute(
 		return err
 	}
 
+	logoURL := defaultPageLogo
+	if conf.Logo != "" {
+		logoURL = fmt.Sprintf("%s/%s", routeMedia, conf.Logo)
+	}
+
+	faviconURL := defaultPageFavicon
+	if conf.Favicon != "" {
+		faviconURL = fmt.Sprintf("%s/%s", routeMedia, conf.Favicon)
+	}
+
+	websiteURL := "/"
+	if conf.Website != "" {
+		websiteURL = conf.Website
+	}
+
 	type resp struct {
 		Name       string
 		Checks     map[string]string
 		StaticURL  string
 		MetricsURL string
+		LogoURL    string
+		FaviconURL string
+		WebsiteURL string
 	}
 
 	router.SetHTMLTemplate(compiledTemplate)
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, templateName, resp{
-			Name:       name,
+			Name:       conf.Name,
 			Checks:     manager.ListControllers(),
 			StaticURL:  routeStatic,
 			MetricsURL: routeMetrics,
+			LogoURL:    logoURL,
+			FaviconURL: faviconURL,
+			WebsiteURL: websiteURL,
 		})
 	})
 
