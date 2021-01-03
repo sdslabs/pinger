@@ -9,12 +9,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sdslabs/pinger/pkg/checker"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/sdslabs/pinger/pkg/config/configfile"
 	"github.com/sdslabs/pinger/pkg/exporter"
+	"github.com/sdslabs/pinger/pkg/util"
 	"github.com/sdslabs/pinger/pkg/util/appcontext"
 	"github.com/sdslabs/pinger/pkg/util/controller"
 	"github.com/sdslabs/pinger/pkg/util/httpserver"
@@ -24,7 +23,7 @@ import (
 const (
 	// agentFilePath is the directory where static content is stored specific
 	// to the agent.
-	agentFilePath = "/agent"
+	agentFilePath = "/page"
 
 	// staticFilesPath is the directory where static content is stored which
 	// can be publicly accessed.
@@ -51,13 +50,13 @@ const (
 	// config file.
 	routeMedia = "/media"
 
-	// defaultPageLogo is the logo URL for page when a logo is not provided
+	// defaultPageLogo is the logo's URL for page in case a logo is not provided
 	// in the config.
-	defaultPageLogo = routeStatic + "/page/logo.png"
+	defaultPageLogo = routeStatic + "/page-logo.png"
 
-	// defaultPageFavicon is the favicon URL for page when a favicon is not
+	// defaultPageFavicon is the favicon's URL for page when a favicon is not
 	// provided in the config.
-	defaultPageFavicon = routeStatic + "/page/favicon.png"
+	defaultPageFavicon = routeStatic + "/favicon.png"
 )
 
 // serveStatusPage starts a HTTP server that responds with the status page
@@ -148,19 +147,9 @@ func addBaseRoute(
 		websiteURL = conf.Website
 	}
 
-	type resp struct {
-		Name       string
-		Checks     map[string]string
-		StaticURL  string
-		MetricsURL string
-		LogoURL    string
-		FaviconURL string
-		WebsiteURL string
-	}
-
 	router.SetHTMLTemplate(compiledTemplate)
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, templateName, resp{
+		c.HTML(http.StatusOK, templateName, httpserver.PageResponse{
 			Name:       conf.Name,
 			Checks:     manager.ListControllers(),
 			StaticURL:  routeStatic,
@@ -182,12 +171,6 @@ func addMetricsRoute(
 	manager *controller.Manager,
 	getMetrics exporter.GetterFunc,
 ) {
-	type result struct {
-		Metrics     []httpserver.MetricResponse `json:"metrics"`
-		Uptime      int                         `json:"uptime"`
-		Operational bool                        `json:"operational"`
-	}
-
 	// `/metrics?duration=1000000000?batches=30`
 	router.GET(routeMetrics, func(c *gin.Context) {
 		durationStr := c.Query("duration")
@@ -214,104 +197,6 @@ func addMetricsRoute(
 			return
 		}
 
-		resp := map[string]result{}
-		for cid := range metrics {
-			// NB: This shouldn't take that long but since this request is long enough
-			// in general, one optimization can be to serialize the metrics in different
-			// goroutines. For now this works and we need benchmarks to prove if making
-			// this change would really help or not.
-			serialized, uptime := serializeMetrics(batches, metrics[cid])
-			if len(serialized) == 0 || len(metrics[cid]) == 0 {
-				continue
-			}
-			operational := serialized[0].Successful
-			resp[cid] = result{
-				Metrics:     serialized,
-				Uptime:      uptime,
-				Operational: operational,
-			}
-		}
-
-		httpserver.RespondOK(ctx, c, resp)
+		httpserver.RespondOK(ctx, c, util.PrepareMetricsResponse(batches, metrics))
 	})
-}
-
-// serializeMetrics breaks the metrics into multiple batches and retains one
-// metric from each batch.
-//
-// The following rules are applied to each batch:
-// 	- Failed metric is prioritized over successful.
-// 	- Metric with highest latency is considered.
-//  - If number of batches are more than number of metrics, this is probably
-// 	  recent addition of check. In this case, The first metric should be
-// 	  appended at the front of list.
-//
-func serializeMetrics(
-	batches int, metrics []checker.Metric,
-) (serialized []httpserver.MetricResponse, uptime int) {
-	if batches == 0 || len(metrics) == 0 {
-		return
-	}
-
-	serialized = make([]httpserver.MetricResponse, 0, batches)
-	numEachBatch := (len(metrics) / batches) + 1
-	var upNum int
-
-	for i := 0; i < len(metrics); i += numEachBatch {
-		var (
-			metric  checker.Metric
-			latency time.Duration
-			failed  bool
-		)
-
-		for j := i; j < i+numEachBatch; j++ {
-			if j >= len(metrics) {
-				break
-			}
-
-			m := metrics[j]
-
-			if !m.IsSuccessful() && !failed {
-				metric = m
-				failed = true
-			}
-
-			if m.IsSuccessful() {
-				upNum++
-			}
-
-			if failed {
-				continue // don't break because we need to calculate uptime
-			}
-
-			if latency < m.GetDuration() {
-				metric = m
-			}
-		}
-
-		if metric == nil {
-			break
-		}
-
-		serialized = append(serialized, httpserver.MetricResponse{
-			Successful: metric.IsSuccessful(),
-			Timeout:    metric.IsTimeout(),
-			StartTime:  metric.GetStartTime(),
-			Duration:   metric.GetDuration(),
-		})
-	}
-
-	if len(serialized) > 0 {
-		// Since metrics are ordered in descending order of their start times we need
-		// to replicate the last metric so length of serialized equals the number of
-		// batches we need to divide the data in.
-		lastMetric := serialized[len(serialized)-1]
-		for len(serialized) < batches {
-			serialized = append(serialized, lastMetric)
-		}
-	}
-
-	uptime = (upNum * 100) / len(metrics) // percentage
-
-	return
 }
