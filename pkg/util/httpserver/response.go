@@ -22,6 +22,25 @@ type MetricResponse struct {
 	Duration   time.Duration `json:"duration"`
 }
 
+// PageMetricsResponse is the JSON response for returning all the metrics
+// related information fetched once the page is loaded.
+type PageMetricsResponse struct {
+	Metrics     []MetricResponse `json:"metrics"`
+	Uptime      int              `json:"uptime"`
+	Operational bool             `json:"operational"`
+}
+
+// PageResponse is the data passed into the template.
+type PageResponse struct {
+	Name       string
+	Checks     map[string]string
+	StaticURL  string
+	MetricsURL string
+	LogoURL    string
+	FaviconURL string
+	WebsiteURL string
+}
+
 // RespondError writes an error response to the request.
 func RespondError(ctx *appcontext.Context, c *gin.Context, statusCode int, err error) {
 	resp := err.Error()
