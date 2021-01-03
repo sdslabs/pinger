@@ -8,6 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/protobuf v1.4.3
 	github.com/gorilla/websocket v1.4.1
+	github.com/influxdata/influxdb-client-go/v2 v2.2.1
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/phogolabs/parcello v0.8.2
 	github.com/sdslabs/kiwi v1.0.0
