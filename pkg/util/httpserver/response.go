@@ -22,12 +22,19 @@ type MetricResponse struct {
 	Duration   time.Duration `json:"duration"`
 }
 
-// PageMetricsResponse is the JSON response for returning all the metrics
-// related information fetched once the page is loaded.
-type PageMetricsResponse struct {
+// PageCheckMetricsResponse is the JSON response for all the metrics related
+// to a particular check.
+type PageCheckMetricsResponse struct {
 	Metrics     []MetricResponse `json:"metrics"`
 	Uptime      int              `json:"uptime"`
 	Operational bool             `json:"operational"`
+}
+
+// PageMetricsResponse is the JSON response for returning all the metrics
+// related information which is fetched once the page is loaded.
+type PageMetricsResponse struct {
+	ChecksDown int                                 `json:"checks_down"`
+	Checks     map[string]PageCheckMetricsResponse `json:"checks"`
 }
 
 // PageResponse is the data passed into the template.

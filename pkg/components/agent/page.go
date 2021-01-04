@@ -23,7 +23,7 @@ import (
 const (
 	// agentFilePath is the directory where static content is stored specific
 	// to the agent.
-	agentFilePath = "/page"
+	agentFilePath = "/agent"
 
 	// staticFilesPath is the directory where static content is stored which
 	// can be publicly accessed.
@@ -39,6 +39,9 @@ const (
 	// maxMetricsBatches is the maximum possible number of batches in which the
 	// metrics are to be distributed when the client requests.
 	maxMetricsBatches = 50
+
+	// minMetricsBatches are the minimum possible number of batches.
+	minMetricsBatches = 2
 
 	// routeStatic is the route for all static content.
 	routeStatic = "/static"
@@ -176,7 +179,7 @@ func addMetricsRoute(
 		durationStr := c.Query("duration")
 		durationInt, err := strconv.Atoi(durationStr)
 		duration := time.Duration(durationInt)
-		if err != nil || duration <= 0 || duration > maxMetricsDuration {
+		if err != nil || duration < minMetricsBatches || duration > maxMetricsDuration {
 			duration = maxMetricsDuration
 		}
 
