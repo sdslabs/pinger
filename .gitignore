@@ -1,4 +1,5 @@
 # Binary build
+/dist
 /pinger*
 
 # Static resources

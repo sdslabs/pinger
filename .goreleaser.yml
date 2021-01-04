@@ -1,0 +1,49 @@
+env:
+  - GO111MODULE=on
+  - GOPROXY=https://proxy.golang.org
+before:
+  hooks:
+    - make static
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 5
+      - 6
+      - 7
+    main: ./cmd/pinger/main.go
+    binary: pinger
+    flags:
+      - -v
+    ldflags:
+      - -s -w -X 'github.com/sdslabs/pinger/cmd.version={{.Version}}'
+archives:
+  - replacements:
+      darwin: mac
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha512
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^chore:'
+      - '^ci:'
+      - '^docs?:'
+      - '^readme:'
+      - '^tests?:'
+      - '^\w+\s+' # a hack to remove commit messages without colons thus don't correspond to a package
