@@ -11,6 +11,7 @@ help:
 	@echo "$(BOLD)Targets:$(NORMAL)"
 	@printf "  make %s\n    %s\n" \
 		"all" "Builds binary and documentation" \
+		"bin" "Generates static resources and builds binary" \
 		"build" "Builds the binary" \
 		"build DEBUG=on" "Build the binary in debug mode" \
 		"docker" "Builds the docker image" \
@@ -25,7 +26,10 @@ help:
 	@echo
 
 .PHONY: all
-all: static build docs
+all: bin docs
+
+.PHONY: bin
+bin: static build
 
 .PHONY: build
 build:
