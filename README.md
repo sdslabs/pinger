@@ -1,4 +1,4 @@
-# Pinger
+![Pinger](./docs/src/pinger-logo.png)
 
 Pinger is an uptime and status monitoring application. It is an open-source
 implementation of platforms used to create status pages. Unlike other
