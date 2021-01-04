@@ -1,0 +1,388 @@
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+   (Modified as required)
+*/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font: inherit;
+	vertical-align: baseline;
+  box-sizing: border-box;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/* Theme */
+
+:root {
+  font-size: 16px;
+  font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+  color: #575757;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #F3F3F3;
+}
+
+a {
+  text-decoration: none;
+  color: #46E9C2;
+}
+
+.container {
+  width: 46.5rem;
+  margin: 0 auto;
+}
+
+@keyframes loading {
+  0% { background-color: #F3F3F3 }
+  50% { background-color: #C4C4C4 }
+  100% { background-color: #F3F3F3 }
+}
+
+/* Header */
+
+header {
+  width: 100%;
+  height: 4rem;
+}
+
+.header-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-page-title {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.header-page-logo {
+  display: block;
+  height: 2rem;
+  border-radius: 0.125rem;
+  margin-right: 0.75rem;
+}
+
+.header-page-name {
+  color: #393939;
+}
+
+.header-pinger-logo {
+  display: block;
+}
+
+.header-pinger-logo-img {
+  height: 2rem;
+  border-radius: 0.125rem;
+}
+
+/* Main */
+
+main {
+  width: 100%;
+  background-color: #FFFFFF;
+}
+
+.main-operational-status {
+  margin: 2.25rem 0;
+  width: 100%;
+  height: 3.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;;
+}
+
+.main-operational-status-msg {
+  display: none;
+  align-items: center;
+  height: 100%;
+}
+
+.main-operational-status-loading {
+  animation-name: loading;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+.main-operational-status-msg-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 1rem;
+}
+
+.main-operational-status-msg-text {
+  font-size: 1.25rem;
+}
+
+.main-operational-status-success {
+  background-color: #F1FFE8;
+  color: #61FF00;
+}
+  .main-operational-status-success .main-operational-status-success-msg {
+    display: flex;
+  }
+
+.main-operational-status-failed {
+  background-color: #FFEBEA;
+  color: #FF5F55;
+}
+  .main-operational-status-failed .main-operational-status-failed-msg {
+    display: flex;
+  }
+
+.main-check {
+  width: 100%;
+  height: 7.1875rem;
+  border-radius: 0.5rem;
+  margin-bottom: 3rem;
+  border: 0.03125rem solid #ACACAC;
+  padding: 0 0.75rem;
+}
+
+.main-check-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  transform: translateY(-50%);
+}
+
+.main-check-top-status, .main-check-top-name {
+  background-color: #FFFFFF;
+  padding: 0 0.25rem;
+}
+
+.main-check-top-status-elem {
+  display: none;
+  align-items: center;
+}
+
+.main-check-top-status-icon {
+  display: block;
+  height: 0.75rem;
+  margin-right: 0.25rem;
+}
+
+.main-check-top-status-text {
+  font-size: 0.875rem;
+}
+
+  .main-check-loading .main-check-top-status {
+    animation-name: loading;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    width: 5rem;
+    height: 1rem;
+    border-radius: 0.125rem;
+  }
+
+  .main-check-loading .main-check-top-status-loading {
+    display: flex;
+  }
+
+  .main-check-success .main-check-top-status-success {
+    display: flex;
+  }
+
+  .main-check-failed .main-check-top-status-failed {
+    display: flex;
+  }
+
+.main-check-bars {
+  display: flex;
+  height: 3.375rem;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  flex-direction: row-reverse;
+}
+
+.main-check-bar {
+  height: 100%;
+  width: calc((100% - (49 * 0.25rem)) / 50);
+  border-radius: 0.125rem;
+}
+
+.main-check-loading .main-check-bars {
+  border-radius: 0.5rem;
+  animation-name: loading;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+.main-check-bar-success {
+  background-color: #A5FF6E;
+}
+
+.main-check-bar-failed {
+  background-color: #FF5F55;
+}
+
+.main-check-bar-timeout {
+  background-color: #FCD714;
+}
+
+.main-check-timerange {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 0.5rem;
+  position: relative;
+}
+
+.main-check-timerange-text {
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  line-height: 1.19375rem;
+  background-color: #FFFFFF;
+  z-index: 2;
+}
+
+.main-check-timerange-text-start {
+  padding-right: 0.5rem;
+}
+
+.main-check-timerange-text-end {
+  padding-left: 0.5rem;
+}
+
+.main-check-timerange-divider {
+  width: 100%;
+  height: 0.0625rem;
+  background-color: #CDCDCD;
+  position: absolute;
+  z-index: 0;
+}
+
+/* Footer */
+
+footer {
+  width: 100%;
+  padding: 4rem 0;
+}
+
+.footer-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.footer-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.footer-pinger-logo {
+  display: block;
+  height: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.footer-pinger-desc {
+  display: block;
+  line-height: 2rem;
+}
+
+.footer-sdslabs-logo-link {
+  display: block;
+}
+
+.footer-sdslabs-logo {
+  height: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.footer-social-icons {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.footer-social-link {
+  display: block;
+  margin-left: 1rem;
+}
+
+.footer-social-img {
+  display: block;
+  height: 1.6rem;
+  width: 1.6rem;
+  border-radius: 0.125rem;
+}
+
+@media only screen and (max-width: 768px) {
+  .container {
+    width: 100%;
+    margin: 0;
+    padding: 0 0.75rem;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .main-check-bar {
+    width: calc((100% - (49 * 0.125rem)) / 50);
+  }
+
+  .footer-container {
+    flex-direction: column;
+  }
+
+  .footer-right {
+    margin-top: 1rem;
+    align-items: flex-start;
+  }
+
+  .footer-social-link {
+    margin-left: 0;
+    margin-right: 1rem;
+  }
+}
