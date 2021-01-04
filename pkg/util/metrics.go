@@ -16,19 +16,34 @@ import (
 //  - If number of batches are more than number of metrics, this is probably
 // 	  recent addition of check. In this case, The first metric should be
 // 	  appended at the front of list.
+//  - The first (latest) metric is remains the same.
 //
+// Minimum number of batches accepted is 2 since only 1 would mean just
+// getting the latest metric which doesn't reflect any history.
 func SerializeMetrics(
 	batches int, metrics []checker.Metric,
 ) (serialized []httpserver.MetricResponse, uptime int) {
-	if batches == 0 || len(metrics) == 0 {
+	if batches < 2 || len(metrics) == 0 {
 		return
 	}
+
+	batches-- // since the first batch will essentially be the first metric
 
 	serialized = make([]httpserver.MetricResponse, 0, batches)
 	numEachBatch := (len(metrics) / batches) + 1
 	var upNum int
 
-	for i := 0; i < len(metrics); i += numEachBatch {
+	if metrics[0].IsSuccessful() {
+		upNum++
+	}
+	serialized = append(serialized, httpserver.MetricResponse{
+		Successful: metrics[0].IsSuccessful(),
+		Timeout:    metrics[0].IsTimeout(),
+		StartTime:  metrics[0].GetStartTime(),
+		Duration:   metrics[0].GetDuration(),
+	})
+
+	for i := 1; i < len(metrics); i += numEachBatch {
 		var (
 			metric  checker.Metric
 			latency time.Duration
@@ -89,8 +104,11 @@ func SerializeMetrics(
 
 // PrepareMetricsResponse creates a page metrics response for each of the
 // check after serializing the metrics.
-func PrepareMetricsResponse(batches int, metrics map[string][]checker.Metric) map[string]httpserver.PageMetricsResponse {
-	resp := map[string]httpserver.PageMetricsResponse{}
+func PrepareMetricsResponse(
+	batches int, metrics map[string][]checker.Metric,
+) httpserver.PageMetricsResponse {
+	resp := map[string]httpserver.PageCheckMetricsResponse{}
+	var checksDown int
 	for cid := range metrics {
 		// NB: This shouldn't take that long but since this request is long enough
 		// in general, one optimization can be to serialize the metrics in different
@@ -101,11 +119,17 @@ func PrepareMetricsResponse(batches int, metrics map[string][]checker.Metric) ma
 			continue
 		}
 		operational := serialized[0].Successful
-		resp[cid] = httpserver.PageMetricsResponse{
+		resp[cid] = httpserver.PageCheckMetricsResponse{
 			Metrics:     serialized,
 			Uptime:      uptime,
 			Operational: operational,
 		}
+		if !operational {
+			checksDown++
+		}
 	}
-	return resp
+	return httpserver.PageMetricsResponse{
+		ChecksDown: checksDown,
+		Checks:     resp,
+	}
 }
