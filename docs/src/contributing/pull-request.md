@@ -53,18 +53,60 @@ No separate commit should be made to fix these.
 
 ### Commit Messages
 
-We don't have a defined commit message style for our codebase, but the
-general idea is that the commit should include a heading, a body (if it's
-required) and reference to any issue that it might resolve. A good commit
-message looks something like this:
+Each commit message consists of a header, a body and a footer. The header
+has a special format that includes a scope and a subject:
 
 ```
-scope: Short commit heading with gist of changes.
+<scope>: <subject>
+<BLANK LINE>
+<body>
+<BLANK LINE>
+<footer>
+```
 
-Body of commit trying to explain the old behaviour and how this commit
-changes it for the better.
+Any line of the commit message cannot be longer 76 characters! This allows
+the message to be easier to read on github as well as in various git tools.
 
-Resolves: #123
+#### Scope
+
+The scope could be anything specifying place/context of the commit change.
+When making changes to Go code, this will most likely be the package name
+where the changes are made. For documentation changes scope will be `docs`
+and for UI changes scope will be `ui`.
+
+> **Note:** Scope should not be capitalized. `docs` should not be spelled
+> _`Docs`_.
+
+#### Subject
+
+The subject contains succinct description of the change:
+
+- Use the imperative, present tense: "change" not "changed" nor "changes".
+- Do capitalize first letter.
+- Add a dot (.) at the end.
+
+#### Body
+
+The body should include the motivation for the change and contrast this with
+previous behavior. Just as in the **subject**, try to use the imperative,
+present tense: "change" not "changed" nor "changes", though, this rule is
+not enforced for the body.
+
+#### Footer
+
+The footer should contain any information about **Breaking Changes** and is
+also the place to reference issues that this commit **Closes**.
+
+An example of a good commit message would be:
+
+```
+exporter: Update timescale exporter to use Gorm v2.
+
+Previously timescale exporter used Gorm v2 which did not support batch
+insert resulting in raw SQL queries. Gorm v2 now includes batch insert,
+hence, the same is used to refactor the exporter queries.
+
+Closes #123
 
 Signed-off-by: Contributer <example@contributor.com>
 ```
