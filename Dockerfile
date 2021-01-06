@@ -9,8 +9,7 @@ COPY . .
 RUN apk update && \
   apk add make && \
   apk add bash
-RUN make static && \
-  make build
+RUN make bin
 
 # Copy binary into actual image
 
