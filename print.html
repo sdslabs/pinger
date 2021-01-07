@@ -191,11 +191,22 @@ available in this documentation <a href="./contributing/index.html">here</a>.</p
 <h2><a class="header" href="#credits" id="credits">Credits</a></h2>
 <p><a href="https://sdslabs.co"><img src="./sdslabs-logo.png" alt="Made by SDSLabs" /></a></p>
 <h1><a class="header" href="#getting-started" id="getting-started">Getting Started</a></h1>
-<p>The Pinger binary is all you need to create your own status page. As we are
-still actively working on development of the project, you will need to build
-the project from its <a href="https://github.com/sdslabs/pinger">source code</a>.</p>
-<p>You can head over to the <a href="getting-started/../contributing/index.html">contribution section</a> of
-this documentation to see how to build the project from scratch.</p>
+<p>The Pinger binary is all you need to create your own status page.</p>
+<h2><a class="header" href="#installing" id="installing">Installing</a></h2>
+<p>Here are several ways you can install Pinger.</p>
+<h3><a class="header" href="#downloading-the-binary" id="downloading-the-binary">Downloading the binary</a></h3>
+<p>You can download the binary from our
+<a href="https://github.com/sdslabs/pinger/releases">Github releases</a>. Everything
+is packaged inside the binary, including, the frontend.</p>
+<!-- TODO(vrongmeal): Add curl request to download after a release -->
+<h3><a class="header" href="#docker" id="docker">Docker</a></h3>
+<p>You can directly use the docker image to run Pinger. Use the docker image
+hosted on
+<a href="https://github.com/orgs/sdslabs/packages?ecosystem=docker&amp;repo_name=pinger">Github packages</a>.</p>
+<!-- TODO(vrongmeal): Add command to run a container after a release -->
+<h3><a class="header" href="#building-from-source" id="building-from-source">Building from source</a></h3>
+<p>You can head over to the <a href="getting-started/../contributing/index.html">contribution section</a>
+of this documentation to see how to build the project from scratch.</p>
 <h1><a class="header" href="#ping-google" id="ping-google">Ping Google</a></h1>
 <p>Here, we'll deploy a status page using Pinger in the standalone mode, i.e.,
 without complex deployment of the complete platform. But before that we need
@@ -695,16 +706,48 @@ typo&quot; or &quot;address review commits&quot; should be squashed into the one
 logical commit. Each commit should individually pass tests and lint check
 No separate commit should be made to fix these.</p>
 <h3><a class="header" href="#commit-messages" id="commit-messages">Commit Messages</a></h3>
-<p>We don't have a defined commit message style for our codebase, but the
-general idea is that the commit should include a heading, a body (if it's
-required) and reference to any issue that it might resolve. A good commit
-message looks something like this:</p>
-<pre><code>scope: Short commit heading with gist of changes.
+<p>Each commit message consists of a header, a body and a footer. The header
+has a special format that includes a scope and a subject:</p>
+<pre><code>&lt;scope&gt;: &lt;subject&gt;
+&lt;BLANK LINE&gt;
+&lt;body&gt;
+&lt;BLANK LINE&gt;
+&lt;footer&gt;
+</code></pre>
+<p>Any line of the commit message cannot be longer 76 characters! This allows
+the message to be easier to read on github as well as in various git tools.</p>
+<h4><a class="header" href="#scope" id="scope">Scope</a></h4>
+<p>The scope could be anything specifying place/context of the commit change.
+When making changes to Go code, this will most likely be the package name
+where the changes are made. For documentation changes scope will be <code>docs</code>
+and for UI changes scope will be <code>ui</code>.</p>
+<blockquote>
+<p><strong>Note:</strong> Scope should not be capitalized. <code>docs</code> should not be spelled
+<em><code>Docs</code></em>.</p>
+</blockquote>
+<h4><a class="header" href="#subject" id="subject">Subject</a></h4>
+<p>The subject contains succinct description of the change:</p>
+<ul>
+<li>Use the imperative, present tense: &quot;change&quot; not &quot;changed&quot; nor &quot;changes&quot;.</li>
+<li>Do capitalize first letter.</li>
+<li>Add a dot (.) at the end.</li>
+</ul>
+<h4><a class="header" href="#body" id="body">Body</a></h4>
+<p>The body should include the motivation for the change and contrast this with
+previous behavior. Just as in the <strong>subject</strong>, try to use the imperative,
+present tense: &quot;change&quot; not &quot;changed&quot; nor &quot;changes&quot;, though, this rule is
+not enforced for the body.</p>
+<h4><a class="header" href="#footer" id="footer">Footer</a></h4>
+<p>The footer should contain any information about <strong>Breaking Changes</strong> and is
+also the place to reference issues that this commit <strong>Closes</strong>.</p>
+<p>An example of a good commit message would be:</p>
+<pre><code>exporter: Update timescale exporter to use Gorm v2.
 
-Body of commit trying to explain the old behaviour and how this commit
-changes it for the better.
+Previously timescale exporter used Gorm v2 which did not support batch
+insert resulting in raw SQL queries. Gorm v2 now includes batch insert,
+hence, the same is used to refactor the exporter queries.
 
-Resolves: #123
+Closes #123
 
 Signed-off-by: Contributer &lt;example@contributor.com&gt;
 </code></pre>
