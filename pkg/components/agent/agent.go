@@ -118,6 +118,7 @@ func initExportAndAlerts(
 		Name:     "metrics_export_and_alert",
 		Interval: interval,
 		Func: func(c context.Context) (interface{}, error) {
+			ctx.Logger().Infoln("exporting metrics")
 			stats := manager.PullAllStats()
 			var (
 				exportMetrics []checker.Metric
