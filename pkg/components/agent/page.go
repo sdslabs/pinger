@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -137,12 +138,12 @@ func addBaseRoute(
 
 	logoURL := defaultPageLogo
 	if conf.Logo != "" {
-		logoURL = fmt.Sprintf("%s/%s", routeMedia, conf.Logo)
+		logoURL = fmt.Sprintf("%s/%s", routeMedia, filepath.Clean(conf.Logo))
 	}
 
 	faviconURL := defaultPageFavicon
 	if conf.Favicon != "" {
-		faviconURL = fmt.Sprintf("%s/%s", routeMedia, conf.Favicon)
+		faviconURL = fmt.Sprintf("%s/%s", routeMedia, filepath.Clean(conf.Favicon))
 	}
 
 	websiteURL := "/"
