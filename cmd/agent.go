@@ -23,6 +23,7 @@ const (
 	defaultAgentMetricsPort     uint16 = 5432
 	defaultAgentMetricsUsername        = ""
 	defaultAgentMetricsPassword        = ""
+	defaultAgentMetricsOrgName         = ""
 	defaultAgentMetricsDBName          = ""
 	defaultAgentMetricsSSLMode         = true
 	defaultAgentPageDeploy             = false
@@ -55,6 +56,8 @@ const (
 	flagAgentConfigMetricsUsername    = "metrics-username"
 	keyAgentConfigMetricsPassword     = "metrics.password"
 	flagAgentConfigMetricsPassword    = "metrics-password"
+	keyAgentConfigMetricsOrgName      = "metrics.org_name"
+	flagAgentConfigMetricsOrgName     = "metrics-org-name"
 	keyAgentConfigMetricsDBName       = "metrics.db_name"
 	flagAgentConfigMetricsDBName      = "metrics-db-name"
 	keyAgentConfigMetricsSSLMode      = "metrics.ssl_mode"
@@ -124,6 +127,7 @@ to run in a standalone mode where it does not run any GRPC server.`,
 	cmd.Flags().Uint16(flagAgentConfigMetricsPort, defaultAgentMetricsPort, "port to run metrics server on")
 	cmd.Flags().String(flagAgentConfigMetricsUsername, defaultAgentMetricsUsername, "username credential for metrics")
 	cmd.Flags().String(flagAgentConfigMetricsPassword, defaultAgentMetricsPassword, "password credential for metrics")
+	cmd.Flags().String(flagAgentConfigMetricsOrgName, defaultAgentMetricsOrgName, "organization name for metrics")
 	cmd.Flags().String(flagAgentConfigMetricsDBName, defaultAgentMetricsDBName, "database name for metrics")
 	cmd.Flags().Bool(flagAgentConfigMetricsSSLMode, defaultAgentMetricsSSLMode, "whether to run metrics with SSL")
 	cmd.Flags().Duration(
@@ -146,6 +150,7 @@ to run in a standalone mode where it does not run any GRPC server.`,
 		keyAgentConfigMetricsPort:        flagAgentConfigMetricsPort,
 		keyAgentConfigMetricsUsername:    flagAgentConfigMetricsUsername,
 		keyAgentConfigMetricsPassword:    flagAgentConfigMetricsPassword,
+		keyAgentConfigMetricsOrgName:     flagAgentConfigMetricsOrgName,
 		keyAgentConfigMetricsDBName:      flagAgentConfigMetricsDBName,
 		keyAgentConfigMetricsSSLMode:     flagAgentConfigMetricsSSLMode,
 		keyAgentConfigInterval:           flagAgentConfigInterval,

@@ -56,6 +56,7 @@ type MetricsProvider struct {
 	Backend  string `mapstructure:"backend" json:"backend"`
 	Host     string `mapstructure:"host" json:"host"`
 	Port     uint16 `mapstructure:"port" json:"port"`
+	OrgName  string `mapstructure:"org_name" json:"org_name"`
 	DBName   string `mapstructure:"db_name" json:"db_name"`
 	Username string `mapstructure:"username" json:"username"`
 	Password string `mapstructure:"password" json:"password"`
@@ -75,6 +76,11 @@ func (m *MetricsProvider) GetHost() string {
 // GetPort returns the port of the database provider.
 func (m *MetricsProvider) GetPort() uint16 {
 	return m.Port
+}
+
+// GetOrgName returns the organization name of the provider.
+func (m *MetricsProvider) GetOrgName() string {
+	return m.OrgName
 }
 
 // GetDBName returns the database name of the provider.

@@ -7,6 +7,7 @@ type Provider interface {
 
 	GetHost() string     // Returns the host.
 	GetPort() uint16     // Returns the port.
+	GetOrgName() string  // Returns the organization name.
 	GetDBName() string   // Returns the database name.
 	GetUsername() string // Returns the username.
 	GetPassword() string // Returns the password.
