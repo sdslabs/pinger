@@ -64,6 +64,7 @@ func Background() *Context {
 func BackgroundDebug() *Context {
 	ctx := Background()
 	ctx.debug = true
+	ctx.log.SetLevel(logrus.DebugLevel)
 	return ctx
 }
 
