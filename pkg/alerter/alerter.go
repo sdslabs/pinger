@@ -27,6 +27,15 @@ func Register(name string, fn newFunc) {
 	alerters[name] = fn
 }
 
+// List returns a list of all the enabled alerters.
+func List() []string {
+	list := make([]string, 0, len(alerters))
+	for name := range alerters {
+		list = append(list, name)
+	}
+	return list
+}
+
 // Alerter is responsible for sending alerts.
 type Alerter interface {
 	// Provision sets the alerter's configuration.

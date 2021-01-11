@@ -28,6 +28,15 @@ func Register(name string, fn newFunc) {
 	exporters[name] = fn
 }
 
+// List returns a list of all the enabled exporters.
+func List() []string {
+	list := make([]string, 0, len(exporters))
+	for name := range exporters {
+		list = append(list, name)
+	}
+	return list
+}
+
 // Exporter is anything that can export metrics into the database provider.
 type Exporter interface {
 	// Provision provisions the exporter. Creates database connection and
