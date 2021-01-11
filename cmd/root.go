@@ -33,6 +33,7 @@ of the application.`,
 		newAgentCmd,
 		newModeCmd,
 		newVersionCmd,
+		newListCommand,
 	); err != nil {
 		return nil, err
 	}

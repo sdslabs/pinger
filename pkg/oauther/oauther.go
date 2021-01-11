@@ -32,6 +32,15 @@ func Register(name string, fn newFunc) {
 	oauthers[name] = fn
 }
 
+// List returns a list of all the enabled oauthers.
+func List() []string {
+	list := make([]string, 0, len(oauthers))
+	for name := range oauthers {
+		list = append(list, name)
+	}
+	return list
+}
+
 // Oauther represents any service that provides third-party authentication
 // through the Oauth2 protocol.
 type Oauther interface {

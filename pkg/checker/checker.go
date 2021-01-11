@@ -34,6 +34,15 @@ func Register(name string, fn newFunc) {
 	checkers[name] = fn
 }
 
+// List returns a list of all the enabled checkers.
+func List() []string {
+	list := make([]string, 0, len(checkers))
+	for name := range checkers {
+		list = append(list, name)
+	}
+	return list
+}
+
 // Result is the checker result returned after a check exec has been
 // completed.
 //
