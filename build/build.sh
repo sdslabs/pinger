@@ -11,7 +11,7 @@ BIN_NAME="pinger"
 
 # If the tag is not found takes the "{{ HEAD commit short name }} (dev)"
 CURRENT_TAG=$(git describe --tags --exact-match 2> /dev/null \
-  || echo "$(git rev-parse --short HEAD)" "(dev)")
+  || echo $(git rev-parse --short HEAD))
 
 LDFLAGS="-X '${IMPORT_PATH}/cmd.version=${CURRENT_TAG}'"
 if [ "${DEBUG}" = "on" ]
