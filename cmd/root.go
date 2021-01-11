@@ -31,7 +31,6 @@ of the application.`,
 	if err := addCommands(ctx, v, cmd,
 		// Add commands here
 		newAgentCmd,
-		newModeCmd,
 		newVersionCmd,
 		newListCommand,
 	); err != nil {
