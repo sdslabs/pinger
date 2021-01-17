@@ -33,7 +33,7 @@ all the errors that might be resolved automatically.
 # To check for linting errors
 $ make lint
 # To fix auto-fixable errors
-$ make format
+$ make fmt
 ```
 
 ### Other checks
