@@ -14,10 +14,10 @@ import (
 
 	"github.com/sdslabs/pinger/pkg/config/configfile"
 	"github.com/sdslabs/pinger/pkg/exporter"
-	"github.com/sdslabs/pinger/pkg/util"
 	"github.com/sdslabs/pinger/pkg/util/appcontext"
 	"github.com/sdslabs/pinger/pkg/util/controller"
 	"github.com/sdslabs/pinger/pkg/util/httpserver"
+	metricsutil "github.com/sdslabs/pinger/pkg/util/metrics"
 	"github.com/sdslabs/pinger/pkg/util/static"
 )
 
@@ -201,6 +201,6 @@ func addMetricsRoute(
 			return
 		}
 
-		httpserver.RespondOK(ctx, c, util.PrepareMetricsResponse(batches, metrics))
+		httpserver.RespondOK(ctx, c, metricsutil.PrepareMetricsResponse(batches, metrics))
 	})
 }
