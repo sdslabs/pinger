@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/sdslabs/pinger/pkg/components/agent/ui/static"
+
+	"github.com/sdslabs/pinger/pkg/components/agent/ui"
 
 	"github.com/gin-gonic/gin"
 
@@ -18,18 +21,9 @@ import (
 	"github.com/sdslabs/pinger/pkg/util/controller"
 	"github.com/sdslabs/pinger/pkg/util/httpserver"
 	metricsutil "github.com/sdslabs/pinger/pkg/util/metrics"
-	"github.com/sdslabs/pinger/pkg/util/static"
 )
 
 const (
-	// agentFilePath is the directory where static content is stored specific
-	// to the agent.
-	agentFilePath = "/agent"
-
-	// staticFilesPath is the directory where static content is stored which
-	// can be publicly accessed.
-	staticFilesPath = agentFilePath + "/public"
-
 	// templateName is the name of the template for agent's status page.
 	templateName = "page.gohtml"
 
@@ -86,11 +80,7 @@ func serveStatusPage(
 
 	addMetricsRoute(ctx, router, manager, getMetrics)
 
-	staticFS, err := static.NewHTTPFS(ctx, staticFilesPath)
-	if err != nil {
-		return err
-	}
-	router.StaticFS(routeStatic, staticFS)
+	router.StaticFS(routeStatic, http.FS(static.FS))
 
 	if conf.Media != "" {
 		router.Static(routeMedia, conf.Media)
@@ -110,28 +100,12 @@ func serveStatusPage(
 
 // addBaseRoute adds the route that returns template for status page.
 func addBaseRoute(
-	ctx *appcontext.Context,
+	_ *appcontext.Context,
 	router *gin.Engine,
 	manager *controller.Manager,
 	conf *configfile.AgentPage,
 ) error {
-	agentFS, err := static.NewFS(ctx, agentFilePath)
-	if err != nil {
-		return err
-	}
-
-	tmplFile, err := agentFS.Open(templateName)
-	if err != nil {
-		return err
-	}
-	defer tmplFile.Close() // nolint:errcheck
-
-	templateContent, err := ioutil.ReadAll(tmplFile)
-	if err != nil {
-		return err
-	}
-
-	compiledTemplate, err := template.New(templateName).Parse(string(templateContent))
+	compiledTemplate, err := template.New(templateName).Parse(ui.TemplateContent)
 	if err != nil {
 		return err
 	}
@@ -152,6 +126,7 @@ func addBaseRoute(
 	}
 
 	router.SetHTMLTemplate(compiledTemplate)
+
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, templateName, httpserver.PageResponse{
 			Name:       conf.Name,

@@ -1,6 +1,6 @@
 # Build Pinger binary
 
-FROM golang:1.15.1-alpine3.12 AS builder
+FROM golang:1.16.0-alpine3.13 AS builder
 
 WORKDIR /go/src/github.com/sdslabs/pinger
 
@@ -11,7 +11,7 @@ ARG vers
 RUN apk update && \
   apk add make && \
   apk add bash
-RUN make bin VERSION=$vers
+RUN make build VERSION=$vers
 
 # Copy binary into actual image
 

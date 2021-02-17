@@ -1,30 +1,25 @@
-run:
-  skip-files:
-  - "pkg/util/static/resource.go" # generated file
-
 issues:
   exclude-use-default: false
 
 linters:
   disable-all: true
   enable:
-  - govet
-  - errcheck
-  - staticcheck
-  - unused
-  - gosimple
-  - bodyclose
-  - noctx
-  - golint
-  - gosec
-  - unconvert
-  - goconst
-  - gocyclo
-  - gofmt
-  - goimports
-  - misspell
-  - lll
-  - prealloc
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - gosimple
+    - bodyclose
+    - noctx
+    - gosec
+    - unconvert
+    - goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - misspell
+    - lll
+    - prealloc
 
 linters-settings:
   govet:
@@ -32,10 +27,12 @@ linters-settings:
     settings:
       printf:
         funcs:
-        - (github.com/sirupsen/logrus.Logger).Infof
-        - (github.com/sirupsen/logrus.Logger).Warnf
-        - (github.com/sirupsen/logrus.Logger).Errorf
-        - (github.com/sirupsen/logrus.Logger).Fatalf
+          - (github.com/sirupsen/logrus.Logger).Tracef
+          - (github.com/sirupsen/logrus.Logger).Debugf
+          - (github.com/sirupsen/logrus.Logger).Infof
+          - (github.com/sirupsen/logrus.Logger).Warnf
+          - (github.com/sirupsen/logrus.Logger).Errorf
+          - (github.com/sirupsen/logrus.Logger).Fatalf
 
   errcheck:
     check-type-assertions: true
