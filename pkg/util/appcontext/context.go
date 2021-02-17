@@ -60,11 +60,20 @@ func Background() *Context {
 	return &Context{ctx: ctx, log: log}
 }
 
-// BackgroundDebug is same as Background with Debug returning true.
+// BackgroundDebug is same as Background with Debug returning true and logging
+// level set to debug.
 func BackgroundDebug() *Context {
 	ctx := Background()
 	ctx.debug = true
 	ctx.log.SetLevel(logrus.DebugLevel)
+	return ctx
+}
+
+// BackgroundTrace is same as BackgroundDebug with logging level as trace.
+func BackgroundTrace() *Context {
+	ctx := Background()
+	ctx.debug = true
+	ctx.log.SetLevel(logrus.TraceLevel)
 	return ctx
 }
 

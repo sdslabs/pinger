@@ -1,9 +1,6 @@
 env:
   - GO111MODULE=on
   - GOPROXY=https://proxy.golang.org
-before:
-  hooks:
-    - make static
 builds:
   - env:
       - CGO_ENABLED=0

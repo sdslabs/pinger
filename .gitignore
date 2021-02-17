@@ -2,8 +2,5 @@
 /dist
 /pinger*
 
-# Static resources
-/pkg/util/static/resource.go
-
 # Default config files
 /agent.yml
