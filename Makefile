@@ -33,7 +33,7 @@ bin: static build
 
 .PHONY: build
 build:
-	DEBUG=$(DEBUG) ./build/build.sh
+	DEBUG=$(DEBUG) VERSION=$(VERSION) ./build/build.sh
 
 .PHONY: docker
 docker:
