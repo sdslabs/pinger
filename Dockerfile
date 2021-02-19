@@ -6,10 +6,12 @@ WORKDIR /go/src/github.com/sdslabs/pinger
 
 COPY . .
 
+ARG vers
+
 RUN apk update && \
   apk add make && \
   apk add bash
-RUN make bin
+RUN make bin VERSION=$vers
 
 # Copy binary into actual image
 

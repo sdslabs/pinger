@@ -9,9 +9,13 @@ IMPORT_PATH="github.com/sdslabs/pinger"
 TARGET_DIR="."
 BIN_NAME="pinger"
 
-# If the tag is not found takes the "{{ HEAD commit short name }} (dev)"
-CURRENT_TAG=$(git describe --tags --exact-match 2> /dev/null \
-  || echo $(git rev-parse --short HEAD))
+# set the default version to dev
+if [ -z ${VERSION} ]
+then
+  CURRENT_TAG="dev"
+else
+  CURRENT_TAG="${VERSION}"
+fi
 
 LDFLAGS="-X '${IMPORT_PATH}/cmd.version=${CURRENT_TAG}'"
 if [ "${DEBUG}" = "on" ]
