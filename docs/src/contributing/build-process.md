@@ -23,13 +23,15 @@ generates a file called `pkg/util/static/resource.go` which contains all
 the content in a compressed format.
 
 Once we have our resources ready, we can build the executable using the
-`make build` command. Hence, the workflow can be:
+`make build` command. We have `VERSION` flag for setting the version of 
+the binary. The deafault version is set to `dev`. Hence, the workflow can
+be:
 
 ```sh
 # If there's a change in `static` dir
 $ make static
 # Building the binary
-$ make build
+$ make build VERSION=1.0.1
 ```
 
 Once the `static` directory is large enough, it's going to take a while to
@@ -70,6 +72,10 @@ command.
 ```sh
 $ make docker TAG="pinger:v1.2.3"
 ```
+
+> **Note:** In case of docker image, version is extracted from the tag.
+>For example: in the aforementioned case, version of the binary will 
+>set to `v1.2.3`.
 
 ## Documentation
 
