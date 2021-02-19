@@ -11,7 +11,10 @@ then
   TAG="pinger:dev"
 fi
 
+# extract version from the tag by omitting pinger from string
+VERSION=$(echo $TAG | cut -d':' -f 2)
+
 # Build the image using the tag.
-docker build -t "${TAG}" .
+docker build -t "${TAG}" --build-arg vers="${VERSION}" .
 
 finally "Built image with tag '${TAG}'"
