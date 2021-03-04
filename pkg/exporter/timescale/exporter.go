@@ -68,13 +68,19 @@ func (m Metric) IsSuccessful() bool {
 // newConn creates a new connection with the database.
 func newConn(ctx *appcontext.Context, provider exporter.Provider) (*gorm.DB, error) {
 	connStr := fmt.Sprintf(
-		`host=%s port=%d user=%s dbname=%s password=%s`,
+		`host=%s  user=%s dbname=%s password=%s`,
 		provider.GetHost(),
-		provider.GetPort(),
 		provider.GetUsername(),
 		provider.GetDBName(),
 		provider.GetPassword(),
 	)
+
+	if provider.GetPort() != 0 {
+		connStr = fmt.Sprintf("%s port=%d",
+			connStr,
+			provider.GetPort(),
+		)
+	}
 
 	if !provider.IsSSLMode() {
 		connStr = fmt.Sprintf("%s sslmode=disable", connStr)
