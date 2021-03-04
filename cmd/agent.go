@@ -20,7 +20,7 @@ const (
 	defaultAgentPort            uint16 = 9009
 	defaultAgentStandaloneMode         = false
 	defaultAgentMetricsHost            = "127.0.0.1"
-	defaultAgentMetricsPort     uint16 = 5432
+	defaultAgentMetricsPort     uint16 = 0
 	defaultAgentMetricsUsername        = ""
 	defaultAgentMetricsPassword        = ""
 	defaultAgentMetricsOrgName         = ""

@@ -46,18 +46,20 @@ func init() {
 
 // newClient creates a new client for the database.
 func newClient(_ *appcontext.Context, provider exporter.Provider) (client.Client, error) {
-	protocol := "http"
-	if provider.IsSSLMode() {
-		protocol = "https"
-	}
-	addStr := fmt.Sprintf("%s://%s",
-		protocol,
-		net.JoinHostPort(
-			provider.GetHost(),
-			strconv.Itoa(int(provider.GetPort())),
-		),
+
+	addStr := fmt.Sprintf("https://%s",
+		provider.GetHost(),
 	)
 
+	if provider.GetPort() != 0 {
+		addStr = fmt.Sprintf("https://%s",
+			net.JoinHostPort(
+				provider.GetHost(),
+				strconv.Itoa(int(provider.GetPort())),
+			),
+		)
+
+	}
 	authStr := fmt.Sprintf("%s:%s", provider.GetUsername(), provider.GetPassword())
 	if provider.GetUsername() == "" {
 		authStr = provider.GetPassword() // in case using token authentication
