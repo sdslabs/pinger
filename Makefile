@@ -11,9 +11,9 @@ help:
 	@echo "$(BOLD)Targets:$(NORMAL)"
 	@printf "  make %s\n    %s\n" \
 		"all" "Builds binary and documentation" \
-		"bin" "Generates static resources and builds binary" \
 		"build" "Builds the binary" \
 		"build DEBUG=on" "Build the binary in debug mode" \
+		"build VERSION=v1.2.3" "Builds the binary with version v1.2.3" \
 		"docker" "Builds the docker image" \
 		"docker TAG=abc:def" "Builds the docker image with given tag" \
 		"docs" "Builds the documentation" \
@@ -21,15 +21,11 @@ help:
 		"fmt" "Formats the code" \
 		"lint" "Checks for errors in code" \
 		"proto" "Compiles the protobufs into go code" \
-		"static" "Generate static resource go file" \
 		"vendor" "Cleans up and updates vendor"
 	@echo
 
 .PHONY: all
-all: bin docs
-
-.PHONY: bin
-bin: static build
+all: build docs
 
 .PHONY: build
 build:
@@ -54,10 +50,6 @@ lint:
 .PHONY: proto
 proto:
 	./build/proto.sh
-
-.PHONY: static
-static:
-	./build/static.sh
 
 .PHONY: vendor
 vendor:
