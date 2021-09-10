@@ -14,10 +14,6 @@ import (
 	"github.com/sdslabs/pinger/pkg/util/appcontext"
 )
 
-// var conn *pgx.Conn
-
-// var err error
-
 const exporterName = "questdb"
 
 // Exporter for exporting metrics to timescale db.
@@ -146,31 +142,13 @@ func (e *Exporter) getMetricsByChecksAndDuration(
 	duration time.Duration,
 ) (map[string][]checker.Metric, error) {
 	startTime := time.Now().Add(-1 * duration)
-	// var fetched []Metric
 
 	metrics := map[string][]checker.Metric{}
-
-	// queStr := fmt.Sprintf(
-	// 	`SELECT * FROM pinger WHERE check_id IN (%s) AND start_time > %s start_time ORDER BY userId DESC;`,
-	// 	checkIDs, startTime,
-	// )
-	// err = conn.QueryRow(context.Background(), "select name, weight from widgets where id=$1", 42).Scan(&name, &weight)
 
 	fetched, err := e.conn.Query(ctx, "SELECT * FROM pinger WHERE check_id= $1 start_time > $2 * ORDER BY start_time", checkIDs, startTime)
 	if err != nil {
 		fmt.Print(err)
 	}
-
-	// rows, err := conn.Query(ctx, "SELECT * FROM trades")
-	// fmt.Println("Reading from trades table:")
-	// for rows.Next() {
-	// 	var name string
-	// 	var value int64
-	// 	var ts time.Time
-	// 	var date time.Time
-	// 	err = rows.Scan(&ts, &date, &name, &value)
-	// 	fmt.Println(ts, date, name, value)
-	// }
 
 	for fetched.Next() {
 		var CheckID string
