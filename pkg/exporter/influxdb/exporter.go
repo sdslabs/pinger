@@ -1,4 +1,4 @@
-package influxdb1
+package influxdb
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 	"github.com/sdslabs/pinger/pkg/util/appcontext"
 )
 
-const exporterName = "influxdb1"
+const exporterName = "influxdb"
 
 // metric keys
 const (

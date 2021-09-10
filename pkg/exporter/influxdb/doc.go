@@ -1,2 +1,2 @@
 // Package influxdb implements the influxdb exporter.
-package influxdb1
+package influxdb
