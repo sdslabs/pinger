@@ -11,25 +11,29 @@ help:
 	@echo "$(BOLD)Targets:$(NORMAL)"
 	@printf "  make %s\n    %s\n" \
 		"all" "Builds binary and documentation" \
+		"bin" "Generates static resources and builds binary" \
 		"build" "Builds the binary" \
-		"build DEV=on" "Build the binary in development mode" \
-		"build VERSION=v1.2.3" "Builds the binary with version v1.2.3" \
+		"build DEBUG=on" "Build the binary in debug mode" \
 		"docker" "Builds the docker image" \
 		"docker TAG=abc:def" "Builds the docker image with given tag" \
 		"docs" "Builds the documentation" \
-		"docs DEV=on" "Serves documentation on local server" \
+		"docs DEBUG=on" "Serves documentation on local server" \
 		"fmt" "Formats the code" \
 		"lint" "Checks for errors in code" \
 		"proto" "Compiles the protobufs into go code" \
+		"static" "Generate static resource go file" \
 		"vendor" "Cleans up and updates vendor"
 	@echo
 
 .PHONY: all
-all: build docs
+all: bin docs
+
+.PHONY: bin
+bin: static build
 
 .PHONY: build
 build:
-	DEV=$(DEV) VERSION=$(VERSION) ./build/build.sh
+	DEBUG=$(DEBUG) VERSION=$(VERSION) ./build/build.sh
 
 .PHONY: docker
 docker:
@@ -37,7 +41,7 @@ docker:
 
 .PHONY: docs
 docs:
-	DEV=$(DEV) ./build/docs.sh
+	DEBUG=$(DEBUG) ./build/docs.sh
 
 .PHONY: fmt
 fmt:
@@ -50,6 +54,10 @@ lint:
 .PHONY: proto
 proto:
 	./build/proto.sh
+
+.PHONY: static
+static:
+	./build/static.sh
 
 .PHONY: vendor
 vendor:

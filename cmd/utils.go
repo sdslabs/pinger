@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -18,7 +17,7 @@ var (
 )
 
 // initConfig reads and unmarshals the config.
-func initConfig(_ *appcontext.Context, v *viper.Viper, confPath, defaultPath string, resolveTo interface{}) error {
+func initConfig(ctx *appcontext.Context, v *viper.Viper, confPath, defaultPath string, resolveTo interface{}) error {
 	if confPath != "" {
 		v.SetConfigFile(confPath)
 	} else {
@@ -66,22 +65,4 @@ func addCommands(ctx *appcontext.Context, v *viper.Viper, root *cobra.Command, f
 	}
 
 	return nil
-}
-
-// NewAppContext creates a pinger-app context.
-func NewAppContext() *appcontext.Context {
-	// Running the binary with environment variable `DEBUG` set to `on` will
-	// enable debug logs and some other tweaks that can be configured using
-	// the app-context.
-	// TODO(vrongmeal): Document this information.
-	if debug, ok := os.LookupEnv("DEBUG"); ok && debug == "on" {
-		// While developing, in debug mode, enable trace logging as-well.
-		if dev {
-			return appcontext.BackgroundTrace()
-		}
-
-		return appcontext.BackgroundDebug()
-	}
-
-	return appcontext.Background()
 }

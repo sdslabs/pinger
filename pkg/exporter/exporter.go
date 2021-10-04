@@ -68,7 +68,9 @@ type GetterFunc = func(context.Context, time.Duration, ...string) (map[string][]
 // exports the metrics.
 func Initialize(ctx *appcontext.Context, provider Provider) (ExportFunc, GetterFunc, error) {
 	name := provider.GetBackend()
+
 	newExporter, ok := exporters[name]
+
 	if !ok {
 		return nil, nil, fmt.Errorf("exporter with name does not exist: %s", name)
 	}

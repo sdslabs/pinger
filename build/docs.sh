@@ -9,9 +9,11 @@ DOCS_DIR="./docs"
 
 cd "${DOCS_DIR}"
 
-# Build the documentation. If development mode is on, serve instead of build.
+# Build the documentation. If debug mode is on, serve instead of build.
+# This also installs dependencies when debug mode is off. When running
+# for the first time, don't run in debug mode to install all dependencies.
 BUILD_CMD="build"
-if [ "${DEV}" = "on" ]
+if [ "${DEBUG}" = "on" ]
 then
   BUILD_CMD="serve"
 fi

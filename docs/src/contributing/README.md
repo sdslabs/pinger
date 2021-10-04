@@ -13,7 +13,7 @@ storing metrics.
 
 Before beginning make sure you have all the required tools installed:
 
-- [Go](https://golang.org/doc/install) `v1.16.x`
+- [Go](https://golang.org/doc/install) `v1.15.x`
 - [Protobuf for Golang](https://developers.google.com/protocol-buffers/docs/gotutorial#compiling-your-protocol-buffers)
   - [`protoc`](https://github.com/protocolbuffers/protobuf/releases) `v3.14.x`
   - [`protoc-gen-go`](https://google.golang.org/protobuf/cmd/protoc-gen-go) `v1.25.x`

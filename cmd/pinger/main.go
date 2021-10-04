@@ -15,9 +15,16 @@ import (
 )
 
 func main() {
+	var emptyCtx *appcontext.Context
+	if cmd.IsDebug() {
+		emptyCtx = appcontext.BackgroundDebug()
+	} else {
+		emptyCtx = appcontext.Background()
+	}
+
 	// Parent context for the application.
 	ctx, cancel := appcontext.WithSignals(
-		cmd.NewAppContext(),
+		emptyCtx,
 		os.Interrupt, os.Kill, // Exit on interrupt or kill
 	)
 	defer cancel()
