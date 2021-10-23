@@ -72,24 +72,24 @@ func (m Metric) IsSuccessful() bool {
 
 // newConn creates a new connection with the database.
 func newConn(ctx *appcontext.Context, provider exporter.Provider) (*pgxpool.Pool, error) {
-	connStr := fmt.Sprintf(
-		`host=%s  user=%s dbname=%s password=%s`,
-		provider.GetHost(),
-		provider.GetUsername(),
-		provider.GetDBName(),
-		provider.GetPassword(),
-	)
+	// connStr := fmt.Sprintf(
+	// 	`host=%s  user=%s dbname=%s password=%s`,
+	// 	provider.GetHost(),
+	// 	provider.GetUsername(),
+	// 	provider.GetDBName(),
+	// 	provider.GetPassword(),
+	// )
 
-	if provider.GetPort() != 0 {
-		connStr = fmt.Sprintf("%s port=%d",
-			connStr,
-			provider.GetPort(),
-		)
-	}
+	// if provider.GetPort() != 0 {
+	// 	connStr = fmt.Sprintf("%s port=%d",
+	// 		connStr,
+	// 		provider.GetPort(),
+	// 	)
+	// }
 
-	if !provider.IsSSLMode() {
-		connStr = fmt.Sprintf("%s sslmode=disable", connStr)
-	}
+	// if !provider.IsSSLMode() {
+	// 	connStr = fmt.Sprintf("%s sslmode=disable", connStr)
+	// }
 
 	db, err := pgxpool.Connect(ctx, "postgresql://admin:quest@localhost:8812/qdb")
 	if err != nil {
@@ -185,9 +185,14 @@ func (e *Exporter) getMetricsByChecksAndDuration(
 			return nil, err
 		}
 
-		timeout1, _ := strconv.ParseBool(Timeout)
-		success1, _ := strconv.ParseBool(Success)
-
+		timeout1, err1 := strconv.ParseBool(Timeout)
+		if err1 != nil {
+			return nil, err
+		}
+		success1, err2 := strconv.ParseBool(Success)
+		if err2 != nil {
+			return nil, err
+		}
 		m := Metric{CheckID, CheckName, StartTime, Duration, timeout1, success1}
 
 		if _, ok := metrics[m.CheckID]; !ok {

@@ -66,8 +66,6 @@ github.com/influxdata/influxdb-client-go/v2/internal/http
 github.com/influxdata/influxdb-client-go/v2/internal/log
 github.com/influxdata/influxdb-client-go/v2/internal/write
 github.com/influxdata/influxdb-client-go/v2/log
-# github.com/influxdata/influxdb1-client v0.0.0-20200827194710-b269163b24ab
-## explicit
 # github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839
 github.com/influxdata/line-protocol
 # github.com/jackc/chunkreader/v2 v2.0.1
