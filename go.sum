@@ -258,7 +258,6 @@ github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7J
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pelletier/go-toml v1.6.0 h1:aetoXYr0Tv7xRU/V4B4IZJ2QcbtMUFoNb3ORp7TzIK4=
 github.com/pelletier/go-toml v1.6.0/go.mod h1:5N711Q9dKgbdkxHL+MEfF31hpT7l0S0s/t2kKREewys=
-github.com/phogolabs/cli v0.0.0-20191212161310-ce689d871370 h1:jGx4KpaIpen14V5GR/valO9BoaDjqiqSSlS0l4WLGJ4=
 github.com/phogolabs/cli v0.0.0-20191212161310-ce689d871370/go.mod h1:grzrc/EIac+v5wd6EjBB4a9obKGGIdsgWhPIsqjBGLo=
 github.com/phogolabs/parcello v0.8.1/go.mod h1:/HlY+yKSdyM8MUX9YvwT3+sED9SKXizc5zfuHDh6+to=
 github.com/phogolabs/parcello v0.8.2 h1:XFNJw82IXEARNHFXh2FlsVOOEwjIQkoeKmgNRyH7264=
