@@ -61,13 +61,6 @@ $ make docker TAG="pinger:v1.2.3"
 >For example: in the aforementioned case, version of the binary will 
 >set to `v1.2.3`.
 
-## Docker Compose
-
-Along with the `Dockerfile`, `docker-compose.yml` is also present in the 
-root directory to get the service up and running. Both the `Dockerfile`
-and the `docker-compose.yml` assume that an `agent.yml` will be present in
-the root directory.
-
 ## Documentation
 
 Documentation is not (yet) packaged into the binary. We currently host it
