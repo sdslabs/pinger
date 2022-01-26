@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  # Timescale DB is used to store the metrics
+  timescale:
+    image: timescale/timescaledb:2.0.0-pg12
+    # Setting environment variables for Timescale
+    environment:
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "pinger"
+    # Healthcheck conditions are defined since pinger service needs to know if Timescale has started
+    # pg_isready is a binary that is available with the postgres image(timescale is built upon postgres)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # Mapping the volume to make it persistent
+    volumes:
+      - ./pinger_data:/var/lib/postgresql/data
+  pinger:
+    # Depends on timescale and condition will be true when timescale can accept connections
+    depends_on:
+      timescale:
+        condition: service_healthy
+    build: ./
+    # PINGER_PORT is the port on the host machine where the service will be available. Set it through .env
+    ports:
+      - "${PINGER_PORT:-9010}:9010"
