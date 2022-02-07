@@ -15,6 +15,6 @@ fi
 VERSION=$(echo $TAG | cut -d':' -f 2)
 
 # Build the image using the tag.
-docker build -t "${TAG}" --build-arg vers="${VERSION}" .
+docker build -t "${TAG}" .
 
 finally "Built image with tag '${TAG}'"
