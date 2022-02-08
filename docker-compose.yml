@@ -17,7 +17,7 @@ services:
       retries: 5
     # Mapping the volume to make it persistent
     volumes:
-      - ./pinger_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
   pinger:
     # Depends on timescale and condition will be true when timescale can accept connections
     depends_on:
@@ -27,3 +27,11 @@ services:
     # PINGER_PORT is the port on the host machine where the service will be available. Set it through .env
     ports:
       - "${PINGER_PORT:-9010}:9010"
+# Specifies the default network to be pinger
+networks:
+  default:
+    name: pinger
+# Specifies the volume to be used to store the db data
+volumes:
+  db_data:
+    name: pinger-data
