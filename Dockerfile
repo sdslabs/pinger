@@ -29,7 +29,7 @@ WORKDIR /go/bin
 COPY --from=builder /go/src/github.com/sdslabs/pinger/pinger .
 
 # Copy over the agent.yml from Builder image
-# COPY --from=builder /go/src/github.com/sdslabs/pinger/agent.yml .
+COPY --from=builder /go/src/github.com/sdslabs/pinger/agent.yml .
 
 # Final command to run pinger
-CMD [ "./pinger", "version" ]
+CMD [ "./pinger", "agent" ]

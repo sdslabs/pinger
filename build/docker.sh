@@ -5,6 +5,12 @@ source ./build/util.sh
 set -e
 set -x
 
+FILE=./agent.yml
+
+if [ ! -f "$FILE" ]; then
+    cp agent.sample.yml agent.yml
+fi
+
 # If a tag is not specified, set the tag to "pinger:dev"
 if [ -z "${TAG}" ]
 then

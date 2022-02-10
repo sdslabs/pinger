@@ -60,13 +60,12 @@ $ make docker TAG="pinger:v1.2.3"
 ```
 
 > **Note:** In case of docker image, version defaults to `1.0`
+> **Note:** In case no `agent.yml` is provided, `agent.sample.yml` will be copied to `agent.yml`
 
 ## Docker Compose
 
 A `docker-compose.yml` is also provided to get pinger started more easier.
-Just add an `agent.yml` according to your use case, replace
-`CMD [ "./pinger", "version" ]` in the `Dockerfile` with `CMD [ "./pinger", "agent" ]`
-and then run `docker-compose up`.
+Just add an `agent.yml` according to your use case and then run `docker-compose up`.
 This will get both the timescale db and pinger container up and running in no time!
 
 ## Documentation

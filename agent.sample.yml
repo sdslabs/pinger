@@ -1,0 +1,35 @@
+# agent.yml
+
+# We need to tell Pinger to run the agent in standalone mode since the
+# default behaviour is something else.
+standalone: true
+
+# Configuration for where metrics are stored.
+metrics:
+    backend: timescale
+    host: timescale
+    port: 5432
+    username: postgres
+    password: password
+    db_name: pinger
+    ssl_mode: false # Let's just keep it off for now
+page:
+    deploy: true
+    allowed_origins: ["*"] # For now allow every origin
+    name: My Status Page
+
+# Interval after which metrics are logged into database.
+interval: 5s
+
+checks:
+    - id: ping-google # unique ID
+      name: Ping Google # human-readable name
+      interval: 5s # Ping every 5 seconds
+      timeout: 0.5s # Timeout if it takes longer than half a second
+      input:
+          type: HTTP # Protocol
+      output:
+          type: TIMEOUT # Condition for success/failure
+      target: # Target to hit/request
+          type: URL
+          value: http://www.google.com/
