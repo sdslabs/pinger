@@ -12,7 +12,7 @@ BIN_NAME="pinger"
 # set the default version to undefined
 if [ -z ${VERSION} ]
 then
-  CURRENT_TAG="undefined"
+  CURRENT_TAG="dev"
 else
   CURRENT_TAG="${VERSION}"
 fi
