@@ -67,6 +67,10 @@ $ make docker TAG="pinger:v1.2.3"
 A `docker-compose.yml` is also provided to get pinger started more easier.
 Just add an `agent.yml` according to your use case and then run `docker-compose up`.
 This will get both the timescale db and pinger container up and running in no time!
+For setting custom values for the Timescale DB's name and password, just run `cp .env.sample .env`
+and then change the values in the `.env` according to your need. The changes will reflect in both
+Timescale's and Pinger's container (overriding the name and password value set in `agent.yml`) without
+requiring you to make changes in multiple places.
 
 ## Documentation
 
