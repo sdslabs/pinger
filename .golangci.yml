@@ -53,7 +53,7 @@ linters-settings:
     ignore-words: []
 
   lll:
-    line-length: 120
+    line-length: 200
     tab-width: 4
 
   gocyclo:

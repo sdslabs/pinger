@@ -80,9 +80,13 @@ github.com/jackc/pgservicefile
 # github.com/jackc/pgtype v1.4.2
 github.com/jackc/pgtype
 # github.com/jackc/pgx/v4 v4.8.1
+## explicit
 github.com/jackc/pgx/v4
 github.com/jackc/pgx/v4/internal/sanitize
+github.com/jackc/pgx/v4/pgxpool
 github.com/jackc/pgx/v4/stdlib
+# github.com/jackc/puddle v1.1.1
+github.com/jackc/puddle
 # github.com/jinzhu/inflection v1.0.0
 github.com/jinzhu/inflection
 # github.com/jinzhu/now v1.1.1
