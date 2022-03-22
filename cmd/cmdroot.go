@@ -30,6 +30,7 @@ of the application.`,
 	// add various commands
 	if err := addCommands(ctx, v, cmd,
 		// Add commands here
+		newCentralCmd,
 		newAgentCmd,
 		newVersionCmd,
 		newListCommand,
