@@ -82,7 +82,7 @@ jobs:
       run: make docker TAG="pinger:dev"
 
     - name: Run container
-      run: docker run --rm pinger:dev
+      run: docker run --rm pinger:dev ./pinger version
 
   proto:
     name: Protobuf

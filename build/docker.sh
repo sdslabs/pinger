@@ -5,6 +5,12 @@ source ./build/util.sh
 set -e
 set -x
 
+FILE=./agent.yml
+
+if [ ! -f "$FILE" ]; then
+    cp agent.sample.yml agent.yml
+fi
+
 # If a tag is not specified, set the tag to "pinger:dev"
 if [ -z "${TAG}" ]
 then
@@ -15,6 +21,6 @@ fi
 VERSION=$(echo $TAG | cut -d':' -f 2)
 
 # Build the image using the tag.
-docker build -t "${TAG}" --build-arg vers="${VERSION}" .
+docker build -t "${TAG}" .
 
 finally "Built image with tag '${TAG}'"

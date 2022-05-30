@@ -4,3 +4,4 @@
 
 # Default config files
 /agent.yml
+/.env

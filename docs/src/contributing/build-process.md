@@ -19,6 +19,8 @@ required for the frontend. Once we have our resources ready, we can build the
 executable using the `make build` command. We have `VERSION` flag for setting
 the version of the binary.
 
+> **Note:** In case no `VERSION` is provided, version defaults to `dev`
+
 ```sh
 # Building the binary
 $ make build VERSION=1.0.1
@@ -57,9 +59,18 @@ command.
 $ make docker TAG="pinger:v1.2.3"
 ```
 
-> **Note:** In case of docker image, version is extracted from the tag.
->For example: in the aforementioned case, version of the binary will 
->set to `v1.2.3`.
+> **Note:** In case of docker image, version defaults to `1.0`
+> **Note:** In case no `agent.yml` is provided, `agent.sample.yml` will be copied to `agent.yml`
+
+## Docker Compose
+
+A `docker-compose.yml` is also provided to get pinger started more easier.
+Just add an `agent.yml` according to your use case and then run `docker-compose up`.
+This will get both the timescale db and pinger container up and running in no time!
+For setting custom values for the Timescale DB's name and password, just run `cp .env.sample .env`
+and then change the values in the `.env` according to your need. The changes will reflect in both
+Timescale's and Pinger's container (overriding the name and password value set in `agent.yml`) without
+requiring you to make changes in multiple places.
 
 ## Documentation
 
