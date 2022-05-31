@@ -21,11 +21,12 @@ type AgentPage struct {
 
 // Agent represents the configuration for an agent.
 type Agent struct {
-	Standalone bool                   `mapstructure:"standalone" json:"standalone"`
-	Page       AgentPage              `mapstructure:"page" json:"page"`
-	Port       uint16                 `mapstructure:"port" json:"port"`
-	Metrics    config.MetricsProvider `mapstructure:"metrics" json:"metrics"`
-	Alerts     []config.AlertProvider `mapstructure:"alerts" json:"alerts"`
-	Interval   time.Duration          `mapstructure:"interval" json:"interval"`
-	Checks     []config.Check         `mapstructure:"checks" json:"checks"`
+	Standalone         bool                   `mapstructure:"standalone" json:"standalone"`
+	CentralServerRedis config.DBConn          `mapstructure:"central_server_redis" json:"central_server_redis"`
+	Page               AgentPage              `mapstructure:"page" json:"page"`
+	Port               uint16                 `mapstructure:"port" json:"port"`
+	Metrics            config.MetricsProvider `mapstructure:"metrics" json:"metrics"`
+	Alerts             []config.AlertProvider `mapstructure:"alerts" json:"alerts"`
+	Interval           time.Duration          `mapstructure:"interval" json:"interval"`
+	Checks             []config.Check         `mapstructure:"checks" json:"checks"`
 }

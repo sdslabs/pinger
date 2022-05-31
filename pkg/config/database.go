@@ -4,12 +4,12 @@ import "github.com/sdslabs/pinger/pkg/database"
 
 // DBConn config
 type DBConn struct {
-	Host     string
-	Port     uint16
-	Name     string
-	Username string
-	Password string
-	SSLMode  bool
+	Host     string `mapstructure:"host" json:"host"`
+	Port     uint16 `mapstructure:"port" json:"port"`
+	Name     string `mapstructure:"name" json:"name"`
+	Username string `mapstructure:"username" json:"username"`
+	Password string `mapstructure:"password" json:"password"`
+	SSLMode  bool   `mapstructure:"ssl_mode" json:"ssl_mode"`
 }
 
 // GetHost returns the host of the database provider.

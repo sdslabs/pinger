@@ -2,6 +2,7 @@ package central
 
 import (
 	"fmt"
+
 	"github.com/sdslabs/pinger/pkg/util/appcontext"
 )
 

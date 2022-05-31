@@ -100,6 +100,10 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		return nil
 	}
 
+	if err := registerOnCentralServer(&conf.CentralServerRedis); err != nil {
+		return fmt.Errorf("cannot register on central server's redis: %w", err)
+	}
+
 	return runGRPCServer(manager, &aMap, conf.Port)
 }
 
@@ -252,6 +256,11 @@ func shouldUpdateAlert(
 	// last metric to be the same as before.
 	*lastTimestamp = metric.GetStartTime()
 	return true, nil
+}
+
+func registerOnCentralServer(redisConn *config.DBConn) error {
+	fmt.Println(redisConn.GetHost(), redisConn.GetPort())
+	return nil
 }
 
 // runGRPCServer starts the GRPC server that exposes an API for the central
