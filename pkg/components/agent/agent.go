@@ -14,6 +14,8 @@ import (
 
 	"github.com/sdslabs/kiwi/stdkiwi"
 
+	"github.com/go-redis/redis/v8"
+
 	"github.com/sdslabs/pinger/pkg/alerter"
 	"github.com/sdslabs/pinger/pkg/checker"
 	"github.com/sdslabs/pinger/pkg/components/agent/proto"
@@ -259,7 +261,20 @@ func shouldUpdateAlert(
 }
 
 func registerOnCentralServer(redisConn *config.DBConn) error {
-	fmt.Println(redisConn.GetHost(), redisConn.GetPort())
+	addr := fmt.Sprintf("%s:%d", redisConn.GetHost(), redisConn.GetPort())
+	fmt.Println(addr)
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: "",
+		DB:       0,
+	})
+
+	err := rdb.Set(context.TODO(), "theagent", "theagentsvalue", 0).Err()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
