@@ -102,11 +102,7 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		return nil
 	}
 
-	if err := registerOnCentralServer(&conf.CentralServerRedis); err != nil {
-		return fmt.Errorf("cannot register on central server's redis: %w", err)
-	}
-
-	return runGRPCServer(manager, &aMap, conf.Port)
+	return runGRPCServer(ctx, manager, &aMap, conf.Port, &conf.CentralServerRedis)
 }
 
 // initExportAndAlerts initializes the controller for exporting and alerting
@@ -260,17 +256,30 @@ func shouldUpdateAlert(
 	return true, nil
 }
 
-func registerOnCentralServer(redisConn *config.DBConn) error {
-	addr := fmt.Sprintf("%s:%d", redisConn.GetHost(), redisConn.GetPort())
-	fmt.Println(addr)
+func getLocalIPAddr() (string, error) {
+	return "localhost", nil
+}
 
+func registerOnCentralServer(ctx *appcontext.Context, redisConn *config.DBConn, agentPort uint16) error {
+	redisServerAddr := fmt.Sprintf("%s:%d", redisConn.GetHost(), redisConn.GetPort())
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
+		Addr:     redisServerAddr,
 		Password: "",
 		DB:       0,
 	})
 
-	err := rdb.Set(context.TODO(), "theagent", "theagentsvalue", 0).Err()
+	agentIPAddr, err := getLocalIPAddr()
+	if err != nil {
+		return err
+	}
+
+	agentAddr := fmt.Sprintf("%s:%d", agentIPAddr, agentPort)
+
+	zName := redisConn.GetName()
+	err = rdb.ZAdd(ctx, zName, &redis.Z{
+		Score:  float64(0),
+		Member: agentAddr,
+	}).Err()
 	if err != nil {
 		return err
 	}
@@ -279,13 +288,18 @@ func registerOnCentralServer(redisConn *config.DBConn) error {
 }
 
 // runGRPCServer starts the GRPC server that exposes an API for the central
-// to contact the agent.
-func runGRPCServer(manager *controller.Manager, aMap *alertMap, port uint16) error {
+// to contact the agent. Also registers the agent on the central server's redis.
+func runGRPCServer(ctx *appcontext.Context, manager *controller.Manager, aMap *alertMap, port uint16, redisConn *config.DBConn) error {
 	addr := net.JoinHostPort("0.0.0.0", fmt.Sprint(port))
 
 	lst, err := net.Listen("tcp", addr)
 	if err != nil {
 		return fmt.Errorf("unable to start listener: %v", err)
+	}
+	ctx.Logger().Infoln("started GRPC listener on port", port)
+
+	if err = registerOnCentralServer(ctx, redisConn, port); err != nil {
+		return fmt.Errorf("cannot register on central server's redis: %w", err)
 	}
 
 	grpcServer := grpc.NewServer()
