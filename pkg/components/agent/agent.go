@@ -102,7 +102,7 @@ func Run(ctx *appcontext.Context, conf *configfile.Agent) error {
 		return nil
 	}
 
-	return runGRPCServer(ctx, manager, &aMap, conf.Port, &conf.CentralServerRedis)
+	return runGRPCServer(ctx, manager, &aMap, conf.Port, &conf.CentralServerRedis, conf.NetInterface)
 }
 
 // initExportAndAlerts initializes the controller for exporting and alerting
@@ -256,11 +256,39 @@ func shouldUpdateAlert(
 	return true, nil
 }
 
-func getLocalIPAddr() (string, error) {
-	return "localhost", nil
+func getLocalIPAddr(netInterface string) (string, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("cannot get net interfaces: %w", err)
+	}
+
+	for _, iface := range ifaces {
+		if iface.Name == netInterface {
+			addrs, err := iface.Addrs()
+			if err != nil || len(addrs) == 0 {
+				return "", fmt.Errorf("cannot get addresses for the given net interface: %w", err)
+			}
+
+			var ip net.IP
+			switch v := addrs[0].(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+
+			if ip == nil {
+				return "", fmt.Errorf("cannot find a suitable ip address for the given net interface: %w", err)
+			}
+
+			return ip.String(), nil
+		}
+	}
+
+	return "", fmt.Errorf("system doesn't contain the net interface specified")
 }
 
-func registerOnCentralServer(ctx *appcontext.Context, redisConn *config.DBConn, agentPort uint16) error {
+func registerOnCentralServer(ctx *appcontext.Context, redisConn *config.DBConn, agentPort uint16, netInterface string) error {
 	redisServerAddr := fmt.Sprintf("%s:%d", redisConn.GetHost(), redisConn.GetPort())
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     redisServerAddr,
@@ -268,9 +296,9 @@ func registerOnCentralServer(ctx *appcontext.Context, redisConn *config.DBConn, 
 		DB:       0,
 	})
 
-	agentIPAddr, err := getLocalIPAddr()
+	agentIPAddr, err := getLocalIPAddr(netInterface)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot get local ip address: %w", err)
 	}
 
 	agentAddr := fmt.Sprintf("%s:%d", agentIPAddr, agentPort)
@@ -289,7 +317,7 @@ func registerOnCentralServer(ctx *appcontext.Context, redisConn *config.DBConn, 
 
 // runGRPCServer starts the GRPC server that exposes an API for the central
 // to contact the agent. Also registers the agent on the central server's redis.
-func runGRPCServer(ctx *appcontext.Context, manager *controller.Manager, aMap *alertMap, port uint16, redisConn *config.DBConn) error {
+func runGRPCServer(ctx *appcontext.Context, manager *controller.Manager, aMap *alertMap, port uint16, redisConn *config.DBConn, netInterface string) error {
 	addr := net.JoinHostPort("0.0.0.0", fmt.Sprint(port))
 
 	lst, err := net.Listen("tcp", addr)
@@ -298,7 +326,7 @@ func runGRPCServer(ctx *appcontext.Context, manager *controller.Manager, aMap *a
 	}
 	ctx.Logger().Infoln("started GRPC listener on port", port)
 
-	if err = registerOnCentralServer(ctx, redisConn, port); err != nil {
+	if err = registerOnCentralServer(ctx, redisConn, port, netInterface); err != nil {
 		return fmt.Errorf("cannot register on central server's redis: %w", err)
 	}
 

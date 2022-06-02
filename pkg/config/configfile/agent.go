@@ -23,10 +23,11 @@ type AgentPage struct {
 type Agent struct {
 	Standalone         bool                   `mapstructure:"standalone" json:"standalone"`
 	CentralServerRedis config.DBConn          `mapstructure:"central_server_redis" json:"central_server_redis"`
-	Page               AgentPage              `mapstructure:"page" json:"page"`
+	NetInterface       string                 `mapstructure:"net_interface" json:"net_interface"`
 	Port               uint16                 `mapstructure:"port" json:"port"`
 	Metrics            config.MetricsProvider `mapstructure:"metrics" json:"metrics"`
 	Alerts             []config.AlertProvider `mapstructure:"alerts" json:"alerts"`
 	Interval           time.Duration          `mapstructure:"interval" json:"interval"`
 	Checks             []config.Check         `mapstructure:"checks" json:"checks"`
+	Page               AgentPage              `mapstructure:"page" json:"page"`
 }

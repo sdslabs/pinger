@@ -14,25 +14,29 @@ import (
 
 // agent defaults.
 const (
-	defaultAgentConfigPath             = "agent.yml"
-	defaultAgentExporter               = "timescale"
-	defaultAgentInterval               = 2 * time.Minute
-	defaultAgentPort            uint16 = 9009
-	defaultAgentStandaloneMode         = false
-	defaultAgentMetricsHost            = "127.0.0.1"
-	defaultAgentMetricsPort     uint16 = 0
-	defaultAgentMetricsUsername        = ""
-	defaultAgentMetricsPassword        = ""
-	defaultAgentMetricsOrgName         = ""
-	defaultAgentMetricsDBName          = ""
-	defaultAgentMetricsSSLMode         = true
-	defaultAgentPageDeploy             = false
-	defaultAgentPagePort        uint16 = 9010
-	defaultAgentPageName               = "Status Page"
-	defaultAgentPageMedia              = ""
-	defaultAgentPageLogo               = ""
-	defaultAgentPageFavicon            = ""
-	defaultAgentPageWebsite            = "/"
+	defaultAgentConfigPath                    = "agent.yml"
+	defaultAgentExporter                      = "timescale"
+	defaultAgentInterval                      = 2 * time.Minute
+	defaultAgentCentralServerRedisHost        = "localhost"
+	defaultAgentCentralServerRedisPort uint16 = 6379
+	defaultAgentCentralServerRedisName        = "agent_nodes"
+	defaultAgentNetInterface                  = "lo"
+	defaultAgentPort                   uint16 = 9009
+	defaultAgentStandaloneMode                = false
+	defaultAgentMetricsHost                   = "127.0.0.1"
+	defaultAgentMetricsPort            uint16 = 0
+	defaultAgentMetricsUsername               = ""
+	defaultAgentMetricsPassword               = ""
+	defaultAgentMetricsOrgName                = ""
+	defaultAgentMetricsDBName                 = ""
+	defaultAgentMetricsSSLMode                = true
+	defaultAgentPageDeploy                    = false
+	defaultAgentPagePort               uint16 = 9010
+	defaultAgentPageName                      = "Status Page"
+	defaultAgentPageMedia                     = ""
+	defaultAgentPageLogo                      = ""
+	defaultAgentPageFavicon                   = ""
+	defaultAgentPageWebsite                   = "/"
 )
 
 // non-const agent defaults.
@@ -40,44 +44,52 @@ var defaultAgentPageAllowedOrigins []string = nil
 
 // config keys and flags for agent.
 const (
-	keyAgentConfigPort                = "port"
-	flagAgentConfigPort               = "port"
-	keyAgentConfigStandalone          = "standalone"
-	flagAgentConfigStandalone         = "standalone"
-	keyAgentConfigInterval            = "interval"
-	flagAgentConfigInterval           = "interval"
-	keyAgentConfigMetricsBackend      = "metrics.backend"
-	flagAgentConfigMetricsBackend     = "metrics-backend"
-	keyAgentConfigMetricsHost         = "metrics.host"
-	flagAgentConfigMetricsHost        = "metrics-host"
-	keyAgentConfigMetricsPort         = "metrics.port"
-	flagAgentConfigMetricsPort        = "metrics-port"
-	keyAgentConfigMetricsUsername     = "metrics.username"
-	flagAgentConfigMetricsUsername    = "metrics-username"
-	keyAgentConfigMetricsPassword     = "metrics.password"
-	flagAgentConfigMetricsPassword    = "metrics-password"
-	keyAgentConfigMetricsOrgName      = "metrics.org_name"
-	flagAgentConfigMetricsOrgName     = "metrics-org-name"
-	keyAgentConfigMetricsDBName       = "metrics.db_name"
-	flagAgentConfigMetricsDBName      = "metrics-db-name"
-	keyAgentConfigMetricsSSLMode      = "metrics.ssl_mode"
-	flagAgentConfigMetricsSSLMode     = "metrics-ssl-mode"
-	keyAgentConfigPageDeploy          = "page.deploy"
-	flagAgentConfigPageDeploy         = "page-deploy"
-	keyAgentConfigPagePort            = "page.port"
-	flagAgentConfigPagePort           = "page-port"
-	keyAgentConfigPageAllowedOrigins  = "page.allowed_origins"
-	flagAgentConfigPageAllowedOrigins = "page-allowed-origins"
-	keyAgentConfigPageName            = "page.name"
-	flagAgentConfigPageName           = "page-name"
-	keyAgentConfigPageMedia           = "page.media"
-	flagAgentConfigPageMedia          = "page-media"
-	keyAgentConfigPageLogo            = "page.logo"
-	flagAgentConfigPageLogo           = "page-logo"
-	keyAgentConfigPageFavicon         = "page.favicon"
-	flagAgentConfigPageFavicon        = "page-favicon"
-	keyAgentConfigPageWebsite         = "page.website"
-	flagAgentConfigPageWebsite        = "page-website"
+	keyAgentConfigPort                    = "port"
+	flagAgentConfigPort                   = "port"
+	keyAgentConfigStandalone              = "standalone"
+	flagAgentConfigStandalone             = "standalone"
+	keyAgentConfigNetInterface            = "net_interface"
+	flagAgentConfigNetInterface           = "net-interface"
+	keyAgentConfigCentralServerRedisHost  = "central_server_redis.host"
+	flagAgentConfigCentralServerRedisHost = "central-redis-host"
+	keyAgentConfigCentralServerRedisPort  = "central_server_redis.port"
+	flagAgentConfigCentralServerRedisPort = "central-redis-port"
+	keyAgentConfigCentralServerRedisName  = "central_server_redis.name"
+	flagAgentConfigCentralServerRedisName = "central-redis-name"
+	keyAgentConfigInterval                = "interval"
+	flagAgentConfigInterval               = "interval"
+	keyAgentConfigMetricsBackend          = "metrics.backend"
+	flagAgentConfigMetricsBackend         = "metrics-backend"
+	keyAgentConfigMetricsHost             = "metrics.host"
+	flagAgentConfigMetricsHost            = "metrics-host"
+	keyAgentConfigMetricsPort             = "metrics.port"
+	flagAgentConfigMetricsPort            = "metrics-port"
+	keyAgentConfigMetricsUsername         = "metrics.username"
+	flagAgentConfigMetricsUsername        = "metrics-username"
+	keyAgentConfigMetricsPassword         = "metrics.password"
+	flagAgentConfigMetricsPassword        = "metrics-password"
+	keyAgentConfigMetricsOrgName          = "metrics.org_name"
+	flagAgentConfigMetricsOrgName         = "metrics-org-name"
+	keyAgentConfigMetricsDBName           = "metrics.db_name"
+	flagAgentConfigMetricsDBName          = "metrics-db-name"
+	keyAgentConfigMetricsSSLMode          = "metrics.ssl_mode"
+	flagAgentConfigMetricsSSLMode         = "metrics-ssl-mode"
+	keyAgentConfigPageDeploy              = "page.deploy"
+	flagAgentConfigPageDeploy             = "page-deploy"
+	keyAgentConfigPagePort                = "page.port"
+	flagAgentConfigPagePort               = "page-port"
+	keyAgentConfigPageAllowedOrigins      = "page.allowed_origins"
+	flagAgentConfigPageAllowedOrigins     = "page-allowed-origins"
+	keyAgentConfigPageName                = "page.name"
+	flagAgentConfigPageName               = "page-name"
+	keyAgentConfigPageMedia               = "page.media"
+	flagAgentConfigPageMedia              = "page-media"
+	keyAgentConfigPageLogo                = "page.logo"
+	flagAgentConfigPageLogo               = "page-logo"
+	keyAgentConfigPageFavicon             = "page.favicon"
+	flagAgentConfigPageFavicon            = "page-favicon"
+	keyAgentConfigPageWebsite             = "page.website"
+	flagAgentConfigPageWebsite            = "page-website"
 )
 
 func newAgentCmd(ctx *appcontext.Context, v *viper.Viper) (*cobra.Command, error) {
@@ -122,6 +134,10 @@ to run in a standalone mode where it does not run any GRPC server.`,
 
 	cmd.Flags().Uint16P(flagAgentConfigPort, "p", defaultAgentPort, "port to expose agent API on")
 	cmd.Flags().BoolP(flagAgentConfigStandalone, "s", defaultAgentStandaloneMode, "should agent run in standalone mode")
+	cmd.Flags().String(flagAgentConfigNetInterface, defaultAgentNetInterface, "net interface to connect to the central server")
+	cmd.Flags().String(flagAgentConfigCentralServerRedisHost, defaultAgentCentralServerRedisHost, "host where the central server's redis is running")
+	cmd.Flags().Uint16(flagAgentConfigCentralServerRedisPort, defaultAgentCentralServerRedisPort, "port where the central server's redis is running")
+	cmd.Flags().String(flagAgentConfigCentralServerRedisName, defaultAgentCentralServerRedisName, "key for the set of nodes on central server's redis")
 	cmd.Flags().String(flagAgentConfigMetricsBackend, defaultAgentExporter, "backend service to store metrics")
 	cmd.Flags().String(flagAgentConfigMetricsHost, defaultAgentMetricsHost, "host to run metrics server")
 	cmd.Flags().Uint16(flagAgentConfigMetricsPort, defaultAgentMetricsPort, "port to run metrics server on")
@@ -143,25 +159,29 @@ to run in a standalone mode where it does not run any GRPC server.`,
 	cmd.Flags().String(flagAgentConfigPageWebsite, defaultAgentPageWebsite, "website url for the page")
 
 	mapKeysToFlags := map[string]string{
-		keyAgentConfigPort:               flagAgentConfigPort,
-		keyAgentConfigStandalone:         flagAgentConfigStandalone,
-		keyAgentConfigMetricsBackend:     flagAgentConfigMetricsBackend,
-		keyAgentConfigMetricsHost:        flagAgentConfigMetricsHost,
-		keyAgentConfigMetricsPort:        flagAgentConfigMetricsPort,
-		keyAgentConfigMetricsUsername:    flagAgentConfigMetricsUsername,
-		keyAgentConfigMetricsPassword:    flagAgentConfigMetricsPassword,
-		keyAgentConfigMetricsOrgName:     flagAgentConfigMetricsOrgName,
-		keyAgentConfigMetricsDBName:      flagAgentConfigMetricsDBName,
-		keyAgentConfigMetricsSSLMode:     flagAgentConfigMetricsSSLMode,
-		keyAgentConfigInterval:           flagAgentConfigInterval,
-		keyAgentConfigPageDeploy:         flagAgentConfigPageDeploy,
-		keyAgentConfigPagePort:           flagAgentConfigPagePort,
-		keyAgentConfigPageAllowedOrigins: flagAgentConfigPageAllowedOrigins,
-		keyAgentConfigPageName:           flagAgentConfigPageName,
-		keyAgentConfigPageMedia:          flagAgentConfigPageMedia,
-		keyAgentConfigPageLogo:           flagAgentConfigPageLogo,
-		keyAgentConfigPageFavicon:        flagAgentConfigPageFavicon,
-		keyAgentConfigPageWebsite:        flagAgentConfigPageWebsite,
+		keyAgentConfigPort:                   flagAgentConfigPort,
+		keyAgentConfigStandalone:             flagAgentConfigStandalone,
+		keyAgentConfigNetInterface:           flagAgentConfigNetInterface,
+		keyAgentConfigCentralServerRedisHost: flagAgentConfigCentralServerRedisHost,
+		keyAgentConfigCentralServerRedisPort: flagAgentConfigCentralServerRedisPort,
+		keyAgentConfigCentralServerRedisName: flagAgentConfigCentralServerRedisName,
+		keyAgentConfigMetricsBackend:         flagAgentConfigMetricsBackend,
+		keyAgentConfigMetricsHost:            flagAgentConfigMetricsHost,
+		keyAgentConfigMetricsPort:            flagAgentConfigMetricsPort,
+		keyAgentConfigMetricsUsername:        flagAgentConfigMetricsUsername,
+		keyAgentConfigMetricsPassword:        flagAgentConfigMetricsPassword,
+		keyAgentConfigMetricsOrgName:         flagAgentConfigMetricsOrgName,
+		keyAgentConfigMetricsDBName:          flagAgentConfigMetricsDBName,
+		keyAgentConfigMetricsSSLMode:         flagAgentConfigMetricsSSLMode,
+		keyAgentConfigInterval:               flagAgentConfigInterval,
+		keyAgentConfigPageDeploy:             flagAgentConfigPageDeploy,
+		keyAgentConfigPagePort:               flagAgentConfigPagePort,
+		keyAgentConfigPageAllowedOrigins:     flagAgentConfigPageAllowedOrigins,
+		keyAgentConfigPageName:               flagAgentConfigPageName,
+		keyAgentConfigPageMedia:              flagAgentConfigPageMedia,
+		keyAgentConfigPageLogo:               flagAgentConfigPageLogo,
+		keyAgentConfigPageFavicon:            flagAgentConfigPageFavicon,
+		keyAgentConfigPageWebsite:            flagAgentConfigPageWebsite,
 	}
 
 	if err := bindFlagsToViper(v, cmd, mapKeysToFlags); err != nil {
