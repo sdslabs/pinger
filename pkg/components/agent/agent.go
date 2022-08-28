@@ -312,6 +312,8 @@ func registerOnCentralServer(ctx *appcontext.Context, redisConn *config.DBConn, 
 		return err
 	}
 
+	ctx.Logger().Infoln("registered on central server with tcp address", agentAddr)
+
 	return nil
 }
 
