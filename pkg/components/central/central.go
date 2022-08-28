@@ -22,6 +22,13 @@ func Run(ctx *appcontext.Context) error {
 		fmt.Printf("DEBUG: getAllAgents: %s\n", agent)
 	}
 
+	// DEBUG: getAgentWithLowestLoad
+	lowestLoadAgent, err := getAgentWithLowestLoad(ctx)
+	if err != nil {
+		return fmt.Errorf("cannot get agent with lowest load: %w", err)
+	}
+	fmt.Printf("DEBUG: getAgentWithLowestLoad: %s\n", lowestLoadAgent)
+
 	return nil
 }
 
@@ -33,10 +40,54 @@ func getAllAgents(ctx *appcontext.Context) ([]string, error) {
 		DB:       0,
 	})
 
+	defer func() {
+		err := rdb.Close()
+		if err != nil {
+			ctx.Logger().
+				WithError(err).
+				Errorln("could not close connection to redis server")
+		}
+	}()
+
 	zName := "agent_nodes" // replace by reading from config
 	return rdb.ZRangeArgs(ctx, redis.ZRangeArgs{
 		Key:   zName,
 		Start: "0",
 		Stop:  "-1",
 	}).Result()
+}
+
+func getAgentWithLowestLoad(ctx *appcontext.Context) (string, error) {
+	redisServerAddr := "localhost:6379" // replace by reading from central.yml
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     redisServerAddr,
+		Password: "",
+		DB:       0,
+	})
+
+	defer func() {
+		err := rdb.Close()
+		if err != nil {
+			ctx.Logger().
+				WithError(err).
+				Errorln("could not close connection to redis server")
+		}
+	}()
+
+	zName := "agent_nodes" // replace by reading from config
+	res, err := rdb.ZRangeArgs(ctx, redis.ZRangeArgs{
+		Key:   zName,
+		Start: "0",
+		Stop:  "0",
+	}).Result()
+
+	if err != nil {
+		return "", err
+	}
+
+	if len(res) == 0 {
+		return "", nil
+	}
+
+	return res[0], nil
 }
