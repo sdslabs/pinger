@@ -123,6 +123,45 @@ func ProtoToCheck(check *proto.Check) Check {
 	}
 }
 
+func CheckToProto(check *Check) proto.Check {
+	payloads := make([]*proto.Component, len(check.Payloads))
+	for i := range check.Payloads {
+		payloads[i] = &proto.Component{
+			Type:  check.Payloads[i].Type,
+			Value: check.Payloads[i].Value,
+		}
+	}
+
+	alerts := make([]*proto.Alert, len(check.Alerts))
+	for i := range check.Alerts {
+		alerts[i] = &proto.Alert{
+			Service: check.Alerts[i].Service,
+			Target:  check.Alerts[i].Target,
+		}
+	}
+
+	return proto.Check{
+		ID:       check.ID,
+		Name:     check.Name,
+		Interval: int64(check.Interval),
+		Timeout:  int64(check.Timeout),
+		Input: &proto.Component{
+			Type:  check.Input.Type,
+			Value: check.Input.Value,
+		},
+		Output: &proto.Component{
+			Type:  check.Output.Type,
+			Value: check.Output.Value,
+		},
+		Target: &proto.Component{
+			Type:  check.Target.Type,
+			Value: check.Target.Value,
+		},
+		Payloads: payloads,
+		Alerts:   alerts,
+	}
+}
+
 // Interface guards.
 var (
 	_ checker.Check     = (*Check)(nil)

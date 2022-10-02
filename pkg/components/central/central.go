@@ -3,13 +3,17 @@ package central
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"google.golang.org/grpc"
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/sdslabs/pinger/pkg/components/agent/proto"
+	"github.com/sdslabs/pinger/pkg/config"
+	"github.com/sdslabs/pinger/pkg/config/configfile"
 	"github.com/sdslabs/pinger/pkg/util/appcontext"
+
+	agentProto "github.com/sdslabs/pinger/pkg/components/agent/proto"
 )
 
 func Run(ctx *appcontext.Context) error {
@@ -34,7 +38,22 @@ func Run(ctx *appcontext.Context) error {
 	fmt.Printf("DEBUG: getAgentWithLowestLoad: %s\n", lowestLoadAgent)
 
 	// DEBUG: AddCheck
-	err = AddCheck(ctx)
+	err = AddCheck(ctx, &config.Check{
+		ID:       "http-get-google",
+		Name:     "HTTP Get Google",
+		Interval: time.Duration(10e9),
+		Timeout:  time.Duration(5e9),
+		Input: config.Component{
+			Type: "HTTP",
+		},
+		Output: config.Component{
+			Type: "TIMEOUT",
+		},
+		Target: config.Component{
+			Type:  "URL",
+			Value: "http://google.com",
+		},
+	})
 	if err != nil {
 		return err
 	}
@@ -42,7 +61,18 @@ func Run(ctx *appcontext.Context) error {
 	return nil
 }
 
-func AddCheck(ctx *appcontext.Context) error {
+func RunApply(ctx *appcontext.Context, checkdiff *configfile.CheckDiff) error {
+	for i := range checkdiff.Additions {
+		err := AddCheck(ctx, &checkdiff.Additions[i])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func AddCheck(ctx *appcontext.Context, check *config.Check) error {
 	lowestLoadAgent, err := getAgentWithLowestLoad(ctx)
 	if err != nil {
 		return err
@@ -62,24 +92,10 @@ func AddCheck(ctx *appcontext.Context) error {
 		}
 	}()
 
-	client := proto.NewAgentClient(conn)
+	client := agentProto.NewAgentClient(conn)
 
-	res, err := client.PushCheck(context.Background(), &proto.Check{
-		ID:       "http-get-google",
-		Name:     "HTTP Get Google",
-		Interval: 10e9,
-		Timeout:  5e9,
-		Input: &proto.Component{
-			Type: "HTTP",
-		},
-		Output: &proto.Component{
-			Type: "TIMEOUT",
-		},
-		Target: &proto.Component{
-			Type:  "URL",
-			Value: "http://google.com",
-		},
-	})
+	protoCheck := config.CheckToProto(check)
+	res, err := client.PushCheck(context.Background(), &protoCheck)
 	if err != nil {
 		return err
 	}
