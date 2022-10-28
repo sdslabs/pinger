@@ -2,6 +2,7 @@ package central
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -62,11 +63,24 @@ func Run(ctx *appcontext.Context) error {
 }
 
 func RunApply(ctx *appcontext.Context, checkdiff *configfile.CheckDiff) error {
+	allErrors := ""
+
 	for i := range checkdiff.Additions {
 		err := AddCheck(ctx, &checkdiff.Additions[i])
 		if err != nil {
-			return err
+			allErrors = fmt.Sprintf("%serror in applying addition: %s\n", allErrors, err.Error())
 		}
+	}
+
+	for i := range checkdiff.Removals {
+		err := RemoveCheck(ctx, checkdiff.Removals[i])
+		if err != nil {
+			allErrors = fmt.Sprintf("%serror in applying removal: %s\n", allErrors, err.Error())
+		}
+	}
+
+	if allErrors != "" {
+		return errors.New(allErrors)
 	}
 
 	return nil
@@ -95,10 +109,63 @@ func AddCheck(ctx *appcontext.Context, check *config.Check) error {
 	client := agentProto.NewAgentClient(conn)
 
 	protoCheck := config.CheckToProto(check)
-	res, err := client.PushCheck(context.Background(), &protoCheck)
+	res, err := client.PushCheck(context.Background(), &protoCheck) // is using context.Background here correct?
 	if err != nil {
 		return err
 	}
+
+	if res.GetError() != "" {
+		return fmt.Errorf("could not add check: %s", res.GetError())
+	}
+
+	// Also make use of res.GetSuccessful()
+
+	return nil
+}
+
+func RemoveCheck(ctx *appcontext.Context, checkID string) error {
+	agents, err := getAllAgents(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, agent := range agents {
+		err := removeCheckFromAgent(ctx, checkID, agent)
+		if err != nil {
+			ctx.Logger().
+				WithError(err).
+				Errorln("could not broadcast remove check message to an agent")
+		}
+	}
+
+	return nil
+}
+
+func removeCheckFromAgent(ctx *appcontext.Context, checkID string, agent string) error {
+	conn, err := grpc.Dial(agent, grpc.WithInsecure())
+	if err != nil {
+		return fmt.Errorf("cannot connect to agent with tcp address %s: %w", agent, err)
+	}
+
+	defer func() {
+		_err := conn.Close()
+		if _err != nil {
+			ctx.Logger().
+				WithError(_err).
+				Errorln("could not close connection to agent's grpc server")
+		}
+	}()
+
+	client := agentProto.NewAgentClient(conn)
+
+	res, err := client.RemoveCheck(context.Background(), &agentProto.CheckID{
+		ID: checkID,
+	}) // is using context.Background here correct?
+	if err != nil {
+		return err
+	}
+
+	// Also make use of res.GetSuccessful()
 
 	if res.GetError() != "" {
 		return fmt.Errorf("could not add check: %s", res.GetError())

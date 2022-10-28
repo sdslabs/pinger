@@ -6,5 +6,5 @@ import (
 
 type CheckDiff struct {
 	Additions []config.Check `mapstructure:"additions" json:"additions"`
-	Removals  []config.Check `mapstructure:"removals" json:"removals"`
+	Removals  []string       `mapstructure:"removals" json:"removals"`
 }
