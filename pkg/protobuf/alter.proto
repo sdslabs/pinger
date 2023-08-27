@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package alter;
+
+option go_package = "/pb";
+
+message CreateCheckRequest {
+  string Check = 1;
+  string PageId = 2;
+}
+
+message DeleteCheckRequest {
+  string UserId = 1;
+  string CheckId = 2;
+  string Role = 3;
+}
+
+message UpdateCheckRequest {
+  string CheckId = 1;
+  string UpdateCheckString = 2;
+  string UserId = 3;
+  string Role = 4;
+}
+
+message CreatePageRequest { string NewPageString = 1; }
+
+message DeletePageRequest { string PageId = 1; }
+
+message UpdatePageRequest { string PageId = 1; }
+
+message Response { string Response = 1; }
+
+service AlterServices {
+  rpc CreateCheckService(CreateCheckRequest) returns (Response) {}
+  rpc DeleteCheckService(DeleteCheckRequest) returns (Response) {}
+  rpc UpdateCheckService(UpdateCheckRequest) returns (Response) {}
+  rpc CreatePageService(CreatePageRequest) returns (Response) {}
+  rpc DeletePageService(DeletePageRequest) returns (Response) {}
+  rpc UpdatePageService(UpdatePageRequest) returns (Response) {}
+}

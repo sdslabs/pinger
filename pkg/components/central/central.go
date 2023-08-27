@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/grpc"
-
 	"github.com/go-redis/redis/v8"
+	"google.golang.org/grpc"
 
 	"github.com/sdslabs/pinger/pkg/config"
 	"github.com/sdslabs/pinger/pkg/config/configfile"
