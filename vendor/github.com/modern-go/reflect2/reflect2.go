@@ -1,9 +1,10 @@
 package reflect2
 
 import (
-	"github.com/modern-go/concurrent"
 	"reflect"
 	"unsafe"
+
+	"github.com/modern-go/concurrent"
 )
 
 type Type interface {
@@ -136,7 +137,7 @@ type frozenConfig struct {
 func (cfg Config) Froze() *frozenConfig {
 	return &frozenConfig{
 		useSafeImplementation: cfg.UseSafeImplementation,
-		cache: concurrent.NewMap(),
+		cache:                 concurrent.NewMap(),
 	}
 }
 
@@ -281,6 +282,7 @@ func likePtrType(typ reflect.Type) bool {
 // output depends on the input.  noescape is inlined and currently
 // compiles down to zero instructions.
 // USE CAREFULLY!
+//
 //go:nosplit
 func NoEscape(p unsafe.Pointer) unsafe.Pointer {
 	x := uintptr(p)
@@ -291,8 +293,8 @@ func UnsafeCastString(str string) []byte {
 	stringHeader := (*reflect.StringHeader)(unsafe.Pointer(&str))
 	sliceHeader := &reflect.SliceHeader{
 		Data: stringHeader.Data,
-		Cap: stringHeader.Len,
-		Len: stringHeader.Len,
+		Cap:  stringHeader.Len,
+		Len:  stringHeader.Len,
 	}
 	return *(*[]byte)(unsafe.Pointer(sliceHeader))
 }

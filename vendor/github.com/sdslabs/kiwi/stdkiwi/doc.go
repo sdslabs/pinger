@@ -7,8 +7,7 @@
 // These values include all the values in the package github.com/sdslabs/kiwi/values.
 // It implements all the actions as type-safe functions.
 //
-//
-// Get Started
+// # Get Started
 //
 // Create a store, add key and play with it. It's that easy!
 //

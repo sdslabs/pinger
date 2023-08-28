@@ -16,8 +16,9 @@ import (
 func ListenAndServe(ctx *appcontext.Context, port uint16, h http.Handler) error {
 	addr := net.JoinHostPort("0.0.0.0", fmt.Sprint(port))
 	server := http.Server{
-		Addr:    addr,
-		Handler: h,
+		Addr:              addr,
+		Handler:           h,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	errChan := make(chan error)

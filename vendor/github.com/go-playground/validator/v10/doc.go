@@ -7,7 +7,7 @@ and has the ability to dive into arrays and maps of any type.
 
 see more examples https://github.com/go-playground/validator/tree/master/_examples
 
-Validation Functions Return Type error
+# Validation Functions Return Type error
 
 Doing things this way is actually the way the standard library does, see the
 file.Open method here:
@@ -26,7 +26,7 @@ if the error returned is not nil, and if it's not check if error is
 InvalidValidationError ( if necessary, most of the time it isn't ) type cast
 it to type ValidationErrors like so err.(validator.ValidationErrors).
 
-Custom Validation Functions
+# Custom Validation Functions
 
 Custom Validation functions can be added. Example:
 
@@ -44,21 +44,21 @@ Custom Validation functions can be added. Example:
 	// NOTES: using the same tag name as an existing function
 	//        will overwrite the existing one
 
-Cross-Field Validation
+# Cross-Field Validation
 
 Cross-Field Validation can be done via the following tags:
-	- eqfield
-	- nefield
-	- gtfield
-	- gtefield
-	- ltfield
-	- ltefield
-	- eqcsfield
-	- necsfield
-	- gtcsfield
-	- gtecsfield
-	- ltcsfield
-	- ltecsfield
+  - eqfield
+  - nefield
+  - gtfield
+  - gtefield
+  - ltfield
+  - ltefield
+  - eqcsfield
+  - necsfield
+  - gtcsfield
+  - gtecsfield
+  - ltcsfield
+  - ltecsfield
 
 If, however, some custom cross-field validation is required, it can be done
 using a custom validation.
@@ -98,7 +98,7 @@ used "eqcsfield" it could be multiple levels down. Example:
 	//       whatever you pass, struct, field...
 	//       when calling validate.Field(field, tag) val will be nil
 
-Multiple Validators
+# Multiple Validators
 
 Multiple validators on a field will process in the order defined. Example:
 
@@ -116,7 +116,7 @@ Bad Validator definitions are not handled by the library. Example:
 
 	// this definition of min max will never succeed
 
-Using Validator Tags
+# Using Validator Tags
 
 Baked In Cross-Field validation only compares fields on the same struct.
 If Cross-Field + Cross-Struct validation is needed you should implement your
@@ -142,20 +142,18 @@ so the above will become excludesall=0x7C
 		Field `validate:"excludesall=0x7C"` // GOOD! Use the UTF-8 hex representation.
 	}
 
-
-Baked In Validators and Tags
+# Baked In Validators and Tags
 
 Here is a list of the current built in validators:
 
-
-Skip Field
+# Skip Field
 
 Tells the validation to skip this struct field; this is particularly
 handy in ignoring embedded structs from being validated. (Usage: -)
+
 	Usage: -
 
-
-Or Operator
+# Or Operator
 
 This is the 'or' operator allowing multiple validators to be used and
 accepted. (Usage: rgb|rgba) <-- this would allow either rgb or rgba
@@ -164,7 +162,7 @@ colors to be accepted. This can also be combined with 'and' for example
 
 	Usage: |
 
-StructOnly
+# StructOnly
 
 When a field that is a nested struct is encountered, and contains this flag
 any validation on the nested struct will be run, but none of the nested
@@ -174,13 +172,13 @@ NOTE: only "required" and "omitempty" can be used on a struct itself.
 
 	Usage: structonly
 
-NoStructLevel
+# NoStructLevel
 
 Same as structonly tag except that any struct level validations will not run.
 
 	Usage: nostructlevel
 
-Omit Empty
+# Omit Empty
 
 Allows conditional validation, for example if a field is not set with
 a value (Determined by the "required" validator) then other validation
@@ -188,7 +186,7 @@ such as min or max won't run, but if a value is set validation will run.
 
 	Usage: omitempty
 
-Dive
+# Dive
 
 This tells the validator to dive into a slice, array or map and validate that
 level of the slice, array or map with the validation tags that follow.
@@ -236,7 +234,7 @@ Example #2
 	// eg=1|eq=2 will be applied to each array element in the the map keys
 	// required will be applied to map values
 
-Required
+# Required
 
 This validates that the value is not the data types default zero value.
 For numbers ensures value is not zero. For strings ensures value is
@@ -245,7 +243,7 @@ ensures the value is not nil.
 
 	Usage: required
 
-Required With
+# Required With
 
 The field under validation must be present and not empty only if any
 of the other specified fields are present. For strings ensures value is
@@ -262,7 +260,7 @@ Examples:
 	// require the field if the Field1 or Field2 is present:
 	Usage: required_with=Field1 Field2
 
-Required With All
+# Required With All
 
 The field under validation must be present and not empty only if all
 of the other specified fields are present. For strings ensures value is
@@ -276,7 +274,7 @@ Example:
 	// require the field if the Field1 and Field2 is present:
 	Usage: required_with_all=Field1 Field2
 
-Required Without
+# Required Without
 
 The field under validation must be present and not empty only when any
 of the other specified fields are not present. For strings ensures value is
@@ -293,7 +291,7 @@ Examples:
 	// require the field if the Field1 or Field2 is not present:
 	Usage: required_without=Field1 Field2
 
-Required Without All
+# Required Without All
 
 The field under validation must be present and not empty only when all
 of the other specified fields are not present. For strings ensures value is
@@ -307,14 +305,14 @@ Example:
 	// require the field if the Field1 and Field2 is not present:
 	Usage: required_without_all=Field1 Field2
 
-Is Default
+# Is Default
 
 This validates that the value is the default value and is almost the
 opposite of required.
 
 	Usage: isdefault
 
-Length
+# Length
 
 For numbers, length will ensure that the value is
 equal to the parameter given. For strings, it checks that
@@ -323,7 +321,7 @@ arrays, and maps, validates the number of items.
 
 	Usage: len=10
 
-Maximum
+# Maximum
 
 For numbers, max will ensure that the value is
 less than or equal to the parameter given. For strings, it checks
@@ -332,7 +330,7 @@ slices, arrays, and maps, validates the number of items.
 
 	Usage: max=10
 
-Minimum
+# Minimum
 
 For numbers, min will ensure that the value is
 greater or equal to the parameter given. For strings, it checks that
@@ -341,7 +339,7 @@ arrays, and maps, validates the number of items.
 
 	Usage: min=10
 
-Equals
+# Equals
 
 For strings & numbers, eq will ensure that the value is
 equal to the parameter given. For slices, arrays, and maps,
@@ -349,7 +347,7 @@ validates the number of items.
 
 	Usage: eq=10
 
-Not Equal
+# Not Equal
 
 For strings & numbers, ne will ensure that the value is not
 equal to the parameter given. For slices, arrays, and maps,
@@ -357,7 +355,7 @@ validates the number of items.
 
 	Usage: ne=10
 
-One Of
+# One Of
 
 For strings, ints, and uints, oneof will ensure that the value
 is one of the values in the parameter.  The parameter should be
@@ -365,11 +363,11 @@ a list of values separated by whitespace. Values may be
 strings or numbers. To match strings with spaces in them, include
 the target string between single quotes.
 
-    Usage: oneof=red green
-           oneof='red green' 'blue yellow'
-           oneof=5 7 9
+	Usage: oneof=red green
+	       oneof='red green' 'blue yellow'
+	       oneof=5 7 9
 
-Greater Than
+# Greater Than
 
 For numbers, this will ensure that the value is greater than the
 parameter given. For strings, it checks that the string length
@@ -386,10 +384,9 @@ For time.Time ensures the time value is greater than time.Now.UTC().
 
 	Usage: gt
 
-Greater Than or Equal
+# Greater Than or Equal
 
 Same as 'min' above. Kept both to make terminology with 'len' easier.
-
 
 Example #1
 
@@ -401,7 +398,7 @@ For time.Time ensures the time value is greater than or equal to time.Now.UTC().
 
 	Usage: gte
 
-Less Than
+# Less Than
 
 For numbers, this will ensure that the value is less than the parameter given.
 For strings, it checks that the string length is less than that number of
@@ -416,7 +413,7 @@ For time.Time ensures the time value is less than time.Now.UTC().
 
 	Usage: lt
 
-Less Than or Equal
+# Less Than or Equal
 
 Same as 'max' above. Kept both to make terminology with 'len' easier.
 
@@ -430,7 +427,7 @@ For time.Time ensures the time value is less than or equal to time.Now.UTC().
 
 	Usage: lte
 
-Field Equals Another Field
+# Field Equals Another Field
 
 This will validate the field value against another fields value either within
 a struct or passed in field.
@@ -452,7 +449,7 @@ to the top level struct.
 
 	Usage: eqcsfield=InnerStructField.Field)
 
-Field Does Not Equal Another Field
+# Field Does Not Equal Another Field
 
 This will validate the field value against another fields value either within
 a struct or passed in field.
@@ -474,7 +471,7 @@ relative to the top level struct.
 
 	Usage: necsfield=InnerStructField.Field
 
-Field Greater Than Another Field
+# Field Greater Than Another Field
 
 Only valid for Numbers and time.Time types, this will validate the field value
 against another fields value either within a struct or passed in field.
@@ -490,15 +487,14 @@ Example #2:
 	// Validating by field:
 	validate.VarWithValue(start, end, "gtfield")
 
-
-Field Greater Than Another Relative Field
+# Field Greater Than Another Relative Field
 
 This does the same as gtfield except that it validates the field provided
 relative to the top level struct.
 
 	Usage: gtcsfield=InnerStructField.Field
 
-Field Greater Than or Equal To Another Field
+# Field Greater Than or Equal To Another Field
 
 Only valid for Numbers and time.Time types, this will validate the field value
 against another fields value either within a struct or passed in field.
@@ -514,14 +510,14 @@ Example #2:
 	// Validating by field:
 	validate.VarWithValue(start, end, "gtefield")
 
-Field Greater Than or Equal To Another Relative Field
+# Field Greater Than or Equal To Another Relative Field
 
 This does the same as gtefield except that it validates the field provided relative
 to the top level struct.
 
 	Usage: gtecsfield=InnerStructField.Field
 
-Less Than Another Field
+# Less Than Another Field
 
 Only valid for Numbers and time.Time types, this will validate the field value
 against another fields value either within a struct or passed in field.
@@ -537,14 +533,14 @@ Example #2:
 	// Validating by field:
 	validate.VarWithValue(start, end, "ltfield")
 
-Less Than Another Relative Field
+# Less Than Another Relative Field
 
 This does the same as ltfield except that it validates the field provided relative
 to the top level struct.
 
 	Usage: ltcsfield=InnerStructField.Field
 
-Less Than or Equal To Another Field
+# Less Than or Equal To Another Field
 
 Only valid for Numbers and time.Time types, this will validate the field value
 against another fields value either within a struct or passed in field.
@@ -560,14 +556,14 @@ Example #2:
 	// Validating by field:
 	validate.VarWithValue(start, end, "ltefield")
 
-Less Than or Equal To Another Relative Field
+# Less Than or Equal To Another Relative Field
 
 This does the same as ltefield except that it validates the field provided relative
 to the top level struct.
 
 	Usage: ltecsfield=InnerStructField.Field
 
-Field Contains Another Field
+# Field Contains Another Field
 
 This does the same as contains except for struct fields. It should only be used
 with string types. See the behavior of reflect.Value.String() for behavior on
@@ -575,7 +571,7 @@ other types.
 
 	Usage: containsfield=InnerStructField.Field
 
-Field Excludes Another Field
+# Field Excludes Another Field
 
 This does the same as excludes except for struct fields. It should only be used
 with string types. See the behavior of reflect.Value.String() for behavior on
@@ -583,7 +579,7 @@ other types.
 
 	Usage: excludesfield=InnerStructField.Field
 
-Unique
+# Unique
 
 For arrays & slices, unique will ensure that there are no duplicates.
 For maps, unique will ensure that there are no duplicate values.
@@ -596,31 +592,31 @@ in a field of the struct specified via a parameter.
 	// For slices of struct:
 	Usage: unique=field
 
-Alpha Only
+# Alpha Only
 
 This validates that a string value contains ASCII alpha characters only
 
 	Usage: alpha
 
-Alphanumeric
+# Alphanumeric
 
 This validates that a string value contains ASCII alphanumeric characters only
 
 	Usage: alphanum
 
-Alpha Unicode
+# Alpha Unicode
 
 This validates that a string value contains unicode alpha characters only
 
 	Usage: alphaunicode
 
-Alphanumeric Unicode
+# Alphanumeric Unicode
 
 This validates that a string value contains unicode alphanumeric characters only
 
 	Usage: alphanumunicode
 
-Numeric
+# Numeric
 
 This validates that a string value contains a basic numeric value.
 basic excludes exponents etc...
@@ -628,56 +624,56 @@ for integers or float it returns true.
 
 	Usage: numeric
 
-Hexadecimal String
+# Hexadecimal String
 
 This validates that a string value contains a valid hexadecimal.
 
 	Usage: hexadecimal
 
-Hexcolor String
+# Hexcolor String
 
 This validates that a string value contains a valid hex color including
 hashtag (#)
 
-		Usage: hexcolor
+	Usage: hexcolor
 
-Lowercase String
+# Lowercase String
 
 This validates that a string value contains only lowercase characters. An empty string is not a valid lowercase string.
 
 	Usage: lowercase
 
-Uppercase String
+# Uppercase String
 
 This validates that a string value contains only uppercase characters. An empty string is not a valid uppercase string.
 
 	Usage: uppercase
 
-RGB String
+# RGB String
 
 This validates that a string value contains a valid rgb color
 
 	Usage: rgb
 
-RGBA String
+# RGBA String
 
 This validates that a string value contains a valid rgba color
 
 	Usage: rgba
 
-HSL String
+# HSL String
 
 This validates that a string value contains a valid hsl color
 
 	Usage: hsl
 
-HSLA String
+# HSLA String
 
 This validates that a string value contains a valid hsla color
 
 	Usage: hsla
 
-E-mail String
+# E-mail String
 
 This validates that a string value contains a valid email
 This may not conform to all possibilities of any rfc standard, but neither
@@ -685,13 +681,13 @@ does any email provider accept all possibilities.
 
 	Usage: email
 
-JSON String
+# JSON String
 
 This validates that a string value is valid JSON
 
 	Usage: json
 
-File path
+# File path
 
 This validates that a string value contains a valid file path and that
 the file exists on the machine.
@@ -699,7 +695,7 @@ This is done using os.Stat, which is a platform independent function.
 
 	Usage: file
 
-URL String
+# URL String
 
 This validates that a string value contains a valid url
 This will accept any url the golang request uri accepts but must contain
@@ -707,21 +703,21 @@ a schema for example http:// or rtmp://
 
 	Usage: url
 
-URI String
+# URI String
 
 This validates that a string value contains a valid uri
 This will accept any uri the golang request uri accepts
 
 	Usage: uri
 
-Urn RFC 2141 String
+# Urn RFC 2141 String
 
 This validataes that a string value contains a valid URN
 according to the RFC 2141 spec.
 
 	Usage: urn_rfc2141
 
-Base64 String
+# Base64 String
 
 This validates that a string value contains a valid base64 value.
 Although an empty string is valid base64 this will report an empty string
@@ -730,7 +726,7 @@ this with the omitempty tag.
 
 	Usage: base64
 
-Base64URL String
+# Base64URL String
 
 This validates that a string value contains a valid base64 URL safe value
 according the the RFC4648 spec.
@@ -740,7 +736,7 @@ you can use this with the omitempty tag.
 
 	Usage: base64url
 
-Bitcoin Address
+# Bitcoin Address
 
 This validates that a string value contains a valid bitcoin address.
 The format of the string is checked to ensure it matches one of the three formats
@@ -756,7 +752,7 @@ Special thanks to Pieter Wuille for providng reference implementations.
 
 	Usage: btc_addr_bech32
 
-Ethereum Address
+# Ethereum Address
 
 This validates that a string value contains a valid ethereum address.
 The format of the string is checked to ensure it matches the standard Ethereum address format
@@ -764,241 +760,241 @@ Full validation is blocked by https://github.com/golang/crypto/pull/28
 
 	Usage: eth_addr
 
-Contains
+# Contains
 
 This validates that a string value contains the substring value.
 
 	Usage: contains=@
 
-Contains Any
+# Contains Any
 
 This validates that a string value contains any Unicode code points
 in the substring value.
 
 	Usage: containsany=!@#?
 
-Contains Rune
+# Contains Rune
 
 This validates that a string value contains the supplied rune value.
 
 	Usage: containsrune=@
 
-Excludes
+# Excludes
 
 This validates that a string value does not contain the substring value.
 
 	Usage: excludes=@
 
-Excludes All
+# Excludes All
 
 This validates that a string value does not contain any Unicode code
 points in the substring value.
 
 	Usage: excludesall=!@#?
 
-Excludes Rune
+# Excludes Rune
 
 This validates that a string value does not contain the supplied rune value.
 
 	Usage: excludesrune=@
 
-Starts With
+# Starts With
 
 This validates that a string value starts with the supplied string value
 
 	Usage: startswith=hello
 
-Ends With
+# Ends With
 
 This validates that a string value ends with the supplied string value
 
 	Usage: endswith=goodbye
 
-International Standard Book Number
+# International Standard Book Number
 
 This validates that a string value contains a valid isbn10 or isbn13 value.
 
 	Usage: isbn
 
-International Standard Book Number 10
+# International Standard Book Number 10
 
 This validates that a string value contains a valid isbn10 value.
 
 	Usage: isbn10
 
-International Standard Book Number 13
+# International Standard Book Number 13
 
 This validates that a string value contains a valid isbn13 value.
 
 	Usage: isbn13
 
-Universally Unique Identifier UUID
+# Universally Unique Identifier UUID
 
 This validates that a string value contains a valid UUID. Uppercase UUID values will not pass - use `uuid_rfc4122` instead.
 
 	Usage: uuid
 
-Universally Unique Identifier UUID v3
+# Universally Unique Identifier UUID v3
 
 This validates that a string value contains a valid version 3 UUID.  Uppercase UUID values will not pass - use `uuid3_rfc4122` instead.
 
 	Usage: uuid3
 
-Universally Unique Identifier UUID v4
+# Universally Unique Identifier UUID v4
 
 This validates that a string value contains a valid version 4 UUID.  Uppercase UUID values will not pass - use `uuid4_rfc4122` instead.
 
 	Usage: uuid4
 
-Universally Unique Identifier UUID v5
+# Universally Unique Identifier UUID v5
 
 This validates that a string value contains a valid version 5 UUID.  Uppercase UUID values will not pass - use `uuid5_rfc4122` instead.
 
 	Usage: uuid5
 
-ASCII
+# ASCII
 
 This validates that a string value contains only ASCII characters.
 NOTE: if the string is blank, this validates as true.
 
 	Usage: ascii
 
-Printable ASCII
+# Printable ASCII
 
 This validates that a string value contains only printable ASCII characters.
 NOTE: if the string is blank, this validates as true.
 
 	Usage: printascii
 
-Multi-Byte Characters
+# Multi-Byte Characters
 
 This validates that a string value contains one or more multibyte characters.
 NOTE: if the string is blank, this validates as true.
 
 	Usage: multibyte
 
-Data URL
+# Data URL
 
 This validates that a string value contains a valid DataURI.
 NOTE: this will also validate that the data portion is valid base64
 
 	Usage: datauri
 
-Latitude
+# Latitude
 
 This validates that a string value contains a valid latitude.
 
 	Usage: latitude
 
-Longitude
+# Longitude
 
 This validates that a string value contains a valid longitude.
 
 	Usage: longitude
 
-Social Security Number SSN
+# Social Security Number SSN
 
 This validates that a string value contains a valid U.S. Social Security Number.
 
 	Usage: ssn
 
-Internet Protocol Address IP
+# Internet Protocol Address IP
 
 This validates that a string value contains a valid IP Address.
 
 	Usage: ip
 
-Internet Protocol Address IPv4
+# Internet Protocol Address IPv4
 
 This validates that a string value contains a valid v4 IP Address.
 
 	Usage: ipv4
 
-Internet Protocol Address IPv6
+# Internet Protocol Address IPv6
 
 This validates that a string value contains a valid v6 IP Address.
 
 	Usage: ipv6
 
-Classless Inter-Domain Routing CIDR
+# Classless Inter-Domain Routing CIDR
 
 This validates that a string value contains a valid CIDR Address.
 
 	Usage: cidr
 
-Classless Inter-Domain Routing CIDRv4
+# Classless Inter-Domain Routing CIDRv4
 
 This validates that a string value contains a valid v4 CIDR Address.
 
 	Usage: cidrv4
 
-Classless Inter-Domain Routing CIDRv6
+# Classless Inter-Domain Routing CIDRv6
 
 This validates that a string value contains a valid v6 CIDR Address.
 
 	Usage: cidrv6
 
-Transmission Control Protocol Address TCP
+# Transmission Control Protocol Address TCP
 
 This validates that a string value contains a valid resolvable TCP Address.
 
 	Usage: tcp_addr
 
-Transmission Control Protocol Address TCPv4
+# Transmission Control Protocol Address TCPv4
 
 This validates that a string value contains a valid resolvable v4 TCP Address.
 
 	Usage: tcp4_addr
 
-Transmission Control Protocol Address TCPv6
+# Transmission Control Protocol Address TCPv6
 
 This validates that a string value contains a valid resolvable v6 TCP Address.
 
 	Usage: tcp6_addr
 
-User Datagram Protocol Address UDP
+# User Datagram Protocol Address UDP
 
 This validates that a string value contains a valid resolvable UDP Address.
 
 	Usage: udp_addr
 
-User Datagram Protocol Address UDPv4
+# User Datagram Protocol Address UDPv4
 
 This validates that a string value contains a valid resolvable v4 UDP Address.
 
 	Usage: udp4_addr
 
-User Datagram Protocol Address UDPv6
+# User Datagram Protocol Address UDPv6
 
 This validates that a string value contains a valid resolvable v6 UDP Address.
 
 	Usage: udp6_addr
 
-Internet Protocol Address IP
+# Internet Protocol Address IP
 
 This validates that a string value contains a valid resolvable IP Address.
 
 	Usage: ip_addr
 
-Internet Protocol Address IPv4
+# Internet Protocol Address IPv4
 
 This validates that a string value contains a valid resolvable v4 IP Address.
 
 	Usage: ip4_addr
 
-Internet Protocol Address IPv6
+# Internet Protocol Address IPv6
 
 This validates that a string value contains a valid resolvable v6 IP Address.
 
 	Usage: ip6_addr
 
-Unix domain socket end point Address
+# Unix domain socket end point Address
 
 This validates that a string value contains a valid Unix Address.
 
 	Usage: unix_addr
 
-Media Access Control Address MAC
+# Media Access Control Address MAC
 
 This validates that a string value contains a valid MAC Address.
 
@@ -1008,13 +1004,13 @@ Note: See Go's ParseMAC for accepted formats and types:
 
 	http://golang.org/src/net/mac.go?s=866:918#L29
 
-Hostname RFC 952
+# Hostname RFC 952
 
 This validates that a string value is a valid Hostname according to RFC 952 https://tools.ietf.org/html/rfc952
 
 	Usage: hostname
 
-Hostname RFC 1123
+# Hostname RFC 1123
 
 This validates that a string value is a valid Hostname according to RFC 1123 https://tools.ietf.org/html/rfc1123
 
@@ -1026,28 +1022,28 @@ This validates that a string value contains a valid FQDN.
 
 	Usage: fqdn
 
-HTML Tags
+# HTML Tags
 
 This validates that a string value appears to be an HTML element tag
 including those described at https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 
 	Usage: html
 
-HTML Encoded
+# HTML Encoded
 
 This validates that a string value is a proper character reference in decimal
 or hexadecimal format
 
 	Usage: html_encoded
 
-URL Encoded
+# URL Encoded
 
 This validates that a string value is percent-encoded (URL encoded) according
 to https://tools.ietf.org/html/rfc3986#section-2.1
 
 	Usage: url_encoded
 
-Directory
+# Directory
 
 This validates that a string value contains a valid directory and that
 it exists on the machine.
@@ -1055,21 +1051,21 @@ This is done using os.Stat, which is a platform independent function.
 
 	Usage: dir
 
-HostPort
+# HostPort
 
 This validates that a string value contains a valid DNS hostname and port that
 can be used to valiate fields typically passed to sockets and connections.
 
 	Usage: hostname_port
 
-Datetime
+# Datetime
 
 This validates that a string value is a valid datetime based on the supplied datetime format.
 Supplied format must match the official Go time format layout as documented in https://golang.org/pkg/time/
 
 	Usage: datetime=2006-01-02
 
-Alias Validators and Tags
+# Alias Validators and Tags
 
 NOTE: When returning an error, the tag returned in "FieldError" will be
 the alias tag unless the dive tag is part of the alias. Everything after the
@@ -1098,7 +1094,7 @@ Validator notes:
 		And the best reason, you can submit a pull request and we can keep on
 		adding to the validation library of this package!
 
-Non standard validators
+# Non standard validators
 
 A collection of validation rules that are frequently needed but are more
 complex than the ones found in the baked in validators.
@@ -1127,7 +1123,7 @@ Here is a list of the current non standard validators:
 
 		Usage: notblank
 
-Panics
+# Panics
 
 This package panics when bad input is provided, this is by design, bad code like
 that should not make it to production.

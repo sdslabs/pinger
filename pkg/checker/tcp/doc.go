@@ -9,9 +9,9 @@
 //
 // Input:
 //
-// 	  Type          Value                  Description
-// 	-------- -------------------- ------------------------------
-// 	 "TCP"   "", "PING", "ECHO"   Sends and receives TCP ECHO
+//	  Type          Value                  Description
+//	-------- -------------------- ------------------------------
+//	 "TCP"   "", "PING", "ECHO"   Sends and receives TCP ECHO
 //
 // Output:
 //
@@ -37,5 +37,4 @@
 //	   Type            Value                 Description
 //	----------- -------------------- ---------------------------
 //	 "MESSAGE"   <non empty string>   Sent in order as in array
-//
 package tcp

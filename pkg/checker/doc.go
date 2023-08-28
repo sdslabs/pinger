@@ -7,9 +7,9 @@
 // Further, a checker can be used to either just validate the check input
 // using the validate method:
 //
-// 	if err := checker.Validate(checkConfig); err != nil {
-// 		// handle error
-// 	}
+//	if err := checker.Validate(checkConfig); err != nil {
+//		// handle error
+//	}
 //
 // NewControllerOpts can be used to create a controller options from the
 // check config which can be paired with a controller which executes checker

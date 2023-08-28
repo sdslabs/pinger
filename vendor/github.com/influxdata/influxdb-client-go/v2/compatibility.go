@@ -5,10 +5,11 @@
 package influxdb2
 
 import (
+	"time"
+
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
-	"time"
 )
 
 // Proxy methods for backward compatibility

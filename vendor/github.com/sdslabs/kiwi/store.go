@@ -217,20 +217,19 @@ type StoreJSON = map[string]ValJSON
 //
 // The data is in the format (StoreJSON):
 //
-// 	{
-// 		"key_1": {
-// 			"type": "str",
-// 			"data": "hello"
-// 		},
-// 		"key_2": {
-// 			"type": "hash",
-// 			"data": {
-// 				"a": "b",
-// 				"c": "d"
-// 			}
-// 		}
-// 	}
-//
+//	{
+//		"key_1": {
+//			"type": "str",
+//			"data": "hello"
+//		},
+//		"key_2": {
+//			"type": "hash",
+//			"data": {
+//				"a": "b",
+//				"c": "d"
+//			}
+//		}
+//	}
 func (s *Store) Export() (json.RawMessage, error) {
 	schema := s.GetSchema()
 	sjson := make(StoreJSON, len(schema))
@@ -279,20 +278,19 @@ type ImportOpts struct {
 //
 // The data is in the format (StoreJSON):
 //
-// 	{
-// 		"key_1": {
-// 			"type": "str",
-// 			"data": "hello"
-// 		},
-// 		"key_2": {
-// 			"type": "hash",
-// 			"data": {
-// 				"a": "b",
-// 				"c": "d"
-// 			}
-// 		}
-// 	}
-//
+//	{
+//		"key_1": {
+//			"type": "str",
+//			"data": "hello"
+//		},
+//		"key_2": {
+//			"type": "hash",
+//			"data": {
+//				"a": "b",
+//				"c": "d"
+//			}
+//		}
+//	}
 func (s *Store) Import(rawmessage json.RawMessage, opts ImportOpts) error {
 	var sjson StoreJSON
 	if err := json.Unmarshal(rawmessage, &sjson); err != nil {

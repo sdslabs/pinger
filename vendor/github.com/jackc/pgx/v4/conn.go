@@ -123,14 +123,14 @@ func ConnectConfig(ctx context.Context, connConfig *ConnConfig) (*Conn, error) {
 // ParseConfig creates a ConnConfig from a connection string. ParseConfig handles all options that pgconn.ParseConfig
 // does. In addition, it accepts the following options:
 //
-// 	statement_cache_capacity
-// 		The maximum size of the automatic statement cache. Set to 0 to disable automatic statement caching. Default: 512.
+//	statement_cache_capacity
+//		The maximum size of the automatic statement cache. Set to 0 to disable automatic statement caching. Default: 512.
 //
-// 	statement_cache_mode
-// 		Possible values: "prepare" and "describe". "prepare" will create prepared statements on the PostgreSQL server.
-// 		"describe" will use the anonymous prepared statement to describe a statement without creating a statement on the
-// 		server. "describe" is primarily useful when the environment does not allow prepared statements such as when
-// 		running a connection pooler like PgBouncer. Default: "prepare"
+//	statement_cache_mode
+//		Possible values: "prepare" and "describe". "prepare" will create prepared statements on the PostgreSQL server.
+//		"describe" will use the anonymous prepared statement to describe a statement without creating a statement on the
+//		server. "describe" is primarily useful when the environment does not allow prepared statements such as when
+//		running a connection pooler like PgBouncer. Default: "prepare"
 func ParseConfig(connString string) (*ConnConfig, error) {
 	config, err := pgconn.ParseConfig(connString)
 	if err != nil {
@@ -758,7 +758,7 @@ func (c *Conn) SendBatch(ctx context.Context, b *Batch) BatchResults {
 		stmtCache = stmtcache.New(c.pgConn, stmtcache.ModeDescribe, len(distinctUnpreparedQueries))
 	}
 
-	for sql, _ := range distinctUnpreparedQueries {
+	for sql := range distinctUnpreparedQueries {
 		_, err := stmtCache.Get(ctx, sql)
 		if err != nil {
 			return &batchResults{ctx: ctx, conn: c, err: err}

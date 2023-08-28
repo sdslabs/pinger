@@ -17,6 +17,7 @@ import (
 // WriteAPIBlocking offers blocking methods for writing time series data synchronously into an InfluxDB server.
 // It doesn't implicitly create batches of points. It is intended to use for writing less frequent data, such as a weather sensing, or if there is a need to have explicit control of failed batches.
 // To add implicit batching, use a wrapper, such as:
+//
 //	type writer struct {
 //		batch []*write.Point
 //		writeAPI api.WriteAPIBlocking

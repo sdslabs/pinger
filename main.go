@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
-	"github.com/sdslabs/pinger/pkg/protobuf/pb"
-	"google.golang.org/grpc"
 	"net"
+
+	"google.golang.org/grpc"
+
+	"github.com/sdslabs/pinger/pkg/protobuf/pb"
 )
 
 type server struct {
@@ -13,49 +14,31 @@ type server struct {
 }
 
 func (s *server) CreateCheckService(ctx context.Context, req *pb.CreateCheckRequest) (*pb.Response, error) {
-	if req.Check != "" {
-		return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
-	}
-	return nil, errors.New("Inavlid request")
+	return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
 }
 
 func (s *server) DeleteCheckService(ctx context.Context, req *pb.DeleteCheckRequest) (*pb.Response, error) {
-	if req.UserId != "" {
-		return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
-	}
-	return nil, errors.New("Inavlid request")
+	return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
 }
 
 func (s *server) UpdateCheckService(ctx context.Context, req *pb.UpdateCheckRequest) (*pb.Response, error) {
-	if req.UserId != "" {
-		return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
-	}
-	return nil, errors.New("Inavlid request")
+	return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
 }
 
 func (s *server) CreatePageService(ctx context.Context, req *pb.CreatePageRequest) (*pb.Response, error) {
-	if req.NewPageString != "" {
-		return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
-	}
-	return nil, errors.New("Inavlid request")
+	return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
 }
 
 func (s *server) DeletePageService(ctx context.Context, req *pb.DeletePageRequest) (*pb.Response, error) {
-	if req.PageId != "" {
-		return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
-	}
-	return nil, errors.New("Inavlid request")
+	return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
 }
 
 func (s *server) UpdatePageService(ctx context.Context, req *pb.UpdatePageRequest) (*pb.Response, error) {
-	if req.PageId != "" {
-		return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
-	}
-	return nil, errors.New("Inavlid request")
+	return &pb.Response{Response: "gRPC Code 0 : OK "}, nil
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":5000")
+	lis, err := net.Listen("tcp", "127.0.0.1:5000")
 	if err != nil {
 		panic(err)
 	}
@@ -65,5 +48,7 @@ func main() {
 	if err := grpcServer.Serve(lis); err != nil {
 		panic(err)
 	}
-	grpcServer.Serve(lis)
+	if err := grpcServer.Serve(lis); err != nil {
+		panic(err)
+	}
 }

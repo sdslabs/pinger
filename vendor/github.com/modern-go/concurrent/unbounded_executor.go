@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"runtime/debug"
 	"sync"
 	"time"
-	"runtime/debug"
 )
 
 var LogInfo = func(event string, properties ...interface{}) {

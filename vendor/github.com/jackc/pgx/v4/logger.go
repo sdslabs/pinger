@@ -51,6 +51,7 @@ type Logger interface {
 // LogLevelFromString converts log level string to constant
 //
 // Valid levels:
+//
 //	trace
 //	debug
 //	info

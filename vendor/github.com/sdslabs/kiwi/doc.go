@@ -14,8 +14,7 @@
 // Store can also be initialized with a schema, which is basically a map of keys
 // and value types.
 //
-//
-// Get Started
+// # Get Started
 //
 // Create a store, add key and play with it. It's that easy!
 //
