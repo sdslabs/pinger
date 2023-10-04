@@ -1,7 +1,6 @@
 # Binary build
 /dist
 /pinger*
-/vendor
 
 # Default config files
 /agent.yml
