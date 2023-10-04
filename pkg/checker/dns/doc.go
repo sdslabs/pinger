@@ -10,23 +10,22 @@
 //
 // Input:
 //
-// 	 Type          Value               Description
-// 	------- -------------------- ------------------------
-// 	 "DNS"   "", "PING", "ECHO"   Resolves the DNS names
+//	 Type          Value               Description
+//	------- -------------------- ------------------------
+//	 "DNS"   "", "PING", "ECHO"   Resolves the DNS names
 //
 // Output:
 //
-// 	       Type               Value                       Description
-// 	----------------- -------------------- ----------------------------------------
-// 	 "TIMEOUT"         <not validated>      Success is not-timeout
-// 	 "ADDRESS", "IP"   <valid IP address>   One of the resolved IP should be this
+//	       Type               Value                       Description
+//	----------------- -------------------- ----------------------------------------
+//	 "TIMEOUT"         <not validated>      Success is not-timeout
+//	 "ADDRESS", "IP"   <valid IP address>   One of the resolved IP should be this
 //
 // Target:
 //
-// 	             Type                       Value               Description
-// 	------------------------------- ---------------------- ---------------------
-// 	 "HOST", "HOSTNAME", "DNSNAME"   <validated DNS name>   DNS name to resolve
+//	             Type                       Value               Description
+//	------------------------------- ---------------------- ---------------------
+//	 "HOST", "HOSTNAME", "DNSNAME"   <validated DNS name>   DNS name to resolve
 //
 // Payload is not required and hence not validated.
-//
 package dns

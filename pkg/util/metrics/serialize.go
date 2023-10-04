@@ -11,12 +11,12 @@ import (
 // metric from each batch.
 //
 // The following rules are applied to each batch:
-// 	- Failed metric is prioritized over successful.
-// 	- Metric with highest latency is considered.
-//  - If number of batches are more than number of metrics, this is probably
-// 	  recent addition of check. In this case, The first metric should be
-// 	  appended at the front of list.
-//  - The first (latest) metric is remains the same.
+//   - Failed metric is prioritized over successful.
+//   - Metric with highest latency is considered.
+//   - If number of batches are more than number of metrics, this is probably
+//     recent addition of check. In this case, The first metric should be
+//     appended at the front of list.
+//   - The first (latest) metric is remains the same.
 //
 // Minimum number of batches accepted is 2 since only 1 would mean just
 // getting the latest metric which doesn't reflect any history.

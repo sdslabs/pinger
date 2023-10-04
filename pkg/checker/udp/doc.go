@@ -9,9 +9,9 @@
 //
 // Input:
 //
-// 	  Type          Value                  Description
-// 	-------- -------------------- ------------------------------
-// 	 "UDP"   "", "PING", "ECHO"   Sends and receives UDP ECHO
+//	  Type          Value                  Description
+//	-------- -------------------- ------------------------------
+//	 "UDP"   "", "PING", "ECHO"   Sends and receives UDP ECHO
 //
 // Output:
 //
@@ -28,14 +28,13 @@
 //
 // Target:
 //
-// 	   Type             Value                          Description
-// 	----------- -------------------------- --------------------------------
-// 	 "ADDRESS"   <valid HOST:PORT address>   Address to send the request to
+//	   Type             Value                          Description
+//	----------- -------------------------- --------------------------------
+//	 "ADDRESS"   <valid HOST:PORT address>   Address to send the request to
 //
 // Payload:
 //
 //	   Type            Value                 Description
 //	----------- -------------------- ---------------------------
 //	 "MESSAGE"   <non empty string>   Sent in order as in array
-//
 package udp

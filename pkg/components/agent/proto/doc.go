@@ -5,6 +5,5 @@
 // please generate it again using the following command and
 // only then commit your changes:
 //
-// 	$ make proto
-//
+//	$ make proto
 package proto
